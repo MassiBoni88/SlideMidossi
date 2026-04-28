@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Materiale Didattico</title>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --panel: #13161f;
+      --border: #1e2330;
+      --accent: #00d4aa;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --error: #ff6b6b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 14px; padding: 44px 40px; width: 360px;
+    }
+    .login-box h1 { font-size: 1.4rem; margin-bottom: 6px; }
+    .login-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 30px; }
+
+    /* ── ADMIN ── */
+    #admin-screen { display: none; padding: 32px 20px 60px; }
+    .admin-wrap { max-width: 580px; margin: 0 auto; }
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .admin-header h1 { font-size: 1.3rem; }
+    .logout-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 6px 16px; border-radius: 6px;
+      cursor: pointer; font-size: 0.85rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--error); color: var(--error); }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 20px;
+    }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block; font-size: 0.75rem; color: var(--muted);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 7px;
+    }
+    input[type="text"], input[type="password"], select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 10px 14px; color: var(--text);
+      font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--panel); }
+
+    /* ── UPLOAD AREA ── */
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 28px 20px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: var(--accent); background: rgba(0,212,170,0.04);
+    }
+    .upload-area input[type="file"] { display: none; }
+    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-hint { color: var(--muted); font-size: 0.88rem; }
+    .upload-hint strong { color: var(--text); }
+    .upload-name { color: var(--accent); font-size: 0.88rem; font-family: monospace; margin-top: 8px; }
+
+    /* ── PATH PREVIEW ── */
+    .path-box {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 10px 14px;
+      font-family: monospace; font-size: 0.85rem; color: var(--accent);
+      margin-top: 8px; word-break: break-all;
+    }
+
+    /* ── BUTTON ── */
+    .btn {
+      width: 100%; padding: 13px; background: var(--accent); color: #000;
+      border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s, transform 0.15s; margin-top: 22px;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── PROGRESS ── */
+    .progress {
+      height: 4px; background: var(--border); border-radius: 2px;
+      margin-top: 14px; overflow: hidden; display: none;
+    }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+    /* ── TOKEN STATUS ── */
+    .tok-ok  { color: var(--accent); font-size: 0.82rem; margin-top: 6px; }
+    .tok-err { color: var(--error);  font-size: 0.82rem; margin-top: 6px; }
+
+    /* ── LOGIN ERROR ── */
+    .login-err { color: var(--error); font-size: 0.85rem; margin-bottom: 14px; display: none; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 20px; font-size: 0.9rem;
+      max-width: 340px; transform: translateY(80px); opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok  { border-color: var(--accent); }
+    .toast.err { border-color: var(--error); }
+
+    /* ── TOKEN HELP ── */
+    .help-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
+    .help-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Area Admin</h1>
+    <p>Accesso riservato — gestione materiale didattico</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="usr" autocomplete="username" placeholder="username"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="pwd" autocomplete="current-password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-err" id="login-err">Credenziali non valide.</div>
+    <button class="btn" onclick="doLogin()">Accedi</button>
+  </div>
+</div>
+
+<!-- ════════ ADMIN ════════ -->
+<div id="admin-screen">
+  <div class="admin-wrap">
+
+    <div class="admin-header">
+      <h1>Carica Materiale</h1>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+
+    <!-- GitHub Token -->
+    <div class="card">
+      <h2>GitHub Token</h2>
+      <div class="field" style="margin-bottom:6px">
+        <label>Personal Access Token
+          <a class="help-link" href="https://github.com/settings/tokens" target="_blank">(ottienilo qui)</a>
+        </label>
+        <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx" oninput="onTokenChange()">
+      </div>
+      <div id="tok-status"></div>
+    </div>
+
+    <!-- Upload -->
+    <div class="card">
+      <h2>Nuovo File</h2>
+
+      <div class="field">
+        <label>Anno Scolastico</label>
+        <select id="anno" onchange="updatePath()">
+          <option value="">— seleziona —</option>
+          <option value="prime">Primo Anno</option>
+          <option value="seconde">Secondo Anno</option>
+          <option value="terze">Terzo Anno</option>
+          <option value="quarte">Quarto Anno</option>
+          <option value="quinte">Quinto Anno</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Materia</label>
+        <input type="text" id="materia" placeholder="es. Sistemi e Reti" oninput="updatePath()">
+      </div>
+
+      <div class="field">
+        <label>Titolo (mostrato in homepage)</label>
+        <input type="text" id="titolo" placeholder="es. Unità 5 — Reti Locali" oninput="checkReady()">
+      </div>
+
+      <div class="field">
+        <label>File HTML</label>
+        <div class="upload-area" id="drop-zone"
+             onclick="document.getElementById('file-input').click()"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+          <input type="file" id="file-input" accept=".html" onchange="onFileSelected(this.files[0])">
+          <div class="upload-icon">📄</div>
+          <div class="upload-hint">Clicca o trascina un file <strong>.html</strong></div>
+          <div class="upload-name" id="upload-name"></div>
+        </div>
+      </div>
+
+      <div id="path-wrap" style="display:none">
+        <label>Percorso di destinazione</label>
+        <div class="path-box" id="path-box"></div>
+      </div>
+
+      <div class="progress" id="prog-wrap">
+        <div class="progress-bar" id="prog-bar"></div>
+      </div>
+
+      <button class="btn" id="upload-btn" onclick="doUpload()" disabled>
+        Carica su GitHub
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const OWNER  = 'MassiBoni88';
+const REPO   = 'SlideMidossi';
+const BRANCH = 'main';
+
+let selectedFile = null;
+
+/* ── AUTH ── */
+function doLogin() {
+  const u = document.getElementById('usr').value.trim();
+  const p = document.getElementById('pwd').value;
+  if (u === 'MassiBoni88' && p === 'ForzaRoma88') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    loadToken();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+function doLogout() {
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('usr').value = '';
+  document.getElementById('pwd').value = '';
+}
+
+/* ── TOKEN ── */
+function onTokenChange() {
+  const t = document.getElementById('gh-token').value.trim();
+  if (t) localStorage.setItem('gh_token', t);
+  renderTokenStatus(t);
+  checkReady();
+}
+function loadToken() {
+  const t = localStorage.getItem('gh_token') || '';
+  document.getElementById('gh-token').value = t;
+  renderTokenStatus(t);
+}
+function renderTokenStatus(t) {
+  const el = document.getElementById('tok-status');
+  el.innerHTML = t.length > 10
+    ? '<p class="tok-ok">✓ Token impostato</p>'
+    : '<p class="tok-err">⚠ Token mancante — necessario per caricare su GitHub</p>';
+}
+function getToken() {
+  return (document.getElementById('gh-token').value || localStorage.getItem('gh_token') || '').trim();
+}
+
+/* ── FILE ── */
+function onFileSelected(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.html')) {
+    showToast('Solo file .html sono accettati', 'err'); return;
+  }
+  selectedFile = file;
+  document.getElementById('upload-name').textContent = file.name;
+  updatePath();
+}
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('drag-over');
+}
+function onDragLeave() {
+  document.getElementById('drop-zone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  onFileSelected(e.dataTransfer.files[0]);
+}
+
+/* ── PATH ── */
+function updatePath() {
+  const anno    = document.getElementById('anno').value;
+  const materia = document.getElementById('materia').value.trim().toLowerCase();
+  const fname   = selectedFile ? selectedFile.name : '';
+  if (anno && materia && fname) {
+    const path = `${anno}/${materia}/${fname}`;
+    document.getElementById('path-box').textContent = path;
+    document.getElementById('path-wrap').style.display = 'block';
+  } else {
+    document.getElementById('path-wrap').style.display = 'none';
+  }
+  checkReady();
+}
+
+function checkReady() {
+  const ok = getToken().length > 10
+    && document.getElementById('anno').value
+    && document.getElementById('materia').value.trim()
+    && document.getElementById('titolo').value.trim()
+    && selectedFile;
+  document.getElementById('upload-btn').disabled = !ok;
+}
+
+/* ── UPLOAD ── */
+async function doUpload() {
+  const token   = getToken();
+  const anno    = document.getElementById('anno').value;
+  const materia = document.getElementById('materia').value.trim();
+  const titolo  = document.getElementById('titolo').value.trim();
+  const fname   = selectedFile.name;
+  const filePath = `${anno}/${materia}/${fname}`;
+
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.textContent = 'Caricamento…';
+  setProgress(true, 10);
+
+  try {
+    const content = await readAsText(selectedFile);
+
+    // 1. Controlla se il file esiste già (serve sha per aggiornare)
+    setProgress(true, 25);
+    const checkRes = await ghFetch(token, `contents/${encodeURIComponent(filePath)}`);
+    const putBody  = { message: `Add ${fname}`, content: toBase64(content), branch: BRANCH };
+    if (checkRes.ok) putBody.sha = (await checkRes.json()).sha;
+
+    // 2. Carica il file HTML
+    setProgress(true, 50);
+    const upRes = await ghFetch(token, `contents/${encodeURIComponent(filePath)}`, 'PUT', putBody);
+    if (!upRes.ok) {
+      const err = await upRes.json();
+      throw new Error(err.message || 'Upload fallito');
+    }
+
+    // 3. Aggiorna index.html
+    setProgress(true, 75);
+    await updateIndex(token, anno, materia, fname, titolo);
+
+    setProgress(true, 100);
+    showToast(`✓ "${fname}" caricato con successo!`, 'ok');
+    resetForm();
+  } catch (e) {
+    showToast('Errore: ' + e.message, 'err');
+  } finally {
+    setTimeout(() => setProgress(false), 900);
+    btn.disabled = false;
+    btn.textContent = 'Carica su GitHub';
+    checkReady();
+  }
+}
+
+/* ── AGGIORNA INDEX.HTML ── */
+async function updateIndex(token, anno, materia, fname, titolo) {
+  const res = await ghFetch(token, 'contents/index.html');
+  if (!res.ok) throw new Error('Impossibile leggere index.html');
+  const data = await res.json();
+
+  // Decodifica contenuto (GitHub lo manda in base64 con newline)
+  let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+
+  const href    = `${anno}/${materia}/${fname}`;
+  const newCard = `          <a class="slide-card" href="${href}">
+            <span class="slide-icon">📄</span>
+            <div class="slide-info">
+              <div class="slide-title">${titolo}</div>
+              <div class="slide-filename">${fname}</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>`;
+
+  const annoLabels = { prime:'PRIME', seconde:'SECONDE', terze:'TERZE', quarte:'QUARTE', quinte:'QUINTE' };
+  const annoDisplay = { prime:'Classi Prime', seconde:'Classi Seconde', terze:'Classi Terze', quarte:'Classi Quarte', quinte:'Classi Quinte' };
+  const annoBadge   = { prime:'1°', seconde:'2°', terze:'3°', quarte:'4°', quinte:'5°' };
+  const sectionKey  = annoLabels[anno] || anno.toUpperCase();
+  const secComment  = `<!-- ${sectionKey} -->`;
+  const materiaLabel = materia.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+  const secIdx = html.indexOf(secComment);
+
+  if (secIdx === -1) {
+    // Sezione anno non esiste — creala prima del footer
+    const footerIdx = html.indexOf('<footer>');
+    const newSection = `
+    <!-- ${sectionKey} -->
+    <div class="class-section ${anno}">
+      <div class="class-header">
+        <span class="class-badge badge-${anno}">${annoBadge[anno] || '?'}</span>
+        <span class="class-label">${annoDisplay[anno] || anno}</span>
+        <div class="class-line"></div>
+      </div>
+
+      <div class="subject-group">
+        <div class="subject-label">${materiaLabel}</div>
+        <div class="slides-grid">
+${newCard}
+        </div>
+      </div>
+    </div>
+
+    `;
+    html = html.slice(0, footerIdx) + newSection + html.slice(footerIdx);
+  } else {
+    // Sezione esiste — cerca il gruppo materia all'interno
+    const nextSec = html.indexOf('<!-- ', secIdx + secComment.length);
+    const secEnd  = nextSec !== -1 ? nextSec : html.indexOf('<footer>');
+    const subjMarker = `<div class="subject-label">${materiaLabel}</div>`;
+    const subjIdx    = html.indexOf(subjMarker, secIdx);
+
+    if (subjIdx !== -1 && subjIdx < secEnd) {
+      // Gruppo materia esiste — inserisci card prima della chiusura slides-grid
+      const gridOpen  = html.indexOf('<div class="slides-grid">', subjIdx);
+      const gridClose = findClosingDiv(html, gridOpen);
+      html = html.slice(0, gridClose) + newCard + '\n        ' + html.slice(gridClose);
+    } else {
+      // Gruppo materia non esiste — aggiungilo prima della chiusura class-section
+      const classSectionOpen  = html.indexOf('<div class="class-section', secIdx);
+      const classSectionClose = findClosingDiv(html, classSectionOpen);
+      const newGroup = `
+      <div class="subject-group">
+        <div class="subject-label">${materiaLabel}</div>
+        <div class="slides-grid">
+${newCard}
+        </div>
+      </div>
+    `;
+      html = html.slice(0, classSectionClose) + newGroup + html.slice(classSectionClose);
+    }
+  }
+
+  const putRes = await ghFetch(token, 'contents/index.html', 'PUT', {
+    message: `Add link to ${fname} in index`,
+    content: toBase64(html),
+    sha: data.sha,
+    branch: BRANCH
+  });
+  if (!putRes.ok) {
+    const err = await putRes.json();
+    throw new Error('Aggiornamento index.html fallito: ' + (err.message || ''));
+  }
+}
+
+// Trova la </div> di chiusura del <div> che apre a fromIdx
+function findClosingDiv(html, fromIdx) {
+  let depth = 0, i = fromIdx;
+  while (i < html.length) {
+    if (html.startsWith('<div', i)) { depth++; i += 4; }
+    else if (html.startsWith('</div>', i)) { depth--; if (depth === 0) return i; else i += 6; }
+    else i++;
+  }
+  return html.length;
+}
+
+/* ── UTILITY ── */
+function ghFetch(token, endpoint, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(`https://api.github.com/repos/${OWNER}/${REPO}/${endpoint}`, opts);
+}
+
+function readAsText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+function toBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+function setProgress(show, pct) {
+  const w = document.getElementById('prog-wrap');
+  const b = document.getElementById('prog-bar');
+  w.style.display = show ? 'block' : 'none';
+  if (pct !== undefined) b.style.width = pct + '%';
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 4500);
+}
+
+function resetForm() {
+  selectedFile = null;
+  ['anno','materia','titolo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('upload-name').textContent = '';
+  document.getElementById('path-wrap').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// Aggiorna bottone al cambio dei campi
+['materia','titolo'].forEach(id =>
+  document.getElementById(id).addEventListener('input', checkReady)
+);
+</script>
+</body>
+</html>
