@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materiale Didattico — ITT Midossi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #181c27;
+      --border: #252a3a;
+      --accent: #4f8ef7;
+      --accent2: #a78bfa;
+      --accent3: #34d399;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --terze: #4f8ef7;
+      --quarte: #a78bfa;
+      --quinte: #34d399;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    header {
+      margin-bottom: 64px;
+    }
+
+    .school-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 300;
+    }
+
+    /* class sections */
+    .class-section {
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .class-section:nth-child(1) { animation-delay: 0.1s; }
+    .class-section:nth-child(2) { animation-delay: 0.2s; }
+    .class-section:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .class-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .class-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .badge-terze  { background: rgba(79,142,247,0.15);  color: var(--terze);  }
+    .badge-quarte { background: rgba(167,139,250,0.15); color: var(--quarte); }
+    .badge-quinte { background: rgba(52,211,153,0.15);  color: var(--quinte); }
+
+    .class-label {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .class-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* subject group */
+    .subject-group {
+      margin-bottom: 12px;
+    }
+
+    .subject-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    .slides-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slide-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+      transition: opacity 0.2s;
+      opacity: 0;
+    }
+
+    .terze  .slide-card::before { background: var(--terze); }
+    .quarte .slide-card::before { background: var(--quarte); }
+    .quinte .slide-card::before { background: var(--quinte); }
+
+    .slide-card:hover {
+      border-color: rgba(255,255,255,0.12);
+      background: #1e2233;
+      transform: translateX(4px);
+    }
+
+    .slide-card:hover::before { opacity: 1; }
+
+    .slide-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .slide-info {
+      flex: 1;
+    }
+
+    .slide-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .slide-filename {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .slide-arrow {
+      color: var(--muted);
+      font-size: 1rem;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .slide-card:hover .slide-arrow {
+      color: var(--text);
+      transform: translateX(3px);
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <p class="school-tag">ITT G. Midossi — Civita Castellana</p>
+      <h1>Materiale<br><span>Didattico</span></h1>
+      <p class="subtitle">Slide e guide per le lezioni — seleziona la tua classe</p>
+    </header>
+
+    <!-- TERZE -->
+    <div class="class-section terze">
+      <div class="class-header">
+        <span class="class-badge badge-terze">3°</span>
+        <span class="class-label">Classi Terze</span>
+        <div class="class-line"></div>
+      </div>
+
+      <div class="subject-group">
+        <div class="subject-label">Informatica</div>
+        <div class="slides-grid">
+          <a class="slide-card" href="terze/informatica/cpp_slides.html">
+            <span class="slide-icon">💻</span>
+            <div class="slide-info">
+              <div class="slide-title">Programmazione in C++</div>
+              <div class="slide-filename">cpp_slides.html</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUARTE -->
+    <div class="class-section quarte">
+      <div class="class-header">
+        <span class="class-badge badge-quarte">4°</span>
+        <span class="class-label">Classi Quarte</span>
+        <div class="class-line"></div>
+      </div>
+
+      <div class="subject-group">
+        <div class="subject-label">Sistemi e Reti</div>
+        <div class="slides-grid">
+          <a class="slide-card" href="quarte/sistemi e reti/unita7_dhcp_dns.html">
+            <span class="slide-icon">🌐</span>
+            <div class="slide-info">
+              <div class="slide-title">Unità 7 — DHCP e DNS</div>
+              <div class="slide-filename">unita7_dhcp_dns.html</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>
+          <a class="slide-card" href="quarte/sistemi e reti/dhcp-linux-guida.html">
+            <span class="slide-icon">🐧</span>
+            <div class="slide-info">
+              <div class="slide-title">Guida — DHCP su Linux</div>
+              <div class="slide-filename">dhcp-linux-guida.html</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUINTE -->
+    <div class="class-section quinte">
+      <div class="class-header">
+        <span class="class-badge badge-quinte">5°</span>
+        <span class="class-label">Classi Quinte</span>
+        <div class="class-line"></div>
+      </div>
+
+      <div class="subject-group">
+        <div class="subject-label">Sistemi e Reti</div>
+        <div class="slides-grid">
+          <a class="slide-card" href="quinte/sistemi e reti/unita6_cablaggio_cloud.html">
+            <span class="slide-icon">☁️</span>
+            <div class="slide-info">
+              <div class="slide-title">Unità 6 — Cablaggio e Cloud</div>
+              <div class="slide-filename">unita6_cablaggio_cloud.html</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>
+          <a class="slide-card" href="quinte/sistemi e reti/unita7_architetture_web.html">
+            <span class="slide-icon">🏗️</span>
+            <div class="slide-info">
+              <div class="slide-title">Unità 7 — Architetture Web</div>
+              <div class="slide-filename">unita7_architetture_web.html</div>
+            </div>
+            <span class="slide-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <footer>ITT G. Midossi &nbsp;·&nbsp; Civita Castellana &nbsp;·&nbsp; A.S. 2025/2026</footer>
+  </div>
+</body>
+</html>
