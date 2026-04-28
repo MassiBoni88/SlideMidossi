@@ -135,6 +135,33 @@
     /* ── TOKEN HELP ── */
     .help-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
     .help-link:hover { text-decoration: underline; }
+
+    /* ── FILE LIST ── */
+    .file-list { list-style: none; margin-top: 14px; }
+    .file-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+    }
+    .file-item:last-child { margin-bottom: 0; }
+    .file-path { font-family: monospace; font-size: 0.82rem; color: var(--muted); word-break: break-all; }
+    .del-btn {
+      flex-shrink: 0; margin-left: 14px;
+      background: none; border: 1px solid rgba(255,107,107,0.3);
+      color: var(--error); padding: 4px 13px; border-radius: 5px;
+      cursor: pointer; font-size: 0.8rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .del-btn:hover { background: rgba(255,107,107,0.1); border-color: var(--error); }
+    .load-btn {
+      width: 100%; padding: 10px; background: transparent;
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 0.9rem; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .load-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .load-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .empty-list { color: var(--muted); font-size: 0.85rem; padding: 10px 0; }
   </style>
 </head>
 <body>
@@ -230,6 +257,15 @@
       <button class="btn" id="upload-btn" onclick="doUpload()" disabled>
         Carica su GitHub
       </button>
+    </div>
+
+    <!-- Elimina File -->
+    <div class="card">
+      <h2>Elimina File</h2>
+      <button class="load-btn" id="load-list-btn" onclick="loadFileList()">
+        Carica lista file dal repository
+      </button>
+      <ul class="file-list" id="file-list"></ul>
     </div>
 
   </div>
@@ -530,6 +566,104 @@ function resetForm() {
 ['materia','titolo'].forEach(id =>
   document.getElementById(id).addEventListener('input', checkReady)
 );
+
+/* ── FILE LIST ── */
+async function loadFileList() {
+  const token = getToken();
+  if (!token) { showToast('Imposta il token prima', 'err'); return; }
+
+  const btn = document.getElementById('load-list-btn');
+  btn.textContent = 'Caricamento…';
+  btn.disabled = true;
+
+  try {
+    const res = await ghFetch(token, `git/trees/${BRANCH}?recursive=1`);
+    if (!res.ok) throw new Error('Impossibile leggere il repository');
+    const data = await res.json();
+
+    const files = data.tree
+      .filter(f => f.type === 'blob'
+        && f.path.endsWith('.html')
+        && f.path !== 'index.html'
+        && f.path !== 'admin.html')
+      .sort((a, b) => a.path.localeCompare(b.path));
+
+    const list = document.getElementById('file-list');
+    if (files.length === 0) {
+      list.innerHTML = '<li class="empty-list">Nessun file trovato.</li>';
+    } else {
+      list.innerHTML = files.map(f =>
+        `<li class="file-item">
+          <span class="file-path">${f.path}</span>
+          <button class="del-btn" onclick="confirmDelete('${f.path}','${f.sha}')">Elimina</button>
+        </li>`
+      ).join('');
+    }
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'err');
+  } finally {
+    btn.textContent = 'Aggiorna lista';
+    btn.disabled = false;
+  }
+}
+
+function confirmDelete(path, sha) {
+  if (!confirm(`Eliminare definitivamente:\n\n${path}\n\nVerrà rimosso anche il link dalla homepage.`)) return;
+  doDelete(path, sha);
+}
+
+async function doDelete(path, sha) {
+  const token = getToken();
+  try {
+    // 1. Elimina il file
+    const res = await ghFetch(token, `contents/${encodeURIComponent(path)}`, 'DELETE', {
+      message: `Remove ${path.split('/').pop()}`,
+      sha,
+      branch: BRANCH
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Eliminazione fallita');
+    }
+
+    // 2. Rimuovi la card da index.html
+    await removeFromIndex(token, path);
+
+    showToast(`✓ "${path.split('/').pop()}" eliminato`, 'ok');
+    loadFileList();
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'err');
+  }
+}
+
+async function removeFromIndex(token, filePath) {
+  const res = await ghFetch(token, 'contents/index.html');
+  if (!res.ok) throw new Error('Impossibile leggere index.html');
+  const data = await res.json();
+  let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+
+  // Trova la card con l'href corrispondente e la rimuove
+  const hrefSnippet = `href="${filePath}"`;
+  const hrefPos = html.indexOf(hrefSnippet);
+  if (hrefPos === -1) return; // card non presente, nulla da fare
+
+  const cardStart = html.lastIndexOf('<a class="slide-card"', hrefPos);
+  const cardEnd   = html.indexOf('</a>', hrefPos) + '</a>'.length;
+  if (cardStart === -1) return;
+
+  html = html.slice(0, cardStart).trimEnd() + '\n' + html.slice(cardEnd).replace(/^\s*\n/, '');
+
+  const putRes = await ghFetch(token, 'contents/index.html', 'PUT', {
+    message: `Remove link to ${filePath.split('/').pop()} from index`,
+    content: toBase64(html),
+    sha: data.sha,
+    branch: BRANCH
+  });
+  if (!putRes.ok) {
+    const err = await putRes.json();
+    throw new Error('Aggiornamento index.html fallito: ' + (err.message || ''));
+  }
+}
 </script>
 </body>
 </html>
