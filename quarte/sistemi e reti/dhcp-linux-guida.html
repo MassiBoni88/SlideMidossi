@@ -162,7 +162,6 @@
     align-items: center;
     gap: 1rem;
     padding: 1.2rem 1.5rem;
-  padding-left: 64px;
     background: var(--surface2);
   }
 
@@ -218,7 +217,6 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.5rem 1rem;
-  padding-left: 64px;
     background: var(--surface2);
     border-bottom: 1px solid var(--border);
   }
@@ -383,10 +381,33 @@
     border-top: 1px solid var(--border);
     margin-top: 3rem;
   }
+
+  /* ── MOBILE ── */
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    header { padding: 1.5rem 1rem 1.5rem 56px; }
+    header h1 { font-size: 1.5rem; }
+    header p { font-size: 0.85rem; }
+    #theme-btn { top: 0.6rem; right: 0.75rem; font-size: 0.68rem; padding: 4px 9px; }
+    .tabs { padding: 0 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.82rem; white-space: nowrap; }
+    main { padding: 1rem; }
+    .step-header { padding: 0.9rem 1rem; gap: 0.7rem; }
+    .step-body { padding: 0.9rem 1rem; }
+    .step-body p { font-size: 0.85rem; }
+    .note { font-size: 0.8rem; }
+    pre { font-size: 0.75rem; padding: 0.9rem; }
+    .summary { margin-top: 1.5rem; }
+    .summary-title { padding: 0.8rem 1rem; font-size: 0.82rem; }
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    th { padding: 0.6rem 0.8rem; font-size: 0.68rem; }
+    td { padding: 0.6rem 0.8rem; font-size: 0.72rem; }
+    footer { padding: 1.5rem 1rem; }
+  }
 </style>
 </head>
 <body>
-<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(15,17,23,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:50%;font-size:20px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">🏠</a>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(15,17,23,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:50%;font-size:20px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">&#127968;</a>
 
 <header>
   <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
@@ -726,6 +747,21 @@ ping 8.8.8.8</pre>
       }, 2000);
     });
   }
+
+  // Touch swipe support
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
 </script>
 </body>
 </html>
