@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Esempio HTML + CSS + JS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    h2 {
+      color: #2980b9;
+      border-bottom: 2px solid #2980b9;
+      padding-bottom: 5px;
+    }
+
+    .sezione {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .nome {
+      background-color: white;
+      border-radius: 8px;
+      padding: 7px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    button {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #1a6fa0;
+    }
+
+    #output-ciclo,
+    #output-oggetti {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #eaf4fb;
+      border-left: 4px solid #2980b9;
+      border-radius: 4px;
+      min-height: 30px;
+    }
+
+    .studente-card {
+      background-color: #eaf4fb;
+      border: 1px solid #aed6f1;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    .studente-card strong {
+      color: #1a6fa0;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Corso di Informatica — Esempi JavaScript</h1>
+
+  <!-- SEZIONE 1: FUNZIONE -->
+  <div class="sezione">
+    <h2>1. Funzione</h2>
+    <p>Inserisci il tuo nome e premi il bottone per ricevere un saluto.</p>
+    <input type="text" id="nome-input" placeholder="Il tuo nome">
+    <button onclick="saluta()">Saluta</button>
+    <div class="nome" id="output-saluto"></div>
+  </div>
+
+  <!-- SEZIONE 2: CICLO -->
+  <div class="sezione">
+    <h2>2. Ciclo (for)</h2>
+    <p>Genera la tabellina del numero scelto.</p>
+    <input type="text" id="numero-input" placeholder="Numero (es. 5)">
+    <button onclick="mostraTabellina()">Genera tabellina</button>
+    <div id="output-ciclo"></div>
+  </div>
+
+  <!-- SEZIONE 3: OGGETTI -->
+  <div class="sezione">
+    <h2>3. Oggetti</h2>
+    <p>Una lista di studenti con voti, creati come oggetti JavaScript.</p>
+    <button onclick="mostraStudenti()">Mostra studenti</button>
+    <div id="output-oggetti"></div>
+  </div>
+
+  <script>
+    // ─── FUNZIONE ────────────────────────────────────────────────────
+    function saluta() {
+      var nome = document.getElementById("nome-input").value;
+
+      if (nome === "") {
+        document.getElementById("output-saluto").innerHTML = "Inserisci un nome!";
+        return;
+      }
+
+      document.getElementById("output-saluto").innerHTML =
+        "<p>Ciao, <strong>" + nome + "</strong>! Benvenuto nel corso di informatica.</p>";
+    }
+
+    // ─── CICLO ───────────────────────────────────────────────────────
+    function mostraTabellina() {
+      var numero = parseInt(document.getElementById("numero-input").value);
+
+      if (isNaN(numero)) {
+        document.getElementById("output-ciclo").innerHTML = "Inserisci un numero valido!";
+        return;
+      }
+
+      var testo = "<strong>Tabellina del " + numero + ":</strong><br>";
+
+      for (var i = 1; i <= 10; i++) {
+        testo += numero + " × " + i + " = " + (numero * i) + "<br>";
+      }
+
+      document.getElementById("output-ciclo").innerHTML = testo;
+    }
+
+
+    function giudizio(voto) {
+      if (voto >= 9) return "Ottimo";
+      if (voto >= 7) return "Buono";
+      return "Sufficiente";
+    }
+
+    function mostraStudenti() {
+      var html = "";
+
+      var studenti = [
+        { nome: "Alessandro", cognome: "Maracci", voto: 8 },
+        { nome: "Giulia",     cognome: "Rossi",   voto: 9 },
+        { nome: "Marco",      cognome: "Bianchi",  voto: 7 },
+        { nome: "Sara",       cognome: "Ferrari",  voto: 10 }
+      ];
+
+      for (var i = 0; i < studenti.length; i++) {
+        var s = studenti[i];
+        html += "<div class='studente-card'>";
+        html += "<strong>" + s.nome + " " + s.cognome + "</strong><br>";
+        html += "Voto: " + s.voto + " — " + giudizio(s.voto);
+        html += "</div>";
+      }
+
+      document.getElementById("output-oggetti").innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
