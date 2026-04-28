@@ -54,7 +54,7 @@
 
   #topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
     background: var(--panel); flex-shrink: 0;
   }
   #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
@@ -196,6 +196,7 @@
 </style>
 </head>
 <body>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(15,17,23,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:50%;font-size:20px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">🏠</a>
 
 <div id="topbar">
   <div>
