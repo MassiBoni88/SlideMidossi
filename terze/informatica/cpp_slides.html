@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,18 @@
     --text: #e8eaf0;
     --muted: #6b7280;
     --code-bg: #080a0f;
+  }
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --code-bg: #f1f5f9;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -44,6 +56,14 @@
   #topbar .course { font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
   #topbar .title-bar { font-size: 0.9rem; font-weight: 700; color: var(--accent1); }
   #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #theme-btn {
+    background: var(--border); border: 1px solid var(--muted);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #000; border-color: var(--accent1); }
 
   /* ── Slide area ── */
   #stage {
@@ -366,7 +386,10 @@
     <div class="course">ITT Midossi — Terzo Anno · Informatica</div>
     <div class="title-bar">Funzioni in C++</div>
   </div>
-  <div id="slide-counter">01 / 14</div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 14</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
 </div>
 
 <div id="stage">
@@ -860,6 +883,13 @@ mostra: x = <span style="color:var(--accent4)">100</span></pre>
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
   });
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
 
   // init
   goTo(0);
