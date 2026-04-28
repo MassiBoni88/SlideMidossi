@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurazione DHCP & IP Statico — Linux Server</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f0a500;
+    --accent2: #00d4aa;
+    --accent3: #e05a5a;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --code-bg: #0d1117;
+  }
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --surface: #f4f6fb;
+    --surface2: #edf0f7;
+    --border: #d0d7de;
+    --accent: #d97706;
+    --accent2: #059669;
+    --accent3: #dc2626;
+    --text: #1c1e2d;
+    --text-muted: #64748b;
+    --code-bg: #edf0f7;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,165,0,0.15), transparent 70%);
+  }
+
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  header h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    color: var(--text-muted);
+    margin-top: 0.8rem;
+    font-size: 0.95rem;
+    max-width: 600px;
+  }
+
+  #theme-btn {
+    position: absolute; top: 1rem; right: 1.5rem;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;
+    z-index: 10;
+  }
+  #theme-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STEP */
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .step:hover { border-color: var(--accent); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    background: var(--surface2);
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-num.green { background: var(--accent2); }
+  .step-num.red { background: var(--accent3); }
+
+  .step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .step-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 0.15rem;
+  }
+
+  .step-body {
+    padding: 1.2rem 1.5rem;
+  }
+
+  .step-body p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .copy-btn.copied {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  pre {
+    padding: 1.2rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Syntax highlight manuale */
+  .c { color: var(--text-muted); font-style: italic; }   /* commento */
+  .k { color: var(--accent); }                             /* keyword */
+  .v { color: var(--accent2); }                            /* valore */
+  .s { color: #a8ff78; }                                   /* stringa */
+  .p { color: var(--accent3); }                            /* punctuation */
+
+  /* NOTE BOX */
+  .note {
+    background: rgba(240,165,0,0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 0.8rem 1rem;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .note strong { color: var(--accent); }
+
+  .note-green {
+    background: rgba(0,212,170,0.08);
+    border-left-color: var(--accent2);
+  }
+  .note-green strong { color: var(--accent2); }
+
+  .note-red {
+    background: rgba(224,90,90,0.08);
+    border-left-color: var(--accent3);
+  }
+  .note-red strong { color: var(--accent3); }
+
+  /* FILE PATH */
+  .filepath {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent2);
+    background: rgba(0,212,170,0.08);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* SUMMARY TABLE */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+
+  .summary-title {
+    padding: 1rem 1.5rem;
+    background: var(--surface2);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  th {
+    padding: 0.8rem 1.5rem;
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.8rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td:first-child { color: var(--accent); }
+  td:nth-child(2) { color: var(--accent2); }
+
+  /* SECTION TITLE */
+  .section-intro {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-intro h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-intro p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  <div class="header-tag">ITT Midossi — Reti di Calcolatori</div>
+  <h1>Configurazione <span>DHCP</span> &amp; IP Statico</h1>
+  <p>Guida pratica alla configurazione della rete su Linux Server (Ubuntu)</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showTab('dhcp', this)">Server DHCP</button>
+  <button class="tab-btn" onclick="showTab('static', this)">IP Statico (Client)</button>
+</nav>
+
+<main>
+
+  <!-- ===== SEZIONE DHCP ===== -->
+  <div class="section active" id="dhcp">
+    <div class="section-intro">
+      <h2>Configurare un Server DHCP</h2>
+      <p>Installazione e configurazione di <code>isc-dhcp-server</code> su Ubuntu Server per assegnare automaticamente gli indirizzi IP ai client della rete.</p>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Installazione del pacchetto</div>
+          <div class="step-subtitle">apt install isc-dhcp-server</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Prima di tutto si aggiorna la lista dei pacchetti e si installa il server DHCP:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">BASH — terminale</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre>sudo apt update
+sudo apt install isc-dhcp-server</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Configurazione principale</div>
+          <div class="step-subtitle">/etc/dhcp/dhcpd.conf</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Questo è il file principale dove si definisce il <strong>pool di indirizzi</strong>, il gateway, i DNS e la durata dei lease:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">/etc/dhcp/dhcpd.conf</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="c"># Durata default del lease: 10 minuti</span>
+<span class="k">default-lease-time</span> <span class="v">600</span>;
+<span class="c"># Durata massima del lease: 2 ore</span>
+<span class="k">max-lease-time</span> <span class="v">7200</span>;
+
+<span class="c"># Definizione della subnet</span>
+<span class="k">subnet</span> <span class="v">192.168.1.0</span> <span class="k">netmask</span> <span class="v">255.255.255.0</span> <span class="p">{</span>
+    <span class="c"># Pool: indirizzi assegnabili ai client</span>
+    <span class="k">range</span> <span class="v">192.168.1.100</span> <span class="v">192.168.1.200</span>;
+    <span class="c"># Gateway predefinito</span>
+    <span class="k">option routers</span> <span class="v">192.168.1.1</span>;
+    <span class="c"># Server DNS</span>
+    <span class="k">option domain-name-servers</span> <span class="v">8.8.8.8</span>, <span class="v">8.8.4.4</span>;
+    <span class="c"># Indirizzo di broadcast</span>
+    <span class="k">option broadcast-address</span> <span class="v">192.168.1.255</span>;
+<span class="p">}</span></pre>
+        </div>
+        <div class="note">
+          <strong>Lease:</strong> è il tempo per cui un indirizzo IP è "affittato" a un client. Alla scadenza il client deve rinnovarlo, altrimenti l'IP torna disponibile nel pool.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Specificare l'interfaccia di rete</div>
+          <div class="step-subtitle">/etc/default/isc-dhcp-server</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Bisogna indicare su quale interfaccia il server deve ascoltare le richieste dei client:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">/etc/default/isc-dhcp-server</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="k">INTERFACESv4</span>=<span class="s">"enp0s3"</span>  <span class="c"># sostituire con il nome reale dell'interfaccia</span></pre>
+        </div>
+        <div class="note">
+          <strong>Nota:</strong> per trovare il nome della tua interfaccia usa il comando <code>ip a</code> o <code>ifconfig</code>. I nomi comuni sono <code>eth0</code>, <code>enp0s3</code>, <code>ens33</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num green">4</div>
+        <div>
+          <div class="step-title">Avviare e abilitare il servizio</div>
+          <div class="step-subtitle">systemctl start / enable</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Si avvia il servizio e lo si abilita per il riavvio automatico del server:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">BASH — terminale</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="c"># Avvia subito il servizio</span>
+sudo systemctl start isc-dhcp-server
+
+<span class="c"># Abilita l'avvio automatico al boot</span>
+sudo systemctl enable isc-dhcp-server
+
+<span class="c"># Verifica lo stato</span>
+sudo systemctl status isc-dhcp-server</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 opzionale -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">Assegnazione statica per MAC address</div>
+          <div class="step-subtitle">opzionale — come in BOOTP</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Se vuoi che una specifica macchina riceva sempre lo stesso IP (ad esempio un server o una stampante), aggiungi questa sezione in <span class="filepath">/etc/dhcp/dhcpd.conf</span>:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">/etc/dhcp/dhcpd.conf — aggiunta</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="k">host</span> <span class="s">pc-laboratorio</span> <span class="p">{</span>
+    <span class="k">hardware ethernet</span> <span class="v">AA:BB:CC:DD:EE:01</span>;
+    <span class="k">fixed-address</span> <span class="v">192.168.1.50</span>;
+<span class="p">}</span></pre>
+        </div>
+        <div class="note note-green">
+          <strong>Differenza con BOOTP:</strong> anche con l'assegnazione fissa, gli altri client non registrati ricevono comunque un IP dal pool in modo automatico. Non è necessario registrare ogni dispositivo.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIEPILOGO FILE -->
+    <div class="summary">
+      <div class="summary-title">📁 Riepilogo file coinvolti</div>
+      <table>
+        <tr><th>File</th><th>Scopo</th></tr>
+        <tr><td>/etc/dhcp/dhcpd.conf</td><td>Configurazione principale (pool, lease, DNS…)</td></tr>
+        <tr><td>/etc/default/isc-dhcp-server</td><td>Interfaccia di rete su cui ascoltare</td></tr>
+        <tr><td>systemctl</td><td>Gestione del servizio (start/stop/enable)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== SEZIONE IP STATICO ===== -->
+  <div class="section" id="static">
+    <div class="section-intro">
+      <h2>Configurare un IP Statico (Client)</h2>
+      <p>Su Ubuntu Server moderno la rete si configura tramite <strong>Netplan</strong>. Invece di ricevere un IP dal server DHCP, si assegna manualmente un indirizzo fisso al proprio sistema.</p>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Trovare il file di configurazione Netplan</div>
+          <div class="step-subtitle">/etc/netplan/</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Netplan legge i file di configurazione dalla directory <span class="filepath">/etc/netplan/</span>. Elencali con:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">BASH — terminale</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre>ls /etc/netplan/
+<span class="c"># output tipico: 00-installer-config.yaml</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Modificare il file YAML</div>
+          <div class="step-subtitle">/etc/netplan/00-installer-config.yaml</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Apri il file con un editor e imposta la configurazione statica. Esempio completo:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">/etc/netplan/00-installer-config.yaml</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="k">network</span>:
+  <span class="k">version</span>: <span class="v">2</span>
+  <span class="k">ethernets</span>:
+    <span class="k">enp0s3</span>:                        <span class="c"># nome interfaccia</span>
+      <span class="k">dhcp4</span>: <span class="v">no</span>                    <span class="c"># disabilita DHCP</span>
+      <span class="k">addresses</span>:
+        - <span class="v">192.168.1.50/24</span>          <span class="c"># IP statico / subnet mask</span>
+      <span class="k">routes</span>:
+        - <span class="k">to</span>: <span class="v">default</span>
+          <span class="k">via</span>: <span class="v">192.168.1.1</span>         <span class="c"># gateway predefinito</span>
+      <span class="k">nameservers</span>:
+        <span class="k">addresses</span>:
+          - <span class="v">8.8.8.8</span>                 <span class="c"># DNS primario</span>
+          - <span class="v">8.8.4.4</span>                 <span class="c"># DNS secondario</span></pre>
+        </div>
+        <div class="note note-red">
+          <strong>Attenzione:</strong> il formato YAML è sensibile all'indentazione. Usa sempre <strong>spazi</strong>, mai TAB.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num green">3</div>
+        <div>
+          <div class="step-title">Applicare la configurazione</div>
+          <div class="step-subtitle">netplan apply</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Prima si testa la configurazione per verificare che non ci siano errori, poi la si applica:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">BASH — terminale</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="c"># Testa senza applicare (sicuro)</span>
+sudo netplan try
+
+<span class="c"># Applica definitivamente</span>
+sudo netplan apply</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Verificare la configurazione</div>
+          <div class="step-subtitle">ip a / ping</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Controlla che l'indirizzo IP sia stato assegnato correttamente:</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-label">BASH — terminale</span>
+            <button class="copy-btn" onclick="copyCode(this)">COPIA</button>
+          </div>
+          <pre><span class="c"># Mostra gli indirizzi IP delle interfacce</span>
+ip a
+
+<span class="c"># Testa la connettività verso il gateway</span>
+ping 192.168.1.1
+
+<span class="c"># Testa la connettività verso internet</span>
+ping 8.8.8.8</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFRONTO -->
+    <div class="summary">
+      <div class="summary-title">⚖️ DHCP vs IP Statico — quando usare quale</div>
+      <table>
+        <tr><th>Scenario</th><th>Soluzione consigliata</th></tr>
+        <tr><td>PC utenti, laptop, smartphone</td><td>DHCP (automatico)</td></tr>
+        <tr><td>Server, router, stampanti di rete</td><td>IP Statico</td></tr>
+        <tr><td>Il server DHCP stesso</td><td>IP Statico (deve essere sempre raggiungibile)</td></tr>
+        <tr><td>Dispositivi IoT fissi</td><td>IP Statico o prenotazione DHCP</td></tr>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  ITT Midossi — Civita Castellana &nbsp;|&nbsp; Reti di Calcolatori &nbsp;|&nbsp; Ubuntu Server 22.04+
+</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'COPIATO!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPIA';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 6 — Progettare Strutture di Rete: Dal Cablaggio al Cloud</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --border: #334155;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --ct: #94a3b8;
+    --code-bg: #0f172a;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  .xaas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .xaas-item { border-radius: 6px; padding: 9px 11px; }
+  .xaas-item .xname { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem; margin-bottom: 2px; }
+  .xaas-item p { font-size: 0.78rem; line-height: 1.4; }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 160px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">ITT Midossi — Quinto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 6 — Progettare Strutture di Rete: Dal Cablaggio al Cloud</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 15</div>
+    <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Unità 6</div>
+  <div class="big" style="color:var(--accent1);">Dal Cablaggio al Cloud</div>
+  <div class="sub" style="font-size:1.1rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Progettare Strutture di Rete
+  </div>
+  <div class="sub">Quinto anno — ITT Midossi · Sistemi e Reti</div>
+  <div class="tag-row">
+    <span class="tag tag-blue">Cablaggio</span>
+    <span class="tag tag-green">Server Farm</span>
+    <span class="tag tag-yellow">Virtualizzazione</span>
+    <span class="tag tag-red">Cloud</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content">
+        <h4>Struttura fisica della rete</h4>
+        <p>Topologia a stella estesa · Cablaggio strutturato ISO/IEC 11801</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">02</div>
+      <div class="ov-content">
+        <h4>Collocazione dei server</h4>
+        <p>Standalone · Data center · Server farm · Hosting · Housing · VPS</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Virtualizzazione dei server</h4>
+        <p>Server Virtualization · Host e Guest · Vantaggi (solo sezione 3.1)</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">04</div>
+      <div class="ov-content">
+        <h4>Virtualizzazione dei software</h4>
+        <p>VirtualBox · VMware · Parallels · Virtualizzazione delle applicazioni</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">06</div>
+      <div class="ov-content">
+        <h4>Le soluzioni cloud</h4>
+        <p>Cloud computing · Tipi · Architettura · SaaS, PaaS, IaaS · PA</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">07</div>
+      <div class="ov-content">
+        <h4>Le soluzioni ibride: Hybrid Cloud</h4>
+        <p>On-Premise · Off-Premise · VPN IPsec · Load balancer · Disaster recovery</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — L1: STRUTTURA FISICA ═══ -->
+<div class="slide" data-section="struttura-fisica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Progettare la Struttura Fisica della Rete</h2>
+    <span class="section-num">Lezione 1 · 01/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🏢 3 Macrofattori della rete aziendale</h3>
+        <ul>
+          <li><strong>Struttura fisica della LAN</strong>: topologia, mezzi trasmissivi, apparati di rete</li>
+          <li style="margin-top:5px;"><strong>Virtualizzazione</strong> delle risorse hardware e software</li>
+          <li style="margin-top:5px;"><strong>Cloud computing</strong>: utilizzo di risorse e servizi IT in remoto</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">⭐ Topologia a stella estesa</h3>
+        <p style="margin-bottom:8px;">La struttura più usata nelle reti LAN aziendali — detta anche <strong>stella gerarchica</strong>. Collega tra loro più topologie a stella.</p>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:8px;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.76rem;">
+          <div style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.3);border-radius:6px;padding:7px 12px;color:var(--accent4);font-weight:700;text-align:center;">Switch<br>comprensorio</div>
+          <div style="color:var(--muted);font-size:1.2rem;">⇄</div>
+          <div style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:6px;padding:7px 12px;color:var(--accent1);font-weight:700;text-align:center;">Switch<br>edificio</div>
+          <div style="color:var(--muted);font-size:1.2rem;">⇄</div>
+          <div style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:6px;padding:7px 12px;color:var(--accent3);font-weight:700;text-align:center;">Switch<br>piano</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">✅ Vantaggi della topologia a stella estesa</h3>
+        <ul>
+          <li><strong>Fault-tolerance</strong>: il guasto di un canale o di un'interfaccia non compromette il funzionamento generale della rete</li>
+          <li style="margin-top:5px;"><strong>Flessibilità ed espandibilità</strong>: lo spostamento di un host da un punto a un altro della rete o l'inserimento di uno nuovo non richiedono il fermo della rete</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span><strong>Punto critico</strong>: la topologia è vulnerabile al livello degli switch (centri stella). Se lo switch che svolge questo ruolo si guasta, la rete, o parte di essa, smette di funzionare.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Rispetto alla topologia a bus o ad anello, la stella estesa offre notevoli vantaggi in termini di <strong>fault-tolerance</strong> e <strong>flessibilità</strong>, a fronte di un maggior numero di cavi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — L1: CABLAGGIO STRUTTURATO ═══ -->
+<div class="slide" data-section="struttura-fisica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il Cablaggio Strutturato — Standard ISO/IEC 11801</h2>
+    <span class="section-num">Lezione 1 · 02/02</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">📌</span>
+        <span>Il <strong>cablaggio strutturato</strong> è l'insieme delle regole per collocare i nodi e collegarli, indicando dove tirare i cavi o inserire i punti di accesso wireless. Lo standard di riferimento è <strong>ISO/IEC 11801</strong>.</span>
+      </div>
+      <div style="font-size:0.66rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;">GERARCHIA ISO/IEC 11801 — DISTANZE MASSIME</div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;text-align:left;padding-left:12px;">CD — Campus Distributor &nbsp;(centro stella di comprensorio)</div>
+          <div class="proto-cell hl-blue" style="flex:0 0 90px;">max 1500 m</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;text-align:left;padding-left:12px;">BD — Building Distributor &nbsp;(centro stella di edificio)</div>
+          <div class="proto-cell hl" style="flex:0 0 90px;">max 500 m</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell hl-yel" style="font-weight:700;text-align:left;padding-left:12px;">FD — Floor Distributor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(centro stella di piano)</div>
+          <div class="proto-cell hl-yel" style="flex:0 0 90px;">max 90 m</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="text-align:left;padding-left:12px;">TO — Telecommunication Outlet &nbsp;(presa utente)</div>
+          <div class="proto-cell" style="flex:0 0 90px;">max 5 m</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🔌 Tipi di cablaggio</h3>
+        <ul>
+          <li><strong>Verticale (VCC)</strong> — Vertical Cross-Connect: collega CD → BD → FD.<br>
+            Usa <strong>fibra ottica</strong> nelle dorsali (prestazioni elevate, anche per distanze brevi)</li>
+          <li style="margin-top:8px;"><strong>Orizzontale (HCC)</strong> — Horizontal Cross-Connect: collega FD → TO.<br>
+            Usa <strong>cavi UTP o STP</strong> (raramente fibra, costi maggiori)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">🏗️ Schema tipico su 2 edifici</h3>
+        <p style="font-size:0.85rem;color:#475569;">
+          <strong>Edificio 1</strong>: 1 piano — un FD che funge anche da BD, al centro c'è il CD (comprensorio).<br style="margin-bottom:4px;">
+          <strong>Edificio 2</strong>: 2 piani — due FD collegati al BD di edificio.
+        </p>
+        <p style="margin-top:6px;font-size:0.82rem;color:#64748b;">Le prese utente (TO) sono nei punti del piano dove si trovano postazioni utente o stampanti di rete.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span>Il cablaggio orizzontale usa <strong>UTP/STP</strong>. Nelle dorsali si preferisce la <strong>fibra ottica</strong>, anche per distanze ridotte, per le elevate prestazioni.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — L2: TIPI DI SERVER ═══ -->
+<div class="slide" data-section="collocazione-server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Progettare la Collocazione dei Server</h2>
+    <span class="section-num">Lezione 2 · 01/03</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-blue">
+      <span class="callout-icon">🖥️</span>
+      <span>I server vengono identificati in base al <strong>servizio</strong> che erogano. Le piccole aziende usano macchine <strong>standalone</strong>; le medie/grandi allestiscono <strong>data center</strong> interni o si appoggiano a <strong>server farm</strong> gestite da data center esterni.</span>
+    </div>
+    <div class="three-col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">🗂️ Storage &amp; Accesso dati</h3>
+        <ul>
+          <li><strong>File Server</strong>: condivisione file in rete</li>
+          <li><strong>Database Server</strong>: gestione banche dati</li>
+          <li><strong>FTP Server</strong>: cartelle pubbliche o autenticate</li>
+          <li><strong>Print Server</strong>: stampanti condivise in rete</li>
+          <li><strong>Grid computing</strong>: elaborazione distribuita di grandi quantità di dati</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">🌐 Web, App &amp; Comunicazione</h3>
+        <ul>
+          <li><strong>Web Server</strong>: ospita siti (HTTP)</li>
+          <li><strong>Application Server</strong>: app web condivise</li>
+          <li><strong>Mail Server</strong>: posta elettronica</li>
+          <li><strong>Proxy Server</strong>: cache web + ACL</li>
+          <li><strong>Game Server</strong>: giochi multiplayer online</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">🔐 Rete, Sicurezza &amp; Virtualizzazione</h3>
+        <ul>
+          <li><strong>DHCP Server</strong>: assegnazione automatica IP</li>
+          <li><strong>DNS Server</strong>: risoluzione nomi di dominio</li>
+          <li><strong>AD Server</strong>: Active Directory (Domain Controller)</li>
+          <li><strong>VPN Server</strong>: accesso LAN da remoto</li>
+          <li><strong>VNC Server</strong>: desktop remoto</li>
+          <li><strong>Server di autenticazione</strong>: accesso ad altre risorse</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — L2: DATA CENTER E SERVER FARM ═══ -->
+<div class="slide" data-section="collocazione-server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Data Center e Server Farm</h2>
+    <span class="section-num">Lezione 2 · 02/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🖥️ Forme fisiche dei server</h3>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:4px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--accent4);font-weight:700;min-width:52px;font-size:0.8rem;padding-top:1px;">TOWER</span>
+            <span style="font-size:0.86rem;color:#475569;">Case verticale simile al PC. Autonomo (standalone), capacità storage RAID. Voluminoso e rumoroso. Usato per filiali di piccole aziende</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--accent1);font-weight:700;min-width:52px;font-size:0.8rem;padding-top:1px;">RACK</span>
+            <span style="font-size:0.86rem;color:#475569;">Montato su armadi rack. Compatto, semplifica i cablaggi, facile scalabilità. Ideale nei data center aziendali</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--accent3);font-weight:700;min-width:52px;font-size:0.8rem;padding-top:1px;">BLADE</span>
+            <span style="font-size:0.86rem;color:#475569;">Lame intercambiabili in uno chassis condiviso. Ottimizza spazio, una singola lama può simulare N macchine virtuali. Soluzione tipica con virtualizzazione</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">💡</span>
+        <span>La virtualizzazione rappresenta una soluzione tipicamente associata ai <strong>server blade</strong>, unita al consolidamento di diversi sistemi di storage.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">🏢 Il Data Center — CED</h3>
+        <p style="margin-bottom:6px;"><strong>Centro Elaborazione Dati</strong>: area attrezzata per il trattamento e l'archiviazione dati, collocato nello stesso locale tecnico del centro stella di comprensorio o di edificio.</p>
+        <ul>
+          <li><strong>Interno</strong>: controllo diretto, intervento rapido, costi fissi elevati (affitto, hardware, aggiornamenti, personale)</li>
+          <li style="margin-top:4px;"><strong>Esterno</strong>: delegato a ISP specializzati. Sicurezza garantita, riduce costi di manutenzione. Ideale per applicazioni web</li>
+        </ul>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🏭 Le Server Farm</h3>
+        <p style="margin-bottom:6px;">Aree fisiche, normalmente nel sottosuolo, con decine/centinaia/migliaia di server. Caratteristiche obbligatorie:</p>
+        <ul>
+          <li>Sicurezza fisica + sistemi anti-intrusione</li>
+          <li>Alimentazione ridondante (UPS, gruppi di continuità)</li>
+          <li>Impianto di condizionamento dedicato (bassa temperatura)</li>
+          <li>Connettività Internet stabile e garantita</li>
+          <li>Firewall e protezione logica delle macchine</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — L2: SERVIZI SERVER FARM ═══ -->
+<div class="slide" data-section="collocazione-server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">I Servizi offerti dalle Server Farm</h2>
+    <span class="section-num">Lezione 2 · 03/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🌐 Hosting</h3>
+        <p>Il server è <strong>di proprietà del provider</strong>. Si ospita il sito/app web su server del fornitore.</p>
+        <ul style="margin-top:6px;">
+          <li><strong>Gratuito</strong>: dominio condiviso con l'ISP, solo HTML statico, banda condivisa tra molti utenti, banner pubblicitari obbligatori</li>
+          <li style="margin-top:4px;"><strong>A pagamento</strong>: dominio personalizzato, email illimitate, database, scripting, banda garantita, statistiche traffico</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">📦 Colocation in Housing</h3>
+        <p>Il server è <strong>di proprietà dell'azienda</strong>, localizzato fisicamente nella server farm del data center. L'azienda acquista e gestisce il server; paga al provider solo l'affitto dello spazio, alimentazione e rete.</p>
+        <div style="margin-top:7px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.8rem;">
+          <div style="background:rgba(5,150,105,0.07);border-radius:4px;padding:5px 8px;color:#065f46;"><strong>PRO:</strong> proprietà hardware, controllo totale SW</div>
+          <div style="background:rgba(220,38,38,0.07);border-radius:4px;padding:5px 8px;color:#991b1b;"><strong>CONTRO:</strong> costo startup, interventi da concordare</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🔑 Server Dedicati</h3>
+        <p>Il data center mette a disposizione server dedicati ad <strong>uso esclusivo</strong> del cliente. Il cliente noleggia il server e lo amministra da remoto senza preoccuparsi di upgrade hardware o riparazioni (a carico del provider).</p>
+        <div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.8rem;">
+          <div style="background:rgba(5,150,105,0.07);border-radius:4px;padding:5px 8px;color:#065f46;"><strong>PRO:</strong> aggiornamenti sicurezza delegati, nessun costo startup</div>
+          <div style="background:rgba(220,38,38,0.07);border-radius:4px;padding:5px 8px;color:#991b1b;"><strong>CONTRO:</strong> canone mensile elevato per app critiche</div>
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">☁️ Server Virtuali — VPS</h3>
+        <p><strong>Virtual Private Server</strong>: il provider offre una macchina virtuale su un server fisico condiviso. Appare come una macchina dedicata, ma le spese hardware sono divise tra più clienti.</p>
+        <ul style="margin-top:5px;">
+          <li>Costi bassi — ideale per PMI e startup</li>
+          <li>Risorse CPU/RAM garantite (buffer garantito)</li>
+          <li>Separazione netta tra ambienti di aziende diverse</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — L3.1: VIRTUALIZZAZIONE DEI SERVER ═══ -->
+<div class="slide" data-section="virtualizzazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La Virtualizzazione dei Server — Sezione 3.1</h2>
+    <span class="section-num">Lezione 3 · 01/01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-yellow">
+        <span class="callout-icon">📌</span>
+        <span>La <strong>Server Virtualization</strong> permette di creare su un singolo server più <strong>virtual machine</strong> in contemporanea, che condividono le risorse hardware e su cui girano diversi sistemi operativi e applicativi client.</span>
+      </div>
+      <div class="card">
+        <h3>🏗️ Architettura Host / Guest</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w4">App &nbsp;&nbsp;&nbsp; App &nbsp;&nbsp;&nbsp; App</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl w4">OS guest 1 &nbsp;|&nbsp; OS guest 2 &nbsp;|&nbsp; OS guest N</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl-yel w4">Layer di virtualizzazione — Hypervisor</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w4" style="color:#475569;">OS host (layer inferiore — sistema operativo ordinario)</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w4" style="color:#475569;">Hardware fisico (server)</div>
+          </div>
+        </div>
+        <ul style="margin-top:8px;">
+          <li><strong>Host</strong>: il SO ospitante, crea partizioni per i guest; fornisce caratteristiche fino al BIOS</li>
+          <li><strong>Guest</strong>: i SO ospiti che pensano di avere tutta la macchina per sé</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">✅ Vantaggi della Virtualizzazione</h3>
+        <ul>
+          <li>Riduzione dei <strong>costi</strong> di implementazione e gestione (consolidamento hardware)</li>
+          <li>Riduzione del <strong>consumo energetico</strong> dell'intero data center</li>
+          <li><strong>Allocazione dinamica</strong> delle risorse</li>
+          <li>Riduzione drastica dei tempi di <strong>messa in opera</strong> di nuovi sistemi</li>
+          <li><strong>Isolamento</strong> da problemi di sistema operativo o applicativo</li>
+          <li>Semplificazione della <strong>gestione risorse eterogenee</strong></li>
+          <li>Facilitazione di <strong>testing e debugging</strong> in ambienti controllati</li>
+          <li>Gestione dell'<strong>evoluzione tecnologica</strong>: migrazione verso nuovo hardware senza reinstallare tutto</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔄</span>
+        <span>Se l'hardware diventa obsoleto, basta reinstallare il <strong>layer emulato</strong> e ripristinare i file delle macchine virtuali — senza reinstallare tutto il sistema.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — L4: VIRTUALIZZAZIONE DEI SOFTWARE ═══ -->
+<div class="slide" data-section="virtualizzazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La Virtualizzazione dei Software</h2>
+    <span class="section-num">Lezione 4 · 01/01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">🖥️ Virtualizzazione del Sistema Operativo</h3>
+        <p style="margin-bottom:7px;">Prima di virtualizzare occorre procurarsi un'<strong>immagine ISO</strong> del SO da installare (copia esatta del CD/DVD di installazione).</p>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:0.84rem;">
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:4px;padding:2px 8px;color:var(--accent1);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.73rem;flex-shrink:0;">VirtualBox</span>
+            <span style="color:#475569;">Oracle — gratuito, open source, multipiattaforma (Win/Mac/Linux). Supporta iSCSI come dischi virtuali</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.3);border-radius:4px;padding:2px 8px;color:var(--accent4);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.73rem;flex-shrink:0;">VMware</span>
+            <span style="color:#475569;">Workstation (Win/Linux), Fusion (Mac). Versione <strong>Player</strong> gratuita, versione <strong>Pro</strong> avanzata</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:4px;padding:2px 8px;color:var(--accent3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.73rem;flex-shrink:0;">Parallels</span>
+            <span style="color:#475569;">Solo Mac — eccellente integrazione macOS, permette di eseguire Windows e Linux su Mac. A pagamento (versione prova gratuita)</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📌</span>
+        <span>Un file <strong>ISO</strong> è genericamente detto <em>immagine</em> — è un unico file che contiene esattamente gli stessi file e la struttura di un CD/DVD.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">📦 Virtualizzazione delle Applicazioni</h3>
+        <p style="margin-bottom:7px;">Invece di creare una VM completa, si virtualizzano solo le applicazioni creando una <strong>"bolla"</strong> isolata che non modifica il sistema operativo.</p>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:0.82rem;color:#475569;">
+          <div><strong style="color:var(--accent4);">SVS (Altiris/Symantec)</strong> — definisce layer per ogni app, attivabili/disattivabili in qualsiasi momento</div>
+          <div><strong style="color:var(--accent1);">VMware / Citrix Virtual Apps</strong> — distribuisce app come stream di bit on demand</div>
+          <div><strong style="color:var(--accent3);">Microsoft App-V</strong> — per Windows 10, incapsula app in file eseguibili (bolla)</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>✅ Benefici principali</h3>
+        <ul>
+          <li>Gestione <strong>centralizzata</strong> delle applicazioni</li>
+          <li>Protezione app e dati nel <strong>data center</strong></li>
+          <li>Riduzione del <strong>TCO</strong> (Total Cost of Ownership)</li>
+          <li>Semplicità di <strong>aggiornamento e manutenzione</strong></li>
+          <li>Isolamento di applicazioni conflittuali o pericolose</li>
+          <li>Controllo completo accesso e attività dell'utente</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — L6: CLOUD COMPUTING ═══ -->
+<div class="slide" data-section="cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Le Soluzioni Cloud</h2>
+    <span class="section-num">Lezione 6 · 01/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">☁️</span>
+        <span>Il <strong>cloud computing</strong> è un insieme di tecnologie informatiche che permettono l'utilizzo di risorse hardware e software, virtualizzate e distribuite in remoto, in una tipica architettura Client/Server. Ma soprattutto è la possibilità di <strong>distribuire e utilizzare servizi IT attraverso il web</strong>.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">🎯 Perché il cloud?</h3>
+        <ul>
+          <li>Abbatte i costi degli investimenti nei CED aziendali e pubblici</li>
+          <li>Accesso rapido a <strong>enormi risorse</strong> (calcolo, memorizzazione) in modo virtuale</li>
+          <li>Pagamento in base all'<strong>effettivo utilizzo</strong> (no costi fissi infrastruttura)</li>
+          <li>Supera le barriere di <strong>costo e complessità</strong> dell'IT tradizionale</li>
+          <li>Accessibile alle <strong>PMI e startup</strong> con investimenti limitati</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🔷 I 4 tipi di Cloud</h3>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:4px;">
+          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
+            <span style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.3);border-radius:4px;padding:2px 8px;color:var(--accent4);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.72rem;flex-shrink:0;">PRIVATE</span>
+            <span style="color:#475569;">Ambiente informatico interno all'azienda; virtualizza risorse e standardizza la gestione. Controllo diretto su sicurezza e infrastruttura</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
+            <span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:4px;padding:2px 8px;color:var(--accent1);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.72rem;flex-shrink:0;">PUBLIC</span>
+            <span style="color:#475569;">Fornito da provider esterno (AWS, Azure, Google Cloud) che ne garantisce efficienza e sicurezza tramite standard</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
+            <span style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:4px;padding:2px 8px;color:var(--accent3);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.72rem;flex-shrink:0;">COMMUNITY</span>
+            <span style="color:#475569;">Condiviso tra organizzazioni con interesse comune (es. database medico condiviso tra tutti gli ospedali di una nazione)</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
+            <span style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:4px;padding:2px 8px;color:var(--accent2);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.72rem;flex-shrink:0;">HYBRID</span>
+            <span style="color:#475569;">Unisce private + public: sfrutta risorse interne e le estende al cloud pubblico on demand. Trattato nella Lezione 7</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔗</span>
+        <span>È possibile anche un <strong>Multi-cloud computing</strong>: soluzione composta da due o più cloud distinti (pubblici o privati o entrambi) per massimizzare flessibilità e ridondanza.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — L6: ARCHITETTURA CLOUD E XAAS ═══ -->
+<div class="slide" data-section="cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Architettura Cloud e Modelli di Servizio (XaaS)</h2>
+    <span class="section-num">Lezione 6 · 02/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🏗️ Componenti di una rete cloud</h3>
+        <ul>
+          <li><strong>Cloud client</strong>: hardware (qualsiasi dispositivo connesso a Internet) + software (browser) per fruire del cloud</li>
+          <li style="margin-top:4px;"><strong>Cloud application</strong>: architetture software che eliminano l'installazione locale (es. Gmail, Office 365 — SaaS)</li>
+          <li style="margin-top:4px;"><strong>Cloud platform</strong>: stack di elaborazione e memorizzazione approntate sulle esigenze dell'utente (es. Jelastic di Aruba — PaaS)</li>
+          <li style="margin-top:4px;"><strong>Cloud storage</strong>: memorizzazione dati come servizio calcolato per GB/mese</li>
+          <li style="margin-top:4px;"><strong>Cloud infrastructure</strong>: reti di computer virtuali messe a disposizione (IaaS)</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">👥</span>
+        <span>I <strong>3 ruoli</strong> fondamentali: <strong>Cloud provider</strong> (possiede le risorse), <strong>Cloud user</strong> (fruitore finale — rischio privacy), <strong>Cloud vendor</strong> (cliente amministratore che rivende servizi cloud).</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">📦 I Modelli di Servizio — XaaS</h3>
+        <div class="xaas-grid" style="margin-top:6px;">
+          <div class="xaas-item" style="background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.25);">
+            <div class="xname" style="color:var(--accent1);">SaaS</div>
+            <p style="color:#065f46;">Software via browser senza installazione. Es. Gmail, Office 365</p>
+          </div>
+          <div class="xaas-item" style="background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.25);">
+            <div class="xname" style="color:var(--accent4);">DaaS</div>
+            <p style="color:#1e40af;">Solo i dati via web, accessibili da qualsiasi app come se fossero in locale</p>
+          </div>
+          <div class="xaas-item" style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);">
+            <div class="xname" style="color:var(--accent3);">HaaS</div>
+            <p style="color:#78350f;">Dati inviati in remoto, elaborati da hardware cloud, risultati restituiti</p>
+          </div>
+          <div class="xaas-item" style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);">
+            <div class="xname" style="color:var(--accent2);">PaaS</div>
+            <p style="color:#991b1b;">Piattaforma software completa (librerie, runtime, DB) eseguita in remoto</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">IaaS — Infrastructure as a Service</h3>
+        <p>Utilizzo di <strong>risorse hardware in remoto</strong>. Simile al grid computing, ma le risorse sono assegnate <strong>on demand</strong>.</p>
+        <p style="margin-top:5px;font-size:0.8rem;color:#64748b;">Leader: <strong>Amazon Web Services</strong> · <strong>Windows Azure</strong> · <strong>Google Cloud</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — L6: CLOUD NELLA PA ═══ -->
+<div class="slide" data-section="cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il Cloud nella Pubblica Amministrazione</h2>
+    <span class="section-num">Lezione 6 · 03/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">🏛️ Perché il cloud per la PA?</h3>
+        <p style="margin-bottom:7px;">Il modello <strong>a consumo o ad abbonamento</strong> (<em>modello a servizio</em>) libera la PA dalle attività di manutenzione, aggiornamento e distribuzione, rapportando il pagamento all'erogazione di un servizio.</p>
+        <ul>
+          <li>Alcune PA realizzano <strong>private cloud</strong> interni con data center propri</li>
+          <li style="margin-top:4px;">Altre affidano tutto a <strong>cloud provider esterni</strong> con propri data center</li>
+          <li style="margin-top:4px;">Tramite il cloud i governi offrono servizi pubblici più efficienti: <strong>eHealth</strong>, <strong>eGovernment</strong>, <strong>eJustice</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📱 Servizi digitali ai cittadini (Open Data)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:0.76rem;">
+          <div style="background:rgba(37,99,235,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent4);font-weight:700;">CIE</div>
+            <div style="color:#1e40af;font-size:0.68rem;">Carta d'Identità Elettronica</div>
+          </div>
+          <div style="background:rgba(37,99,235,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent4);font-weight:700;">SPID</div>
+            <div style="color:#1e40af;font-size:0.68rem;">Sistema Pubblico Identità Digitale</div>
+          </div>
+          <div style="background:rgba(5,150,105,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent1);font-weight:700;">PagoPa</div>
+            <div style="color:#065f46;font-size:0.68rem;">Pagamenti elettronici alla PA</div>
+          </div>
+          <div style="background:rgba(5,150,105,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent1);font-weight:700;">Fatt. Elettronica</div>
+            <div style="color:#065f46;font-size:0.68rem;">Fatturazione digitale obbligatoria</div>
+          </div>
+          <div style="background:rgba(217,119,6,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent3);font-weight:700;">ANPR</div>
+            <div style="color:#78350f;font-size:0.68rem;">Anagrafe Naz. Popolazione Residente</div>
+          </div>
+          <div style="background:rgba(217,119,6,0.08);border-radius:5px;padding:6px 10px;">
+            <div style="color:var(--accent3);font-weight:700;">NoiPA</div>
+            <div style="color:#78350f;font-size:0.68rem;">Gestione personale della PA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>📊 Cloud vs IT tradizionale per la PA</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-top:6px;">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:1px;">ASPETTO</th>
+              <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);color:var(--accent1);font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:1px;">CLOUD</th>
+              <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:1px;">IT TRADIZIONALE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#475569;font-weight:700;">Investimento</td>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#065f46;">Costo contenuto, a consumo</td>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#991b1b;">Forte impatto sul capitale</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#475569;font-weight:700;">Scalabilità</td>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#065f46;">Accesso immediato a risorse sofisticate</td>
+              <td style="padding:4px 8px;border-bottom:1px solid var(--border);color:#991b1b;">Manutenzione HW e SW costosa</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 8px;color:#475569;font-weight:700;">Sicurezza</td>
+              <td style="padding:4px 8px;color:#065f46;">Conforme alle policy PA, SLA garantiti</td>
+              <td style="padding:4px 8px;color:#991b1b;">Adeguamento manuale sistema per sistema</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">📌</span>
+        <span>In Italia la PA non costruisce nuovi data center, ma aggiorna solo quelli esistenti cercando di anticipare la dismissione per <strong>passare ai servizi cloud</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — L7: HYBRID CLOUD ═══ -->
+<div class="slide" data-section="hybrid-cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Le Soluzioni Ibride: Hybrid Cloud</h2>
+    <span class="section-num">Lezione 7 · 01/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔗</span>
+        <span>Una soluzione <strong>Hybrid cloud</strong> unisce private cloud e public cloud. Consente di sfruttare le risorse aziendali interne (<strong>On-Premise</strong>) e di estendere il proprio data center fino al cloud pubblico (<strong>Off-Premise</strong>), collegati tramite <strong>VPN IPsec</strong>.</span>
+      </div>
+      <div class="card">
+        <h3>🏗️ Architettura Hybrid Cloud</h3>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:10px;justify-content:center;flex-wrap:wrap;">
+          <div style="background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.3);border-radius:8px;padding:10px 14px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent4);font-size:0.84rem;">PRIVATE CLOUD</div>
+            <div style="font-size:0.73rem;color:#64748b;margin-top:3px;">On-Premise<br>(infrastruttura aziendale)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent3);font-weight:700;">IPsec VPN</div>
+            <div style="color:var(--muted);font-size:1.4rem;">⇄</div>
+          </div>
+          <div style="background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.3);border-radius:8px;padding:10px 14px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent1);font-size:0.84rem;">PUBLIC CLOUD</div>
+            <div style="font-size:0.73rem;color:#64748b;margin-top:3px;">Off-Premise<br>(cloud provider esterno)</div>
+          </div>
+        </div>
+        <p style="margin-top:10px;font-size:0.85rem;color:#475569;">L'architettura comprende sia la struttura di <strong>proprietà dell'azienda</strong> (On-Premise) sia quella di <strong>proprietà del provider esterno</strong> (Off-Premise).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">✅ Possibilità dell'Hybrid Cloud</h3>
+        <ul>
+          <li>Spostare <strong>carichi di lavoro</strong> dal data center aziendale al provider di hosting</li>
+          <li>Creare <strong>applicazioni ibride</strong> su App Server che sfruttano sia risorse locali sia cloud</li>
+          <li>Utilizzare opzioni di <strong>Warm Disaster Recovery</strong> più efficienti e convenienti</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">⚖️ Load Balancer — Soluzione bilanciata</h3>
+        <p style="margin-bottom:8px;">I software di gestione consentono di <strong>bilanciare le richieste</strong> tra le due nuvole, spostando le risorse dove sono più utili.</p>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w4" style="font-size:0.72rem;text-align:left;padding-left:10px;">Private cloud — Load balancer · App servers · Master DB · Slave DB · Object storage</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl w4" style="font-size:0.72rem;text-align:left;padding-left:10px;">Public cloud &nbsp;— Load balancer · App services · Slave DB · Object storage</div>
+          </div>
+        </div>
+        <p style="margin-top:7px;font-size:0.82rem;color:#64748b;">Questa è la soluzione <strong>Warm Disaster Recovery</strong>: il public cloud funge da backup attivo.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🔄</span>
+        <span>Il <strong>load balancer</strong> applica scalabilità in base alle esigenze specifiche dell'azienda, in modo completamente trasparente per l'utente finale.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔧</span>
+        <span>I software per la gestione ibrida trasformano le varie piattaforme in un'<strong>unica entità</strong> che può essere gestita come un unico sistema.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — L7: ADOZIONE HYBRID CLOUD ═══ -->
+<div class="slide" data-section="hybrid-cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">L'Adozione del Hybrid Cloud</h2>
+    <span class="section-num">Lezione 7 · 02/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">📈 Perché scegliere l'Hybrid Cloud</h3>
+        <ul>
+          <li>I piani di adozione dell'Hybrid cloud sono in <strong>costante crescita</strong></li>
+          <li style="margin-top:4px;">Le aziende affrontano l'IT in termini di <strong>pool di risorse</strong> fruibili attraverso infrastrutture pubbliche, private, dedicate e virtuali</li>
+          <li style="margin-top:4px;">Possibilità di spostare rapidamente il carico di lavoro dal private cloud al public cloud</li>
+          <li style="margin-top:4px;">Utilizzo del cloud come luogo di <strong>backup per il disaster recovery</strong></li>
+          <li style="margin-top:4px;">Ottenere il giusto <strong>mix di prestazioni</strong> per il proprio business</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">📊</span>
+        <span>Secondo studi di <strong>Gartner Group</strong>, entro il 2021 il <strong>90% delle aziende</strong> avrebbe implementato un modello di cloud ibrido.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔐 Sfide di sicurezza</h3>
+        <ul>
+          <li>Sul <strong>public cloud</strong> i dati di più aziende sono condivisi: la <strong>sicurezza</strong> è una priorità assoluta</li>
+          <li style="margin-top:4px;">Non tutte le piattaforme di crittografia supportano sia public cloud che private cloud</li>
+          <li style="margin-top:4px;">Le aziende devono pianificare attentamente come il cloud <strong>scalerà</strong> in caso di aumento o diminuzione della richiesta di risorse</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🔧 Complessità e pianificazione</h3>
+        <p>L'Hybrid cloud è <strong>più complesso</strong> rispetto al solo public o private cloud. Richiede:</p>
+        <ul style="margin-top:6px;">
+          <li>Pianificazione attenta delle strategie di scalabilità</li>
+          <li>Software di gestione ibrida (integrazione delle piattaforme)</li>
+          <li>Politiche di sicurezza unificate tra On-Premise e Off-Premise</li>
+          <li>Investimento in <strong>competenze specifiche</strong> del personale IT</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Riepilogo — Unità 6</h2>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L1 — Struttura fisica</h3>
+        <ul>
+          <li>Topologia a <strong>stella estesa</strong>: fault-tolerance + flessibilità</li>
+          <li>Standard <strong>ISO/IEC 11801</strong>: CD (comprensorio) → BD (edificio) → FD (piano) → TO</li>
+          <li>Cablaggio <strong>verticale</strong> (fibra, dorsali) e <strong>orizzontale</strong> (UTP/STP, max 90 m)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L2 — Collocazione server</h3>
+        <ul>
+          <li>Forme fisiche: <strong>tower → rack → blade</strong> (virtualizzazione associata)</li>
+          <li>Data center (CED): interno vs esterno — server farm con caratteristiche di alta affidabilità</li>
+          <li>Servizi: <strong>hosting</strong> (gratuito/pagamento), <strong>colocation housing</strong>, server <strong>dedicati</strong>, <strong>VPS</strong></li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 L3.1 + L4 — Virtualizzazione</h3>
+        <ul>
+          <li>Server: <strong>host</strong> (layer inferiore + hypervisor) ospita più <strong>guest</strong> contemporaneamente</li>
+          <li>SO: <strong>VirtualBox</strong>, VMware, Parallels — richiede immagine <strong>ISO</strong></li>
+          <li>App: <strong>bolla isolata</strong> — SVS, Citrix Virtual Apps, Microsoft <strong>App-V</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 L6 — Soluzioni Cloud</h3>
+        <ul>
+          <li>Tipi: <strong>private, public, community, hybrid</strong> (+ multi-cloud)</li>
+          <li>Modelli XaaS: <strong>SaaS, DaaS, HaaS, PaaS, IaaS</strong></li>
+          <li>3 ruoli: <strong>provider</strong> (risorse), user (fruitore), vendor (rivenditore)</li>
+          <li>PA: CIE, SPID, PagoPa, Fattura elettronica, ANPR, NoiPA</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L7 — Hybrid Cloud</h3>
+        <ul>
+          <li>Private (On-Premise) + Public (Off-Premise) → collegati via <strong>VPN IPsec</strong></li>
+          <li><strong>Load balancer</strong>: bilancia richieste tra le due nuvole automaticamente</li>
+          <li><strong>Warm Disaster Recovery</strong>: il cloud pubblico funge da backup attivo</li>
+          <li>Più complesso: richiede pianificazione sicurezza e scalabilità</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Prossima unità (7):</strong> Architetture Web — Le architetture N-tier basate su Client-Server, Windows Server 2019 e Active Directory.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':               'Introduzione',
+    'struttura-fisica':    'Struttura Fisica',
+    'collocazione-server': 'Collocazione Server',
+    'virtualizzazione':    'Virtualizzazione',
+    'cloud':               'Cloud Computing',
+    'hybrid-cloud':        'Hybrid Cloud',
+    'riepilogo':           'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+</script>
+</body>
+</html>

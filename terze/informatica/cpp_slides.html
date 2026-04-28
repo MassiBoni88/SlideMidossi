@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ — Scope & Overloading</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #00d4aa;
+    --accent2: #ff6b6b;
+    --accent3: #ffd93d;
+    --accent4: #6bcbff;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --code-bg: #080a0f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 0.9rem; font-weight: 700; color: var(--accent1); }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+
+  /* ── Slide area ── */
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+
+  /* ── Slide types ── */
+  .slide-title {
+    align-items: center;
+    text-align: center;
+  }
+  .slide-title .big {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+  }
+  .slide-title .sub {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .slide-title .tag-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    justify-content: center;
+  }
+  .tag {
+    padding: 6px 18px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(0,212,170,0.15); color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(255,107,107,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(255,217,61,0.15); color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(107,203,255,0.15); color: var(--accent4); border: 1px solid var(--accent4); }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 36px;
+    flex-shrink: 0;
+  }
+  .section-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .section-num {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── Two-column ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+    align-items: start;
+  }
+  .one-col { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+  .two-col-wide { grid-template-columns: 1fr 1.4fr; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li {
+    font-size: 0.88rem;
+    color: #c0c4d0;
+    line-height: 1.65;
+  }
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+
+  /* ── Code ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.72rem, 1.1vw, 0.84rem);
+    line-height: 1.7;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-label {
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* syntax highlight */
+  .kw  { color: #c792ea; font-weight: 700; }
+  .ty  { color: var(--accent4); }
+  .fn  { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .str { color: #f78c6c; }
+  .cmt { color: #546e7a; font-style: italic; }
+  .op  { color: var(--accent2); }
+  .hl  { background: rgba(0,212,170,0.08); border-left: 3px solid var(--accent1); padding-left: 6px; margin-left: -6px; display: block; }
+  .hl-red { background: rgba(255,107,107,0.08); border-left: 3px solid var(--accent2); padding-left: 6px; margin-left: -6px; display: block; }
+  .hl-yellow { background: rgba(255,217,61,0.08); border-left: 3px solid var(--accent3); padding-left: 6px; margin-left: -6px; display: block; }
+
+  /* ── Callout ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-green  { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.3); color: #a0f0e0; }
+  .callout-red    { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: #ffb3b3; }
+  .callout-yellow { background: rgba(255,217,61,0.08);  border: 1px solid rgba(255,217,61,0.3);  color: #fff0a0; }
+  .callout-blue   { background: rgba(107,203,255,0.08); border: 1px solid rgba(107,203,255,0.3); color: #b0e4ff; }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Diagram blocks ── */
+  .scope-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .scope-block {
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .scope-global { background: rgba(107,203,255,0.1); border: 1px solid rgba(107,203,255,0.3); color: var(--accent4); }
+  .scope-local1 { background: rgba(0,212,170,0.1);  border: 1px solid rgba(0,212,170,0.3);  color: var(--accent1); margin-left: 20px; }
+  .scope-local2 { background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3);  color: var(--accent3); margin-left: 40px; }
+  .scope-label  { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+
+  /* ── Overloading table ── */
+  .ol-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .ol-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .ol-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .ol-table tr:last-child td { border-bottom: none; }
+  .ol-table .sig { color: var(--accent1); }
+  .ol-table .ret { color: var(--accent4); }
+  .ol-table .desc { color: #c0c4d0; font-family: 'Syne', sans-serif; }
+
+  /* ── Recursion stack ── */
+  .stack {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 4px;
+  }
+  .stack-frame {
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stack-frame.base  { background: rgba(0,212,170,0.15); border: 1px solid var(--accent1); color: var(--accent1); }
+  .stack-frame.call  { background: rgba(107,203,255,0.08); border: 1px solid rgba(107,203,255,0.3); color: var(--accent4); }
+  .stack-frame.call2 { background: rgba(255,217,61,0.08); border: 1px solid rgba(255,217,61,0.3); color: var(--accent3); }
+  .stack-ret { font-size: 0.7rem; opacity: 0.7; }
+
+  /* ── Bottom nav ── */
+  #nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border);
+    border: 1px solid #2a2f3d;
+    color: var(--text);
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #000; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%;
+    background: var(--accent1);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  #section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    min-width: 120px;
+    text-align: right;
+  }
+
+  /* decorative background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">ITT Midossi — Terzo Anno · Informatica</div>
+    <div class="title-bar">Funzioni in C++</div>
+  </div>
+  <div id="slide-counter">01 / 14</div>
+</div>
+
+<div id="stage">
+
+  <!-- ══════════════════════════════════════════════════ 
+       SLIDE 1 — TITLE
+  ══════════════════════════════════════════════════ -->
+  <div class="slide slide-title active" data-section="intro">
+    <div class="big">Funzioni in C++</div>
+    <div class="big" style="color:var(--accent1);">Scope · Overloading</div>
+    <div class="sub">Terzo anno — ITT Midossi</div>
+    <div class="tag-row">
+      <span class="tag tag-green">Scope</span>
+      <span class="tag tag-red">Overloading</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 2 — SCOPE: concetto
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="scope">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent4)"></div>
+      <h2 style="color:var(--accent4)">Scope delle Variabili</h2>
+      <span class="section-num">01 / 04</span>
+    </div>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <h3>📌 Cos'è lo scope?</h3>
+          <p>Lo <strong>scope</strong> (o visibilità) di una variabile è la regione del programma in cui quella variabile esiste ed è accessibile.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--accent4)">🌍 Variabile Globale</h3>
+          <ul>
+            <li>Dichiarata <em>fuori</em> da qualsiasi funzione</li>
+            <li>Visibile in <strong>tutto il file</strong></li>
+            <li>Esiste per tutta la durata del programma</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--accent1)">📦 Variabile Locale</h3>
+          <ul>
+            <li>Dichiarata <em>dentro</em> una funzione o un blocco <code>{}</code></li>
+            <li>Visibile <strong>solo in quel blocco</strong></li>
+            <li>Distrutta quando il blocco termina</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="scope-diagram">
+          <div class="scope-block scope-global">
+            <div class="scope-label">globale</div>
+            <div>int contatore = 0; &nbsp;&nbsp;<span style="color:var(--muted)">// visibile ovunque</span></div>
+          </div>
+          <div class="scope-block scope-local1">
+            <div class="scope-label">locale → main()</div>
+            <div>int x = 5; &nbsp;&nbsp;<span style="color:var(--muted)">// solo in main</span></div>
+          </div>
+          <div class="scope-block scope-local2">
+            <div class="scope-label">locale → blocco if</div>
+            <div>int y = 10; &nbsp;&nbsp;<span style="color:var(--muted)">// solo nell'if</span></div>
+          </div>
+          <div class="scope-block scope-local1" style="margin-left:20px;">
+            <div class="scope-label">locale → funzione foo()</div>
+            <div>int x = 99; &nbsp;&nbsp;<span style="color:var(--muted)">// diversa dalla x di main!</span></div>
+          </div>
+        </div>
+        <div class="callout callout-yellow" style="margin-top:16px;">
+          <span class="callout-icon">⚠️</span>
+          <span>Una variabile locale può avere lo stesso <em>nome</em> di una globale: la locale ha la <strong>precedenza</strong> nel suo scope.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 3 — SCOPE: esempio codice
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="scope">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent4)"></div>
+      <h2 style="color:var(--accent4)">Scope — Esempio Pratico</h2>
+      <span class="section-num">02 / 04</span>
+    </div>
+    <div class="two-col">
+      <pre><span class="cmt">// variabile GLOBALE</span>
+<span class="kw">int</span> <span class="fn">x</span> <span class="op">=</span> <span class="num">100</span>;
+
+<span class="kw">void</span> <span class="fn">mostra</span>() {
+<span class="hl">    <span class="cmt">// x globale: visibile qui</span>
+    cout <span class="op">&lt;&lt;</span> <span class="str">"mostra: x = "</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> endl;
+</span>}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+<span class="hl-yellow">    <span class="kw">int</span> x <span class="op">=</span> <span class="num">5</span>; <span class="cmt">// locale: nasconde la globale</span>
+    cout <span class="op">&lt;&lt;</span> <span class="str">"main: x = "</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> endl;
+</span>
+    {
+<span class="hl-red">        <span class="kw">int</span> x <span class="op">=</span> <span class="num">42</span>; <span class="cmt">// locale al blocco</span>
+        cout <span class="op">&lt;&lt;</span> <span class="str">"blocco: x = "</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> endl;
+</span>    } <span class="cmt">// x=42 viene distrutta qui</span>
+
+    <span class="fn">mostra</span>(); <span class="cmt">// stampa la x globale</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <h3>📤 Output</h3>
+          <pre style="margin:0;padding:12px;font-size:0.82rem;">main:  x = <span style="color:var(--accent3)">5</span>
+blocco: x = <span style="color:var(--accent2)">42</span>
+mostra: x = <span style="color:var(--accent4)">100</span></pre>
+        </div>
+        <div class="callout callout-green">
+          <span class="callout-icon">✅</span>
+          <span><strong>Regola d'oro:</strong> C++ cerca la variabile prima nel blocco più interno, poi risale verso l'esterno (blocco → funzione → globale).</span>
+        </div>
+        <div class="callout callout-red">
+          <span class="callout-icon">❌</span>
+          <span>Usare troppe variabili globali è <strong>cattiva pratica</strong>: rendono il codice difficile da leggere e da debuggare.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 4 — SCOPE: variabili locali in funzione
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="scope">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent4)"></div>
+      <h2 style="color:var(--accent4)">Scope — Parametri e Funzioni</h2>
+      <span class="section-num">03 / 04</span>
+    </div>
+    <div class="two-col">
+      <pre><span class="kw">int</span> <span class="fn">somma</span>(<span class="ty">int</span> a, <span class="ty">int</span> b) {
+<span class="hl">    <span class="cmt">// 'a' e 'b' sono LOCALI alla funzione</span>
+    <span class="kw">int</span> risultato <span class="op">=</span> a <span class="op">+</span> b;
+    <span class="kw">return</span> risultato;
+</span>} <span class="cmt">// a, b, risultato vengono distrutti</span>
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> x <span class="op">=</span> <span class="num">3</span>, y <span class="op">=</span> <span class="num">7</span>;
+    <span class="kw">int</span> tot <span class="op">=</span> <span class="fn">somma</span>(x, y);
+
+    <span class="cmt">// cout &lt;&lt; risultato; // ERRORE!</span>
+    <span class="cmt">// risultato non esiste qui</span>
+
+    cout <span class="op">&lt;&lt;</span> tot <span class="op">&lt;&lt;</span> endl; <span class="cmt">// OK: 10</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <h3>🧠 Da ricordare</h3>
+          <ul>
+            <li>I <strong>parametri</strong> di una funzione sono variabili locali a quella funzione</li>
+            <li>Le variabili locali nascono quando la funzione viene chiamata e muoiono quando ritorna</li>
+            <li>Non è possibile accedere a variabili locali di un'altra funzione</li>
+          </ul>
+        </div>
+        <div class="callout callout-blue">
+          <span class="callout-icon">💡</span>
+          <span>Le funzioni comunicano tramite <strong>parametri</strong> e <strong>valori di ritorno</strong>, non tramite variabili condivise. Questo è il design corretto!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 5 — SCOPE: static
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="scope">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent4)"></div>
+      <h2 style="color:var(--accent4)">Scope — Variabili <code>static</code></h2>
+      <span class="section-num">04 / 04</span>
+    </div>
+    <div class="two-col">
+      <pre><span class="kw">void</span> <span class="fn">conta</span>() {
+<span class="hl">    <span class="kw">static</span> <span class="ty">int</span> n <span class="op">=</span> <span class="num">0</span>; <span class="cmt">// inizializzata UNA sola volta</span>
+    n<span class="op">++</span>;
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Chiamata n. "</span> <span class="op">&lt;&lt;</span> n <span class="op">&lt;&lt;</span> endl;
+</span>}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">conta</span>(); <span class="cmt">// Chiamata n. 1</span>
+    <span class="fn">conta</span>(); <span class="cmt">// Chiamata n. 2</span>
+    <span class="fn">conta</span>(); <span class="cmt">// Chiamata n. 3</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <h3 style="color:var(--accent3)">⚡ <code>static</code> locale</h3>
+          <ul>
+            <li>Scope <em>locale</em>: visibile solo nella funzione</li>
+            <li>Lifetime <em>globale</em>: il valore viene <strong>conservato</strong> tra una chiamata e l'altra</li>
+            <li>Inizializzata una sola volta al primo accesso</li>
+          </ul>
+        </div>
+        <div class="callout callout-yellow">
+          <span class="callout-icon">⚠️</span>
+          <span>Una variabile <code>static</code> ha scope locale ma durata globale: una combinazione speciale, utile ma da usare con attenzione.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 6 — OVERLOADING: concetto
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="overloading">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent2)"></div>
+      <h2 style="color:var(--accent2)">Overloading delle Funzioni</h2>
+      <span class="section-num">01 / 04</span>
+    </div>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <h3>📌 Cos'è l'overloading?</h3>
+          <p>In C++ è possibile definire <strong>più funzioni con lo stesso nome</strong>, purché abbiano <em>parametri diversi</em> (numero o tipo). Il compilatore sceglie quella giusta automaticamente.</p>
+        </div>
+        <div class="card">
+          <h3>✅ Cosa può differire</h3>
+          <ul>
+            <li>Il <strong>numero</strong> di parametri</li>
+            <li>Il <strong>tipo</strong> dei parametri</li>
+            <li>L'<strong>ordine</strong> dei tipi dei parametri</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--accent2)">❌ Cosa NON basta</h3>
+          <ul>
+            <li>Cambiare solo il <strong>tipo di ritorno</strong> non è sufficiente</li>
+            <li>Cambiare solo il <strong>nome dei parametri</strong> non è sufficiente</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📋 Esempio — funzione <code>area()</code></h3>
+        <table class="ol-table" style="margin-top:8px;">
+          <tr><th>Firma</th><th>Ritorna</th><th>Uso</th></tr>
+          <tr>
+            <td class="sig">area(int l)</td>
+            <td class="ret">int</td>
+            <td class="desc">Quadrato di lato l</td>
+          </tr>
+          <tr>
+            <td class="sig">area(int b, int h)</td>
+            <td class="ret">int</td>
+            <td class="desc">Rettangolo</td>
+          </tr>
+          <tr>
+            <td class="sig">area(double r)</td>
+            <td class="ret">double</td>
+            <td class="desc">Cerchio (raggio r)</td>
+          </tr>
+          <tr>
+            <td class="sig">area(double b, double h)</td>
+            <td class="ret">double</td>
+            <td class="desc">Triangolo (b×h/2)</td>
+          </tr>
+        </table>
+        <div class="callout callout-green" style="margin-top:14px;">
+          <span class="callout-icon">💡</span>
+          <span>L'overloading rende il codice più <strong>leggibile</strong>: non serve inventare nomi come <code>area_quad</code>, <code>area_rett</code>…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 7 — OVERLOADING: esempio codice
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="overloading">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent2)"></div>
+      <h2 style="color:var(--accent2)">Overloading — Codice</h2>
+      <span class="section-num">02 / 04</span>
+    </div>
+    <div class="two-col">
+      <pre><span class="cmt">// versione 1: quadrato</span>
+<span class="hl"><span class="ty">int</span> <span class="fn">area</span>(<span class="ty">int</span> lato) {
+    <span class="kw">return</span> lato <span class="op">*</span> lato;
+}
+</span>
+<span class="cmt">// versione 2: rettangolo</span>
+<span class="hl-yellow"><span class="ty">int</span> <span class="fn">area</span>(<span class="ty">int</span> base, <span class="ty">int</span> altezza) {
+    <span class="kw">return</span> base <span class="op">*</span> altezza;
+}
+</span>
+<span class="cmt">// versione 3: cerchio</span>
+<span class="hl-red"><span class="ty">double</span> <span class="fn">area</span>(<span class="ty">double</span> raggio) {
+    <span class="kw">return</span> <span class="num">3.14159</span> <span class="op">*</span> raggio <span class="op">*</span> raggio;
+}
+</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    cout <span class="op">&lt;&lt;</span> <span class="fn">area</span>(<span class="num">5</span>)       <span class="op">&lt;&lt;</span> endl; <span class="cmt">// 25</span>
+    cout <span class="op">&lt;&lt;</span> <span class="fn">area</span>(<span class="num">4</span>, <span class="num">6</span>)    <span class="op">&lt;&lt;</span> endl; <span class="cmt">// 24</span>
+    cout <span class="op">&lt;&lt;</span> <span class="fn">area</span>(<span class="num">3.0</span>)     <span class="op">&lt;&lt;</span> endl; <span class="cmt">// 28.27...</span>
+}</pre>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <h3>🔍 Come sceglie il compilatore?</h3>
+          <p style="margin-bottom:10px;">Il compilatore analizza la <strong>firma</strong> della chiamata (numero e tipo degli argomenti) e sceglie la versione più adatta.</p>
+          <ul>
+            <li><code>area(5)</code> → un <code>int</code> → versione 1</li>
+            <li><code>area(4, 6)</code> → due <code>int</code> → versione 2</li>
+            <li><code>area(3.0)</code> → un <code>double</code> → versione 3</li>
+          </ul>
+        </div>
+        <div class="callout callout-blue">
+          <span class="callout-icon">🧠</span>
+          <span>Questo meccanismo è detto <strong>risoluzione dell'overloading</strong> (overload resolution) ed avviene a <em>compile time</em>, non a runtime.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 8 — OVERLOADING: parametri di default
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="overloading">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent2)"></div>
+      <h2 style="color:var(--accent2)">Parametri con Valore di Default</h2>
+      <span class="section-num">03 / 04</span>
+    </div>
+    <div class="two-col">
+      <pre><span class="cmt">// parametro 'sep' ha valore di default</span>
+<span class="kw">void</span> <span class="fn">stampa</span>(<span class="ty">int</span> a, <span class="ty">int</span> b,
+<span class="hl">           <span class="ty">char</span> sep <span class="op">=</span> <span class="str">'+'</span>) {
+    cout <span class="op">&lt;&lt;</span> a <span class="op">&lt;&lt;</span> sep <span class="op">&lt;&lt;</span> b <span class="op">&lt;&lt;</span> endl;
+}
+</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">stampa</span>(<span class="num">3</span>, <span class="num">5</span>);        <span class="cmt">// 3+5  (usa default)</span>
+    <span class="fn">stampa</span>(<span class="num">3</span>, <span class="num">5</span>, <span class="str">'-'</span>);   <span class="cmt">// 3-5  (sovrascrive)</span>
+    <span class="fn">stampa</span>(<span class="num">3</span>, <span class="num">5</span>, <span class="str">'*'</span>);   <span class="cmt">// 3*5</span>
+    <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="cmt">// ATTENZIONE: i default vanno sempre</span>
+<span class="cmt">// dai parametri di destra verso sinistra!</span>
+<span class="cmt">// int f(int a=1, int b) → ERRORE!</span>
+<span class="cmt">// int f(int a, int b=2) → OK</span></pre>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <h3>📌 Regole dei parametri default</h3>
+          <ul>
+            <li>I valori di default si specificano nel <strong>prototipo</strong> (o nella definizione)</li>
+            <li>Devono essere gli <strong>ultimi</strong> nella lista dei parametri</li>
+            <li>Il chiamante può omettere quegli argomenti</li>
+          </ul>
+        </div>
+        <div class="callout callout-yellow">
+          <span class="callout-icon">⚠️</span>
+          <span>Attenzione a non creare <strong>ambiguità</strong> mescolando overloading e default: il compilatore potrebbe non sapere quale versione scegliere.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 9 — OVERLOADING: esercizio
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="overloading">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent2)"></div>
+      <h2 style="color:var(--accent2)">Overloading — Esercizio</h2>
+      <span class="section-num">04 / 04</span>
+    </div>
+    <div class="one-col">
+      <div class="callout callout-blue" style="font-size:0.95rem;">
+        <span class="callout-icon">✏️</span>
+        <span>Scrivi una funzione <code>massimo()</code> con overloading per i seguenti casi:</span>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Versioni richieste</h3>
+          <ul>
+            <li><code>massimo(int a, int b)</code> → maggiore tra due interi</li>
+            <li><code>massimo(double a, double b)</code> → maggiore tra due reali</li>
+            <li><code>massimo(int a, int b, int c)</code> → maggiore tra tre interi</li>
+          </ul>
+        </div>
+        <pre><span class="cmt">// Esempio di chiamate attese:</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    cout <span class="op">&lt;&lt;</span> <span class="fn">massimo</span>(<span class="num">3</span>, <span class="num">7</span>);
+    <span class="cmt">// → 7</span>
+
+    cout <span class="op">&lt;&lt;</span> <span class="fn">massimo</span>(<span class="num">2.5</span>, <span class="num">1.8</span>);
+    <span class="cmt">// → 2.5</span>
+
+    cout <span class="op">&lt;&lt;</span> <span class="fn">massimo</span>(<span class="num">4</span>, <span class="num">9</span>, <span class="num">2</span>);
+    <span class="cmt">// → 9</span>
+}</pre>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span><strong>Bonus:</strong> la versione a tre parametri può richiamare internamente la versione a due parametri!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       SLIDE 10 — RIEPILOGO
+  ══════════════════════════════════════════════════ -->
+  <div class="slide" data-section="riepilogo">
+    <div class="section-header">
+      <div class="section-dot" style="background:var(--accent1)"></div>
+      <h2 style="color:var(--accent1)">Riepilogo</h2>
+    </div>
+    <div class="two-col" style="grid-template-columns:1fr 1fr;">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h3 style="color:var(--accent4)">📦 Scope</h3>
+        <ul>
+          <li><strong>Locale</strong>: esiste solo nel blocco in cui è dichiarata</li>
+          <li><strong>Globale</strong>: visibile in tutto il file</li>
+          <li>Locale nasconde globale con lo stesso nome</li>
+          <li><code>static</code>: locale ma persiste tra le chiamate</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h3 style="color:var(--accent2)">🔁 Overloading</h3>
+        <ul>
+          <li>Stessa funzione, firme diverse</li>
+          <li>Si differenzia per numero e tipo dei parametri</li>
+          <li>Il compilatore sceglie a compile time</li>
+          <li>I valori default rendono parametri opzionali</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout callout-green" style="margin-top:20px;">
+      <span class="callout-icon">🚀</span>
+      <span><strong>Prossimi argomenti:</strong> array e funzioni · passaggio per riferimento · ricorsione · algoritmi di ordinamento</span>
+    </div>
+  </div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':       'Introduzione',
+    'scope':       'Scope',
+    'overloading': 'Overloading',
+    'riepilogo':   'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current - (idx > current ? 0 : 0)].classList.remove('exit'), 400);
+
+    const prev = current;
+    current = idx;
+
+    // clear exit after transition
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+
+    slides[current].classList.add('active');
+
+    // update UI
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  // init
+  goTo(0);
+</script>
+</body>
+</html>

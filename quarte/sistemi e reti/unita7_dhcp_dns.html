@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 7 — Configurazione DHCP e DNS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #00d4aa;
+    --accent2: #ff6b6b;
+    --accent3: #ffd93d;
+    --accent4: #6bcbff;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --body-text: #c0c4d0;
+    --code-bg: #080a0f;
+    --grid: rgba(0,212,170,0.03);
+    --c1t: #a0f0e0; --c2t: #ffb3b3; --c3t: #fff0a0; --c4t: #b0e4ff;
+  }
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --panel: #f4f6fb;
+    --border: #cdd2e4;
+    --accent1: #008f72;
+    --accent2: #d63031;
+    --accent3: #b87500;
+    --accent4: #0d6ebd;
+    --text: #1c1e2d;
+    --muted: #717585;
+    --body-text: #3d4255;
+    --code-bg: #edf0f7;
+    --grid: rgba(13,110,189,0.04);
+    --c1t: #00614d; --c2t: #991f20; --c3t: #7a4d00; --c4t: #084d8a;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #000; border-color: var(--accent1); }
+
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 36px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.6rem, 5.5vw, 4.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.2rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row {
+    display: flex; gap: 12px; margin-top: 28px;
+    justify-content: center; flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(0,212,170,0.15);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(255,107,107,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(255,217,61,0.15);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(107,203,255,0.15); color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 {
+    font-size: clamp(1.45rem, 2.4vw, 2.2rem);
+    font-weight: 800; letter-spacing: -1px;
+  }
+  .section-num {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: var(--muted);
+  }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .card h3 {
+    font-size: 1.02rem; font-weight: 700; margin-bottom: 9px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p, .card li { font-size: 0.93rem; color: var(--body-text); line-height: 1.6; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.75rem, 1.07vw, 0.88rem);
+    line-height: 1.65; overflow-x: auto; position: relative;
+  }
+  .code-label {
+    position: absolute; top: 6px; right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; color: var(--muted); letter-spacing: 1px;
+  }
+
+  .callout {
+    border-radius: 8px; padding: 11px 14px;
+    font-size: 0.93rem; line-height: 1.6;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(0,212,170,0.08);  border: 1px solid rgba(0,212,170,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: var(--c2t); }
+  .callout-yellow { background: rgba(255,217,61,0.08);  border: 1px solid rgba(255,217,61,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(107,203,255,0.08); border: 1px solid rgba(107,203,255,0.3); color: var(--c4t); }
+  .callout-icon { font-size: 1.13rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* DORA diagram */
+  .dora-flow {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr;
+    align-items: center; gap: 6px; margin: 8px 0;
+  }
+  .dora-step { border-radius: 8px; padding: 12px 8px; text-align: center; }
+  .dora-step .dnum { font-family: 'JetBrains Mono', monospace; font-size: 1.47rem; font-weight: 700; }
+  .dora-step .dname { font-size: 0.88rem; font-weight: 700; margin-top: 3px; }
+  .dora-step .dmsg  { font-size: 0.73rem; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .dora-arrow { color: var(--muted); font-size: 1.47rem; text-align: center; }
+  .dora-d { background: rgba(0,212,170,0.12);  border: 1px solid rgba(0,212,170,0.4); }
+  .dora-o { background: rgba(107,203,255,0.12); border: 1px solid rgba(107,203,255,0.4); }
+  .dora-r { background: rgba(255,217,61,0.12);  border: 1px solid rgba(255,217,61,0.4); }
+  .dora-a { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.4); }
+
+  /* Protocol header */
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; color: var(--body-text);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(0,212,170,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(107,203,255,0.1); color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(255,217,61,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(255,107,107,0.1); color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; }
+  .proto-cell.w3 { flex: 3; }
+  .proto-cell.w4 { flex: 4; }
+
+  /* FSM States */
+  .fsm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .fsm-state { border-radius: 6px; padding: 9px 11px; }
+  .fsm-state .sname {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    font-size: 0.87rem; margin-bottom: 3px;
+  }
+  .fsm-state p { font-size: 0.82rem; color: var(--body-text); line-height: 1.45; }
+
+  /* RR Table */
+  .rr-table { width: 100%; border-collapse: collapse; }
+  .rr-table th {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); padding: 5px 10px; text-align: left;
+  }
+  .rr-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
+  .rr-table tr:last-child td { border-bottom: none; }
+  .rr-type { color: var(--accent1); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .rr-desc { color: var(--body-text); }
+  .rr-ex   { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; }
+
+  /* DNS hierarchy */
+  .dns-tree {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dns-level {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  }
+  .dns-node {
+    border-radius: 4px; padding: 4px 10px; font-size: 0.82rem; font-weight: 700;
+  }
+
+  /* overview list */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.13rem; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .ov-content h4 { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.88rem; color: var(--muted); }
+
+  /* Bottom nav */
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 20px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #000; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar {
+    flex: 1; height: 3px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%; background: var(--accent1);
+    border-radius: 2px; transition: width 0.4s ease;
+  }
+  #section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    color: var(--muted); min-width: 160px; text-align: right;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">ITT Midossi — Quarto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 7 — DHCP &amp; DNS</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 17</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════════════════════ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Unità 7</div>
+  <div class="big" style="color:var(--accent1);">DHCP &amp; DNS</div>
+  <div class="sub" style="font-size:1.15rem; font-weight:700; color:var(--text); margin-top:10px;">
+    La Configurazione del DHCP e del DNS
+  </div>
+  <div class="sub">Quarto anno — ITT Midossi · Sistemi e Reti</div>
+  <div class="tag-row">
+    <span class="tag tag-green">DHCP</span>
+    <span class="tag tag-blue">DNS</span>
+    <span class="tag tag-yellow">DHCPv6</span>
+    <span class="tag tag-red">Sicurezza</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — PANORAMICA
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content">
+        <h4>La configurazione degli host</h4>
+        <p>Host configuration vs management · Protocollo BOOTP</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">02</div>
+      <div class="ov-content">
+        <h4>Il protocollo DHCP</h4>
+        <p>Parametri assegnati · APIPA · configurazione su Windows e Linux</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">03</div>
+      <div class="ov-content">
+        <h4>Architettura Client/Server DHCP</h4>
+        <p>3 metodi di assegnazione · Relay Agent · backup server</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">04</div>
+      <div class="ov-content">
+        <h4>Comunicazione DHCP</h4>
+        <p>Formato messaggi · Fasi DORA · FSM del client · rinnovo lease</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">05</div>
+      <div class="ov-content">
+        <h4>DHCP per IPv6 (DHCPv6)</h4>
+        <p>Stateless vs Stateful · DUID/IAID · modalità 4 messaggi</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" sstyle="color:var(--accent4)">06</div>
+      <div class="ov-content" >
+        <h4 style="color:var(--accent4)">Il DNS</h4>
+        <p>Domain Name Space · Name Server · Resolver · Resource Record</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">07</div>
+      <div class="ov-content">
+        <h4>Problematiche di sicurezza</h4>
+        <p>Server non autorizzati · Cache poisoning · DNSSEC · IPSec</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--muted)">Lab</div>
+      <div class="ov-content">
+        <h4>Laboratori</h4>
+        <p>Comando nslookup · Packet Tracer DHCP · Packet Tracer DNS</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — CONFIGURAZIONE DEGLI HOST
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="host-config">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">La Configurazione degli Host</h2>
+    <span class="section-num">01 / 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div class="card">
+        <h3>📋 Due tipi di attività</h3>
+        <ul>
+          <li><strong>Host configuration</strong>: configurare ogni host prima della messa in rete (indirizzo IP, subnet mask, gateway, DNS)</li>
+          <li style="margin-top:6px;"><strong>Host management</strong>: gestire e controllare gli host durante il funzionamento (monitoraggio anomalie, degrado prestazioni)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">📡 Il protocollo BOOTP</h3>
+        <ul>
+          <li>Predecessore di DHCP — RFC 951</li>
+          <li>Usa UDP, porte <strong>67</strong> (server) e <strong>68</strong> (client)</li>
+          <li>Invia IP e parametri in un solo messaggio</li>
+          <li>Supporta più subnet tramite <strong>broadcast IP</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div class="card">
+        <h3>🔄 Procedura BOOTP (2 fasi)</h3>
+        <ul>
+          <li><strong>Fase 1</strong>: il client riceve l'indirizzo IP e il nome del file immagine da scaricare</li>
+          <li style="margin-top:6px;"><strong>Fase 2</strong>: il client usa <strong>TFTP</strong> (Trivial File Transfer Protocol) per scaricare il file dal server</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span>DHCP e SNMP (Simple Network Management Protocol) lavorano entrambi a livello <strong>Application</strong> per indipendenza dall'hardware e per sfruttare le funzionalità del livello Transport.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📌</span>
+        <span>DHCP non è una "rivoluzione" rispetto a BOOTP: ne è un <strong>miglioramento</strong>, aggiungendo l'assegnazione <em>dinamica</em> degli indirizzi IP.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — DHCP: INTRODUZIONE
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il Protocollo DHCP</h2>
+    <span class="section-num">01 / 07</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div class="card">
+        <h3>📌 Cos'è il DHCP?</h3>
+        <p><strong>Dynamic Host Configuration Protocol</strong> — RFC 2131</p>
+        <p style="margin-top:6px;">Consente l'assegnazione <em>automatica</em> e <em>dinamica</em> dei parametri di rete agli host, senza intervento manuale dell'amministratore.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1)">🌐 Parametri assegnati dal DHCP</h3>
+        <ul>
+          <li><strong>Indirizzo IP</strong> — identificatore dell'host</li>
+          <li><strong>Subnet mask</strong> — per conoscere il prefisso di rete</li>
+          <li><strong>Default gateway</strong> — router verso Internet</li>
+          <li><strong>DNS Server preferito</strong></li>
+          <li><strong>DNS Server alternativo</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">⚠️ APIPA — Fallback senza server</h3>
+        <p style="margin-bottom:8px;"><strong>Automatic Private IP Addressing</strong>: se nessun DHCP Server risponde, Windows assegna automaticamente un indirizzo nell'intervallo:</p>
+        <pre style="padding:8px 12px; font-size:0.72rem;">169.254.0.1 — 169.254.255.254
+Subnet mask: 255.255.0.0  (Classe B default)
+Gateway:     0.0.0.0</pre>
+        <p style="margin-top:8px;">APIPA è un <em>fallback temporaneo</em>: quando il server torna disponibile, rilascia l'indirizzo e ne richiede uno tramite DHCP.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Con un indirizzo APIPA, l'host può comunicare <strong>solo</strong> con altri host APIPA della stessa LAN — non ha accesso a Internet.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — ARCHITETTURA CLIENT/SERVER DHCP
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Architettura Client/Server DHCP</h2>
+    <span class="section-num">02 / 07</span>
+  </div>
+  <div class="one-col">
+    <div class="three-col">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h3 style="color:var(--accent4)">🔧 Manuale</h3>
+        <p>L'amministratore assegna un IP <strong>specifico e permanente</strong> a un host preciso nel database del server.</p>
+        <p style="margin-top:6px; color:var(--muted);">Usato per router, server, stampanti di rete — dispositivi che devono avere sempre lo stesso IP.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1)">
+        <h3 style="color:var(--accent1)">⚡ Automatica</h3>
+        <p>Il server assegna un indirizzo IP <strong>permanente</strong> in modo automatico a ogni nuovo host.</p>
+        <p style="margin-top:6px; color:var(--muted);">L'IP rimane fisso per quell'host, ma non richiede configurazione manuale dell'amministratore.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3)">
+        <h3 style="color:var(--accent3)">🔄 Dinamica</h3>
+        <p>Il server assegna un IP per un <strong>tempo limitato</strong> (tempo di lease) secondo la <em>lease length policy</em>.</p>
+        <p style="margin-top:6px; color:var(--muted);">Allo scadere, il client può richiedere il rinnovo o un nuovo indirizzo.</p>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3>✅ Vantaggi della configurazione dinamica</h3>
+        <ul>
+          <li><strong>Automazione</strong>: nessun intervento manuale</li>
+          <li><strong>Gestione centralizzata</strong>: tutto dal server</li>
+          <li><strong>Condivisione</strong>: più host del pool disponibile</li>
+          <li><strong>Portabilità</strong>: un host può cambiare subnet</li>
+          <li><strong>No conflitti</strong>: IP presi dal database, nessun duplicato</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="callout callout-blue">
+          <span class="callout-icon">📡</span>
+          <span><strong>Relay Agent</strong>: se il DHCP Server non è nella stessa subnet del client, un router funge da intermediario, inoltrandone le richieste attraverso più reti.</span>
+        </div>
+        <div class="callout callout-yellow">
+          <span class="callout-icon">🔁</span>
+          <span><strong>Backup</strong>: si usano 2 DHCP Server (75%/25% degli indirizzi) per fault-tolerance e bilanciamento del carico.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — FORMATO MESSAGGIO DHCP
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il Formato dei Messaggi DHCP</h2>
+    <span class="section-num">03 / 07</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue" style="margin-bottom:2px;">
+        <span class="callout-icon">📦</span>
+        <span>I messaggi DHCP usano <strong>UDP</strong> — porta <strong>67</strong> (server) e porta <strong>68</strong> (client), come BOOTP.</span>
+      </div>
+      <div style="font-size:0.7rem; color:var(--muted); font-family:'JetBrains Mono',monospace; margin-bottom:2px;">FORMATO PDU DHCP</div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl">op</div>
+          <div class="proto-cell hl-blue">htype</div>
+          <div class="proto-cell">hlen</div>
+          <div class="proto-cell">hops</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">transaction ID (xid)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w2">seconds</div>
+          <div class="proto-cell w2">flags</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">Client IP Address (CIAddr)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4 hl">Your IP Address (YIAddr)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">Server IP Address (SIAddr)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">Router IP Address (GIAddr)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4 hl-blue">Client Hardware Address (CHAddr) — 16 ottetti</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">Server host name (SName) — 64 ottetti</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">Boot file name — 128 ottetti</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4 hl-yel">OPTIONS (variabile)</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3>🔑 Campi principali</h3>
+        <ul>
+          <li><code style="color:var(--accent1)">op</code> — 1=request, 2=reply</li>
+          <li><code style="color:var(--accent4)">xid</code> — numero casuale per abbinare richiesta/risposta</li>
+          <li><code style="color:var(--accent1)">YIAddr</code> — IP assegnato al client dal server</li>
+          <li><code style="color:var(--accent4)">CHAddr</code> — MAC address del client (identificazione)</li>
+          <li><code style="color:var(--accent3)">OPTIONS</code> — subnet mask, gateway, DNS, lease time…</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">📋 Tipi di messaggio (campo Options)</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:4px; font-family:'JetBrains Mono',monospace; font-size:0.7rem;">
+          <div style="color:var(--accent1);">1 DHCPDISCOVER</div>
+          <div style="color:var(--accent4);">2 DHCPOFFER</div>
+          <div style="color:var(--accent3);">3 DHCPREQUEST</div>
+          <div style="color:var(--accent2);">4 DHCPDECLINE</div>
+          <div style="color:var(--accent1);">5 DHCPACK</div>
+          <div style="color:var(--accent2);">6 DHCPNACK</div>
+          <div style="color:var(--muted);">7 DHCPRELEASE</div>
+          <div style="color:var(--muted);">8 DHCPINFORM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — LE 4 FASI DORA
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Le 4 Fasi DORA</h2>
+    <span class="section-num">04 / 07</span>
+  </div>
+  <div class="one-col">
+    <div class="dora-flow">
+      <div class="dora-step dora-d">
+        <div class="dnum" style="color:var(--accent1)">D</div>
+        <div class="dname" style="color:var(--accent1)">Discover</div>
+        <div class="dmsg">DHCPDISCOVER</div>
+      </div>
+      <div class="dora-arrow">→</div>
+      <div class="dora-step dora-o">
+        <div class="dnum" style="color:var(--accent4)">O</div>
+        <div class="dname" style="color:var(--accent4)">Offer</div>
+        <div class="dmsg">DHCPOFFER</div>
+      </div>
+      <div class="dora-arrow">→</div>
+      <div class="dora-step dora-r">
+        <div class="dnum" style="color:var(--accent3)">R</div>
+        <div class="dname" style="color:var(--accent3)">Request</div>
+        <div class="dmsg">DHCPREQUEST</div>
+      </div>
+      <div class="dora-arrow">→</div>
+      <div class="dora-step dora-a">
+        <div class="dnum" style="color:var(--accent2)">A</div>
+        <div class="dname" style="color:var(--accent2)">Ack</div>
+        <div class="dmsg">DHCPACK</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card" style="border-left:3px solid var(--accent1)">
+          <h3 style="color:var(--accent1)">1. DISCOVER</h3>
+          <p>Il client invia in <strong>broadcast</strong> (255.255.255.255) sulla porta UDP 67 per trovare un DHCP Server disponibile.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent4)">
+          <h3 style="color:var(--accent4)">2. OFFER</h3>
+          <p>Ogni DHCP Server risponde in broadcast con un'<strong>offerta</strong>: IP proposto, subnet mask, gateway e tempo di lease.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card" style="border-left:3px solid var(--accent3)">
+          <h3 style="color:var(--accent3)">3. REQUEST</h3>
+          <p>Il client sceglie una delle offerte e invia in broadcast DHCPREQUEST. Gli altri server <strong>rientrano nel pool</strong>.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent2)">
+          <h3 style="color:var(--accent2)">4. ACK</h3>
+          <p>Il server selezionato risponde con DHCPACK, <strong>confermando</strong> tutti i parametri di configurazione. Da ora il client usa l'IP.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-green">
+      <span class="callout-icon">🧠</span>
+      <span><strong>DORA</strong> = Discovery · Offer · Request · Acknowledgement — l'acronimo della procedura di assegnazione dinamica DHCP.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 — FSM DEL DHCP CLIENT E RINNOVO LEASE
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Gli Stati del DHCP Client</h2>
+    <span class="section-num">05 / 07</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue" style="margin-bottom:2px;">
+        <span class="callout-icon">🤖</span>
+        <span>Il DHCP usa una <strong>FSM</strong> (Finite State Machine) per descrivere il ciclo di vita del lease dal punto di vista del client.</span>
+      </div>
+      <div class="fsm-grid">
+        <div class="fsm-state" style="background:rgba(107,203,255,0.08); border:1px solid rgba(107,203,255,0.3);">
+          <div class="sname" style="color:var(--accent4)">INITIALIZE</div>
+          <p>Stato iniziale. Invia DHCPDISCOVER in broadcast.</p>
+        </div>
+        <div class="fsm-state" style="background:rgba(0,212,170,0.08); border:1px solid rgba(0,212,170,0.3);">
+          <div class="sname" style="color:var(--accent1)">SELECT</div>
+          <p>Raccoglie le offerte DHCPOFFER e ne sceglie una.</p>
+        </div>
+        <div class="fsm-state" style="background:rgba(255,217,61,0.08); border:1px solid rgba(255,217,61,0.3);">
+          <div class="sname" style="color:var(--accent3)">REQUEST</div>
+          <p>Invia DHCPREQUEST al server scelto.</p>
+        </div>
+        <div class="fsm-state" style="background:rgba(0,212,170,0.15); border:1px solid rgba(0,212,170,0.5);">
+          <div class="sname" style="color:var(--accent1)">BOUND</div>
+          <p>Usa l'IP assegnato. Imposta i timer T1 e T2.</p>
+        </div>
+        <div class="fsm-state" style="background:rgba(255,217,61,0.08); border:1px solid rgba(255,217,61,0.3);">
+          <div class="sname" style="color:var(--accent3)">RENEW</div>
+          <p>Al 50% del lease: richiede rinnovo con DHCPREQUEST unicast.</p>
+        </div>
+        <div class="fsm-state" style="background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.3);">
+          <div class="sname" style="color:var(--accent2)">REBIND</div>
+          <p>All'87,5%: DHCPREQUEST in broadcast a qualsiasi server.</p>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">⏱️ Timer T1 e T2</h3>
+        <ul>
+          <li><strong>T1 (renewal timer)</strong>: al <strong>50%</strong> del lease → stato RENEW, invia DHCPREQUEST unicast al server</li>
+          <li style="margin-top:5px;"><strong>T2 (rebinding timer)</strong>: all'<strong>87,5%</strong> del lease → stato REBIND, broadcast a qualsiasi server</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🔄 Rilascio indirizzo IP</h3>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; margin-top:4px;">
+          <div style="margin-bottom:6px;">
+            <div style="color:var(--muted); font-size:0.62rem; margin-bottom:2px;">WINDOWS</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent1);">ipconfig /release</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent4); margin-top:3px;">ipconfig /renew</div>
+          </div>
+          <div style="margin-bottom:6px;">
+            <div style="color:var(--muted); font-size:0.62rem; margin-bottom:2px;">LINUX</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent1);">dhclient -r [interfaccia]</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent4); margin-top:3px;">dhclient [interfaccia]</div>
+          </div>
+          <div>
+            <div style="color:var(--muted); font-size:0.62rem; margin-bottom:2px;">MACOS</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent1);">sudo ipconfig set [interfaccia] NONE</div>
+            <div style="background:var(--code-bg); border-radius:4px; padding:5px 8px; color:var(--accent4); margin-top:3px;">sudo ipconfig set [interfaccia] DHCP</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span>Se il client invia <strong>DHCPRELEASE</strong>, l'indirizzo torna immediatamente nel pool disponibile del server.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — DHCPv6
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il DHCP per IPv6 — DHCPv6</h2>
+    <span class="section-num">06 / 07</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🆕 Due modalità di autoconfigurazione IPv6</h3>
+        <ul>
+          <li><strong>Stateless (RFC 4862)</strong>: l'host si configura autonomamente senza server — adatta a reti domestiche</li>
+          <li style="margin-top:6px;"><strong>Stateful (DHCPv6 — RFC 8415)</strong>: un server fornisce le informazioni all'host — controllo centralizzato nelle reti aziendali</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">🔌 Porte UDP diverse da IPv4</h3>
+        <ul>
+          <li><strong>UDP 546</strong> → DHCPv6 Client</li>
+          <li><strong>UDP 547</strong> → DHCPv6 Server</li>
+        </ul>
+        <p style="margin-top:6px;">Non compatibile con client IPv4 (che usano porte 67/68).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">🏷️ Identificatori univoci</h3>
+        <ul>
+          <li><strong>DUID</strong> (DHCP Unique Identifier): identifica l'host — generato una sola volta dal SO e memorizzato in modo permanente</li>
+          <li style="margin-top:4px;"><strong>IAID</strong> (Identity Association Identifier): identifica ogni interfaccia di rete dell'host</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>📨 Modalità a 4 messaggi (Stateful)</h3>
+        <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--accent1); font-weight:700; min-width:90px;">SOLICIT</span>
+            <span style="color:#c0c4d0;">→ multicast ff02::1:2 per trovare server disponibili</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--accent4); font-weight:700; min-width:90px;">ADVERTISE</span>
+            <span style="color:#c0c4d0;">← i server rispondono con l'offerta</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--accent3); font-weight:700; min-width:90px;">REQUEST</span>
+            <span style="color:#c0c4d0;">→ il client sceglie e richiede conferma</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--accent2); font-weight:700; min-width:90px;">REPLY</span>
+            <span style="color:#c0c4d0;">← il server conferma l'assegnazione</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📩 Modalità a 2 messaggi (Stateless)</h3>
+        <p>Se il client ha già un indirizzo e vuole solo altri parametri (es. lista DNS):</p>
+        <div style="margin-top:6px; font-size:0.78rem; font-family:'JetBrains Mono',monospace;">
+          <div style="color:var(--accent1);">Information-Request →</div>
+          <div style="color:var(--accent4);">               ← Reply</div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔄</span>
+        <span>Il rinnovo si fa con un messaggio <strong>Renew</strong> (≈ DHCPREQUEST di DHCPv4). Il rilascio con <strong>Release</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — DNS: STRUTTURA E COMPONENTI
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dns">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il DNS — Domain Name System</h2>
+    <span class="section-num">01 / 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">📌</span>
+        <span>Il DNS consente di usare <strong>nomi</strong> al posto degli indirizzi IP. È un database <strong>distribuito</strong> e organizzato gerarchicamente — RFC 1034 e RFC 1035.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">🏗️ I 3 componenti del DNS</h3>
+        <ul>
+          <li><strong>Domain Name Space</strong>: struttura ad albero dei nomi di dominio</li>
+          <li style="margin-top:5px;"><strong>Name Server</strong>: processo che gestisce informazioni su zone del Name Space — è un <em>authoritative Name Server</em> per le sue zone</li>
+          <li style="margin-top:5px;"><strong>Resolver</strong>: applicazione client che ottiene informazioni dal Name Server (es. <code>gethostbyname</code> in Unix)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🌳 Tipi di dominio</h3>
+        <ul>
+          <li><strong>Domini radice</strong>: dominio di primo livello — TLD (Top Level Domain): <code>.it</code>, <code>.com</code>, <code>.org</code>…</li>
+          <li><strong>Domini intermedi</strong>: hanno sottodomini (es. <code>school.it</code>)</li>
+          <li><strong>Domini foglia</strong>: senza sottodomini, contengono solo host (es. <code>di.school.it</code>)</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>🔤 Come si compone un nome FQDN</h3>
+        <p style="margin-bottom:8px;">Il nome si percorre dalla <strong>foglia alla radice</strong>, separato da punti. Il punto finale (radice) è implicito.</p>
+        <pre style="font-size:0.74rem; padding:10px 12px;"><span style="color:var(--accent1);">www.ietf.org</span>
+     ↑    ↑    ↑
+  host dominio TLD (radice implicita)</pre>
+        <ul style="margin-top:8px;">
+          <li>Singoli componenti: max <strong>63 caratteri</strong></li>
+          <li>Nome completo: max <strong>255 caratteri</strong></li>
+          <li>Nomi <strong>case-insensitive</strong>: <code>.IT</code> = <code>.it</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--muted)">🔑 Gestione dei TLD</h3>
+        <p><strong>IANA</strong> gestisce i TLD a livello mondiale. Collabora con <strong>ICANN</strong> che coordina le attività dei root Name Server.</p>
+        <p style="margin-top:6px;">Il Name Server è in ascolto su porta <strong>53 UDP</strong> (query) e <strong>53 TCP</strong> (trasferimento zone).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 — I RESOURCE RECORD
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dns">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">I Resource Record (RR)</h2>
+    <span class="section-num">02 / 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3>📋 Struttura di un Resource Record</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Name</div>
+            <div class="proto-cell hl">Type</div>
+            <div class="proto-cell">Class</div>
+            <div class="proto-cell">TTL</div>
+            <div class="proto-cell">RDLength</div>
+            <div class="proto-cell hl-yel">RData</div>
+          </div>
+        </div>
+        <ul style="margin-top:8px;">
+          <li><code style="color:var(--accent4)">Name</code> — Domain Name del record</li>
+          <li><code style="color:var(--accent1)">Type</code> — tipo di informazione in RData</li>
+          <li><code style="color:var(--muted)">Class</code> — IN per Internet</li>
+          <li><code style="color:var(--muted)">TTL</code> — stabilità del record (valore alto = stabile)</li>
+          <li><code style="color:var(--accent3)">RData</code> — il dato vero e proprio</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <table class="rr-table">
+        <tr>
+          <th>Tipo</th>
+          <th>Significato</th>
+          <th>Esempio</th>
+        </tr>
+        <tr>
+          <td class="rr-type">A</td>
+          <td class="rr-desc">IPv4 address dell'host</td>
+          <td class="rr-ex">pingu.di.school.it. A 198.45.30.165</td>
+        </tr>
+        <tr>
+          <td class="rr-type">AAAA</td>
+          <td class="rr-desc">IPv6 address dell'host (RFC 1886)</td>
+          <td class="rr-ex">host.di.school.it. AAAA 2001:db8::1</td>
+        </tr>
+        <tr>
+          <td class="rr-type">CNAME</td>
+          <td class="rr-desc">Alias (Canonical NAME)</td>
+          <td class="rr-ex">www.di.school.it. CNAME pingu.di.school.it.</td>
+        </tr>
+        <tr>
+          <td class="rr-type">MX</td>
+          <td class="rr-desc">Mail eXchange server</td>
+          <td class="rr-ex">pingu.di.school.it. MX 1 IN istruzione.it.</td>
+        </tr>
+        <tr>
+          <td class="rr-type">NS</td>
+          <td class="rr-desc">Name Server autoritativo</td>
+          <td class="rr-ex">di.school.it. NS name1.di.school.it.</td>
+        </tr>
+        <tr>
+          <td class="rr-type">PTR</td>
+          <td class="rr-desc">Risoluzione inversa (IP→nome)</td>
+          <td class="rr-ex">165.30.45.198.in-addr.arpa. PTR pingu.di.school.it.</td>
+        </tr>
+        <tr>
+          <td class="rr-type">SOA</td>
+          <td class="rr-desc">Start Of Authority — fonte principale della zona</td>
+          <td class="rr-ex">— obbligatorio per ogni zona</td>
+        </tr>
+        <tr>
+          <td class="rr-type">TXT</td>
+          <td class="rr-desc">Testo associato a un nome</td>
+          <td class="rr-ex">TXT IN "Server Linux del Dip. Informatica"</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 — COME FUNZIONA IL DNS
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dns">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Come Funziona il DNS</h2>
+    <span class="section-num">03 / 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3>🔍 Query iterative vs ricorsive</h3>
+        <ul>
+          <li><strong>Iterativa</strong>: il client chiede a un server DNS, che risponde con la migliore risposta nota o con il rimando al prossimo server</li>
+          <li style="margin-top:5px;"><strong>Ricorsiva</strong>: il client chiede a un server DNS di rispondere in modo completo. Il server può interrogare altri server per conto del client</li>
+        </ul>
+        <div class="callout callout-blue" style="margin-top:8px;">
+          <span class="callout-icon">💡</span>
+          <span>I <em>resolver</em> fanno query <strong>ricorsive</strong>; i <em>Name Server</em> solitamente query <strong>iterative</strong>.</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">🔁 Esempio: risoluzione di www.company.com</h3>
+        <div style="font-size:0.76rem; color:#c0c4d0; line-height:1.55; margin-top:4px;">
+          <div style="margin-bottom:3px;"><span style="color:var(--accent1); font-family:'JetBrains Mono',monospace;">1.</span> Resolver → Default DNS Server (query A per www.company.com)</div>
+          <div style="margin-bottom:3px;"><span style="color:var(--accent4); font-family:'JetBrains Mono',monospace;">2.</span> Default DNS → Root Server</div>
+          <div style="margin-bottom:3px;"><span style="color:var(--accent3); font-family:'JetBrains Mono',monospace;">3.</span> Root Server risponde con NS del dominio .com</div>
+          <div style="margin-bottom:3px;"><span style="color:var(--accent3); font-family:'JetBrains Mono',monospace;">4-5.</span> Default DNS → NS di .com → ottiene NS di company.com</div>
+          <div style="margin-bottom:3px;"><span style="color:var(--accent1); font-family:'JetBrains Mono',monospace;">6-7.</span> Default DNS → Authoritative NS di company.com → IP</div>
+          <div><span style="color:var(--accent4); font-family:'JetBrains Mono',monospace;">8.</span> Default DNS → Resolver (risposta con IP = 138.34.121.75)</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">🔄 Risoluzione inversa</h3>
+        <p>Dato un <strong>indirizzo IP</strong>, trovare il nome corrispondente. Si usa il dominio speciale <code style="color:var(--accent2)">in-addr.arpa</code>.</p>
+        <p style="margin-top:6px;">Per risolvere <code>198.45.30.165</code> → si cerca il RR PTR di:</p>
+        <pre style="margin-top:6px; font-size:0.72rem; padding:8px 10px;"><span style="color:var(--accent2);">165.30.45.198.in-addr.arpa.</span></pre>
+        <p style="margin-top:6px; font-size:0.78rem; color:#c0c4d0;">L'indirizzo IP è scritto al <strong>contrario</strong>: nella gerarchia DNS, le parti più specifiche sono a destra (al contrario degli IP).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--muted)">💾 Cache DNS</h3>
+        <ul>
+          <li>I Name Server memorizzano le risposte in <strong>cache</strong></li>
+          <li>Una risposta da cache è <em>non-authoritative</em></li>
+          <li>Il campo <strong>TTL</strong> indica quanto a lungo tenere l'informazione</li>
+          <li>DNS primario e secondario si sincronizzano via <strong>TCP 53</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 13 — PROBLEMATICHE DI SICUREZZA
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="sicurezza">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Problematiche di Sicurezza</h2>
+    <span class="section-num">01 / 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent1)">
+        <h3 style="color:var(--accent1)">🔴 Vulnerabilità DHCP</h3>
+        <p>DHCP usa UDP e IP — <strong>intrinsecamente insicuri</strong>. Nessuna autenticazione prevista nelle specifiche originali.</p>
+        <ul style="margin-top:6px;">
+          <li><strong>DHCP Server non autorizzato</strong>: un server abusivo risponde con parametri falsi, bloccando gli host o configurandoli per azioni fraudolente</li>
+          <li style="margin-top:4px;"><strong>DHCP Client non autorizzato</strong>: esaurisce il pool IP con migliaia di richieste, bloccando nuovi accessi alla rete (<em>DHCP starvation</em>)</li>
+        </ul>
+        <div class="callout callout-green" style="margin-top:8px;">
+          <span class="callout-icon">🛡️</span>
+          <span>Soluzione: controllo fisico dell'accesso alla rete + <strong>IPSec</strong> al livello Network.</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h3 style="color:var(--accent4)">🔵 Vulnerabilità DNS</h3>
+        <ul>
+          <li>Non è autenticato: la risposta potrebbe non venire dal DNS Server corretto (<strong>spoofing</strong>)</li>
+          <li style="margin-top:4px;"><strong>DNS Cache Poisoning</strong>: modifica dei dati nella cache del server inserendo TTL alto — l'utente viene reindirizzato a siti malevoli</li>
+          <li style="margin-top:4px;">Non offre meccanismi per proteggere l'integrità delle informazioni</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1)">
+        <h3 style="color:var(--accent1)">🔐 DNSSEC</h3>
+        <p><strong>Domain Name System Security Extensions</strong>: estensione del DNS definita dall'IETF.</p>
+        <ul style="margin-top:6px;">
+          <li>Usa <strong>chiavi crittografiche</strong> per autenticare i dati DNS a partire dalla root</li>
+          <li>Le chiavi della root sono gestite da <strong>ICANN</strong></li>
+          <li>5 indicatori: <strong>coerenza, integrità, velocità, disponibilità, robustezza</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 14 — LABORATORIO: NSLOOKUP
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="laboratorio">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--muted)"></div>
+    <h2>Laboratorio — Il Comando <code style="font-size:1.4rem; color:var(--accent1)">nslookup</code></h2>
+    <span class="section-num">Lab 8</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🖥️</span>
+        <span><code>nslookup</code> è disponibile su Windows, Unix e Linux. Permette di interrogare il DNS per risolvere nomi, indirizzi IP e specifici Resource Record.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1)">Modalità interattiva</h3>
+        <p style="margin-bottom:6px;">Si digita <code>nslookup</code> senza argomenti. Permette più query successive.</p>
+        <pre style="font-size:0.72rem; padding:10px 12px;"><span style="color:var(--muted);">C:\&gt;</span>nslookup
+Server predefinito: intranetserver.local
+Address: 172.17.2.10
+<span style="color:var(--accent3)">&gt;</span> <span style="color:var(--accent1);">_</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">Modalità non interattiva</h3>
+        <p style="margin-bottom:6px;">Si passa il nome direttamente come argomento:</p>
+        <pre style="font-size:0.72rem; padding:10px 12px;"><span style="color:var(--muted);">C:\&gt;</span>nslookup www.google.com
+Server:  ns1.mydns.com
+Address: 204.127.202.4
+Name:    www.google.com
+Address: <span style="color:var(--accent1);">66.249.87.99</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3>📋 Comandi utili in modalità interattiva</h3>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; line-height:1.7; color:#c0c4d0;">
+          <div><span style="color:var(--accent1);">set type=MX</span>    — imposta il tipo di query</div>
+          <div><span style="color:var(--accent1);">server NOME</span>    — cambia il DNS server da usare</div>
+          <div><span style="color:var(--accent1);">ls DOMINIO</span>     — elenca gli indirizzi nel dominio</div>
+          <div><span style="color:var(--accent1);">set norecurse</span>  — query iterativa</div>
+          <div><span style="color:var(--accent1);">exit</span>           — esce dal programma</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🔄 Cambiare server DNS</h3>
+        <pre style="font-size:0.72rem; padding:10px 12px;"><span style="color:var(--muted);">&gt;</span>server <span style="color:var(--accent3);">194.119.192.34</span>
+Server predefinito: nameserver.cnr.it
+Address: 194.119.192.34</pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>"<strong>Non authoritative answer</strong>" = risposta da cache, non dal server autoritativo. Il dato potrebbe essere obsoleto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 15 — LAB PACKET TRACER DHCP
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="laboratorio">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--muted)"></div>
+    <h2>Laboratorio — Packet Tracer: DHCP &amp; DNS</h2>
+    <span class="section-num">Lab 9 &amp; 10</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" style="border-top:3px solid var(--accent1)">
+        <h3 style="color:var(--accent1)">Lab 9 — Configurazione DHCP su Router</h3>
+        <p style="margin-bottom:8px;">Due reti LAN con DHCP configurato sul router:</p>
+        <pre style="font-size:0.7rem; padding:8px 10px;">Router(config)#<span style="color:var(--accent1)">ip dhcp pool LAN1</span>
+Router(dhcp-config)#<span style="color:var(--accent4)">network 192.168.1.0 255.255.255.0</span>
+Router(dhcp-config)#<span style="color:var(--accent3)">default-router 192.168.1.254</span>
+
+<span style="color:var(--muted);"># Escludere indirizzi statici:</span>
+Router(dhcp-config)#<span style="color:var(--accent2)">ip dhcp excluded-address 192.168.1.2</span></pre>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Se il servizio DHCP non è configurato, Windows assegnerà automaticamente un indirizzo APIPA (169.254.x.x) agli host.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h3 style="color:var(--accent4)">Lab 10 — Configurazione Server DNS</h3>
+        <p style="margin-bottom:8px;">Due LAN con server DNS pubblico. Si configurano Resource Record di tipo <strong>A Record</strong>:</p>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; margin-top:4px;">
+          <div style="background:var(--code-bg); border-radius:4px; padding:6px 10px; margin-bottom:4px;">
+            <div style="color:var(--muted); font-size:0.62rem;">Server DNS — scheda Services</div>
+            <div style="color:var(--accent1); margin-top:3px;">www.aaa.it → A Record → 192.168.1.100</div>
+            <div style="color:var(--accent4); margin-top:2px;">www.bbb.it → A Record → 192.168.2.100</div>
+          </div>
+        </div>
+        <p style="margin-top:6px;">Ogni host della rete usa questo DNS Server per risolvere i nomi dei server web delle due LAN.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔍</span>
+        <span>Per verificare: aprire il <strong>Web Browser</strong> di un PC, digitare <code>www.aaa.it</code> e controllare che venga risolta la pagina web corretta.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 16 — DNS: Formato pacchetti
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dns">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il Formato dei Pacchetti DNS</h2>
+    <span class="section-num">04 / 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="font-size:0.68rem; color:var(--muted); font-family:'JetBrains Mono',monospace;">FORMATO PDU DNS (Header 12 byte)</div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue w2">identificativo</div>
+          <div class="proto-cell hl w2">flag (QR|Opcode|AA|TC|RD|RA|Zero|Rcode)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w2">QDcount</div>
+          <div class="proto-cell w2">ANcount</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w2">NScount</div>
+          <div class="proto-cell w2">ARcount</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4 hl-yel">query section</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4 hl">answer RR</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">authority RR</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell w4">additional information RR</div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📡</span>
+        <span>Le query DNS usano <strong>UDP 53</strong>. Il trasferimento di zone tra server primario e secondario usa <strong>TCP 53</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3>🏳️ Il campo <code style="color:var(--accent1)">flag</code> (16 bit)</h3>
+        <ul>
+          <li><code style="color:var(--accent4)">QR</code>: 0=query, 1=risposta</li>
+          <li><code style="color:var(--accent4)">Opcode</code>: 0=Standard, 1=Inversa, 2=Stato server</li>
+          <li><code style="color:var(--accent4)">AA</code>: 1 → risposta authoritative</li>
+          <li><code style="color:var(--accent4)">TC</code>: 1 → messaggio troncato (oltre 512 byte)</li>
+          <li><code style="color:var(--accent4)">RD</code>: 1 → richiesta ricorsiva</li>
+          <li><code style="color:var(--accent4)">RA</code>: 1 → ricorsione disponibile</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📊 Codici di ritorno (Rcode)</h3>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; line-height:1.7; color:#c0c4d0;">
+          <div><span style="color:var(--accent1);">0</span> — Nessun errore</div>
+          <div><span style="color:var(--accent2);">1</span> — Errore costruzione query</div>
+          <div><span style="color:var(--accent2);">2</span> — Errore interno nel server</div>
+          <div><span style="color:var(--accent3);">3</span> — Nome non esiste nel dominio</div>
+          <div><span style="color:var(--muted);">4</span> — Tipo query non supportato</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 17 — RIEPILOGO
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Riepilogo — Unità 7</h2>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent1)">
+        <h3 style="color:var(--accent1)">🟢 DHCP</h3>
+        <ul>
+          <li>Assegna automaticamente: IP, subnet mask, gateway, DNS</li>
+          <li>3 modalità: <strong>manuale</strong>, automatica, <strong>dinamica</strong> (lease)</li>
+          <li>Procedura <strong>DORA</strong>: Discover → Offer → Request → Ack</li>
+          <li>FSM: INITIALIZE → SELECT → REQUEST → <strong>BOUND</strong> → RENEW → REBIND</li>
+          <li>Timer T1 (50%) e T2 (87,5%) per il rinnovo</li>
+          <li>Relay Agent per reti multi-subnet</li>
+          <li>APIPA: fallback 169.254.0.0/16 senza server</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3)">
+        <h3 style="color:var(--accent3)">🟡 DHCPv6</h3>
+        <ul>
+          <li>Stateless (RFC 4862) o Stateful (RFC 8415)</li>
+          <li>Identificatori: <strong>DUID</strong> (host) e <strong>IAID</strong> (interfaccia)</li>
+          <li>Porte UDP 546 (client) e 547 (server)</li>
+          <li>4 messaggi: Solicit → Advertise → Request → Reply</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h3 style="color:var(--accent4)">🔵 DNS</h3>
+        <ul>
+          <li>Database distribuito: <strong>Domain Name Space</strong>, Name Server, Resolver</li>
+          <li>Struttura gerarchica: radice → TLD → dominio → foglia</li>
+          <li>Resource Record: A, AAAA, CNAME, MX, NS, PTR, SOA, TXT</li>
+          <li>Query <strong>iterative</strong> (NS) e <strong>ricorsive</strong> (resolver)</li>
+          <li>Risoluzione inversa via dominio <code>in-addr.arpa</code></li>
+          <li>Porta <strong>53 UDP</strong> (query) e <strong>53 TCP</strong> (trasferimento zone)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h3 style="color:var(--accent2)">🔴 Sicurezza</h3>
+        <ul>
+          <li>DHCP: server non autorizzati, DHCP starvation → IPSec</li>
+          <li>DNS: spoofing, cache poisoning → <strong>DNSSEC</strong></li>
+          <li>DNSSEC: autenticazione crittografica dalla root (ICANN)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="callout callout-green" style="margin-top:14px;">
+    <span class="callout-icon">🚀</span>
+    <span><strong>Prossimi argomenti:</strong> L'Application Layer del TCP/IP — HTTP, FTP, SMTP, POP, IMAP, VoIP (Unità 8)</span>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':        'Introduzione',
+    'host-config':  'Configurazione Host',
+    'dhcp':         'DHCP',
+    'dns':          'DNS',
+    'sicurezza':    'Sicurezza',
+    'laboratorio':  'Laboratorio',
+    'riepilogo':    'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+</script>
+</body>
+</html>
