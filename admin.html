@@ -374,7 +374,7 @@ function checkReady() {
 async function doUpload() {
   const token   = getToken();
   const anno    = document.getElementById('anno').value;
-  const materia = document.getElementById('materia').value.trim();
+  const materia = document.getElementById('materia').value.trim().toLowerCase();
   const titolo  = document.getElementById('titolo').value.trim();
   const fname   = selectedFile.name;
   const filePath = `${anno}/${materia}/${fname}`;
@@ -473,7 +473,7 @@ ${newCard}
     const nextSec = html.indexOf('<!-- ', secIdx + secComment.length);
     const secEnd  = nextSec !== -1 ? nextSec : html.indexOf('<footer>');
     const subjMarker = `<div class="subject-label">${materiaLabel}</div>`;
-    const subjIdx    = html.indexOf(subjMarker, secIdx);
+    const subjIdx    = html.toLowerCase().indexOf(subjMarker.toLowerCase(), secIdx);
 
     if (subjIdx !== -1 && subjIdx < secEnd) {
       // Gruppo materia esiste — inserisci card prima della chiusura slides-grid
