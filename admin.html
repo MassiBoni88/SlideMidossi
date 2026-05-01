@@ -136,6 +136,29 @@
     .help-link { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
     .help-link:hover { text-decoration: underline; }
 
+    /* ── REORDER ── */
+    .reorder-group { margin-bottom: 20px; }
+    .reorder-group-label {
+      font-family: monospace; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 8px; padding-left: 2px;
+    }
+    .reorder-list { display: flex; flex-direction: column; gap: 6px; }
+    .reorder-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: grab; user-select: none;
+      transition: border-color 0.15s, opacity 0.15s, background 0.15s;
+    }
+    .reorder-item:active { cursor: grabbing; }
+    .reorder-item.dragging { opacity: 0.3; }
+    .reorder-item.drop-target { border-color: var(--accent); background: rgba(0,212,170,0.07); }
+    .drag-handle { color: var(--muted); font-size: 1.1rem; flex-shrink: 0; line-height: 1; }
+    .reorder-info { flex: 1; min-width: 0; }
+    .reorder-title { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reorder-fname { font-family: monospace; font-size: 0.73rem; color: var(--muted); }
+    .reorder-empty { color: var(--muted); font-size: 0.82rem; font-style: italic; padding: 6px 2px; }
+
     /* ── FILE LIST ── */
     .file-list { list-style: none; margin-top: 14px; }
     .file-item {
@@ -258,6 +281,18 @@
 
       <button class="btn" id="upload-btn" onclick="doUpload()" disabled>
         Carica su GitHub
+      </button>
+    </div>
+
+    <!-- Riordina File -->
+    <div class="card">
+      <h2>Riordina File</h2>
+      <button class="load-btn" id="load-order-btn" onclick="loadReorderUI()">
+        Carica gruppi da ordinare
+      </button>
+      <div id="reorder-container" style="margin-top:14px"></div>
+      <button class="btn" id="save-order-btn" onclick="saveOrder()" style="display:none;margin-top:16px">
+        Salva ordine su GitHub
       </button>
     </div>
 
@@ -635,6 +670,210 @@ async function doDelete(path, sha) {
     loadFileList();
   } catch(e) {
     showToast('Errore: ' + e.message, 'err');
+  }
+}
+
+/* ══════════════════════════════════════════
+   RIORDINA FILE
+══════════════════════════════════════════ */
+let _reorderHtml = '';
+let _reorderSha  = '';
+let _reorderGroups = [];
+let _dragSrc = null;
+
+async function loadReorderUI() {
+  const token = getToken();
+  if (!token) { showToast('Imposta il token prima', 'err'); return; }
+
+  const btn = document.getElementById('load-order-btn');
+  btn.textContent = 'Caricamento…'; btn.disabled = true;
+
+  try {
+    const res = await ghFetch(token, 'contents/index.html');
+    if (!res.ok) throw new Error('Impossibile leggere index.html');
+    const data = await res.json();
+    _reorderSha  = data.sha;
+    _reorderHtml = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+
+    _reorderGroups = parseReorderGroups(_reorderHtml);
+    renderReorderUI(_reorderGroups);
+    document.getElementById('save-order-btn').style.display = 'block';
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'err');
+  } finally {
+    btn.textContent = 'Aggiorna';
+    btn.disabled = false;
+  }
+}
+
+function parseReorderGroups(html) {
+  const groups = [];
+  const GRID_OPEN = '<div class="slides-grid">';
+  let from = 0;
+  while (true) {
+    const gStart = html.indexOf('<div class="subject-group">', from);
+    if (gStart === -1) break;
+
+    const lblStart = html.indexOf('<div class="subject-label">', gStart);
+    const lblEnd   = html.indexOf('</div>', lblStart);
+    const label    = html.slice(lblStart + '<div class="subject-label">'.length, lblEnd).trim();
+
+    const gridOpen         = html.indexOf(GRID_OPEN, gStart);
+    const gridContentStart = gridOpen + GRID_OPEN.length;
+    const gridClose        = findClosingDiv(html, gridOpen);
+    const gridContent      = html.slice(gridContentStart, gridClose);
+
+    groups.push({
+      gStart, label,
+      gridContentStart, gridClose,
+      cards: extractSlideCards(gridContent)
+    });
+    from = gStart + 1;
+  }
+  return groups;
+}
+
+function extractSlideCards(gridContent) {
+  const cards = [];
+  let from = 0;
+  while (true) {
+    const cStart = gridContent.indexOf('<a class="slide-card"', from);
+    if (cStart === -1) break;
+    const cEnd = gridContent.indexOf('</a>', cStart) + '</a>'.length;
+    const cardHtml = gridContent.slice(cStart, cEnd);
+    const titleM = cardHtml.match(/<div class="slide-title">([^<]+)<\/div>/);
+    const fnameM = cardHtml.match(/<div class="slide-filename">([^<]+)<\/div>/);
+    cards.push({
+      html:  cardHtml,
+      title: titleM ? titleM[1] : '—',
+      fname: fnameM ? fnameM[1] : '—'
+    });
+    from = cEnd;
+  }
+  return cards;
+}
+
+function renderReorderUI(groups) {
+  const container = document.getElementById('reorder-container');
+  if (!groups.length) {
+    container.innerHTML = '<p class="empty-list">Nessun gruppo trovato.</p>';
+    return;
+  }
+  container.innerHTML = groups.map((g, gi) => `
+    <div class="reorder-group">
+      <div class="reorder-group-label">${g.label}</div>
+      <div class="reorder-list" id="rlist-${gi}">
+        ${g.cards.length === 0
+          ? '<div class="reorder-empty">Nessun file in questo gruppo</div>'
+          : g.cards.map((c, ci) => `
+            <div class="reorder-item" draggable="true"
+                 data-gi="${gi}" data-orig="${ci}"
+                 ondragstart="rdragStart(event)"
+                 ondragover="rdragOver(event)"
+                 ondrop="rdrop(event)"
+                 ondragend="rdragEnd(event)">
+              <span class="drag-handle">⠿</span>
+              <div class="reorder-info">
+                <div class="reorder-title">${c.title}</div>
+                <div class="reorder-fname">${c.fname}</div>
+              </div>
+            </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function rdragStart(e) {
+  _dragSrc = e.currentTarget;
+  _dragSrc.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function rdragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.reorder-item').forEach(el => el.classList.remove('drop-target'));
+  if (e.currentTarget !== _dragSrc) e.currentTarget.classList.add('drop-target');
+}
+function rdrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  const target = e.currentTarget;
+  if (!_dragSrc || _dragSrc === target) return;
+  if (_dragSrc.dataset.gi !== target.dataset.gi) {
+    showToast('Puoi riordinare solo nello stesso gruppo', 'err'); return;
+  }
+  const list  = target.parentNode;
+  const items = [...list.querySelectorAll('.reorder-item')];
+  const si = items.indexOf(_dragSrc);
+  const ti = items.indexOf(target);
+  list.insertBefore(_dragSrc, si < ti ? target.nextSibling : target);
+  target.classList.remove('drop-target');
+}
+function rdragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.reorder-item, .drop-target').forEach(el => {
+    el.classList.remove('dragging'); el.classList.remove('drop-target');
+  });
+}
+
+async function saveOrder() {
+  const token = getToken();
+  if (!token) { showToast('Imposta il token prima', 'err'); return; }
+
+  const btn = document.getElementById('save-order-btn');
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
+
+  try {
+    // Rileggi SHA aggiornato prima di scrivere
+    const chk = await ghFetch(token, 'contents/index.html');
+    if (!chk.ok) throw new Error('Impossibile leggere index.html');
+    const chkData = await chk.json();
+    _reorderSha = chkData.sha;
+
+    let html = _reorderHtml;
+
+    // Processa i gruppi in ordine INVERSO per non invalidare le posizioni
+    const sorted = [..._reorderGroups]
+      .map((g, gi) => ({ ...g, gi }))
+      .sort((a, b) => b.gridContentStart - a.gridContentStart);
+
+    for (const g of sorted) {
+      const list  = document.getElementById(`rlist-${g.gi}`);
+      const items = [...list.querySelectorAll('.reorder-item')];
+      if (!items.length) continue;
+
+      const newContent = '\n' + items.map(item => {
+        const origIdx = parseInt(item.dataset.orig);
+        return '          ' + g.cards[origIdx].html;
+      }).join('\n') + '\n        ';
+
+      html = html.slice(0, g.gridContentStart) + newContent + html.slice(g.gridClose);
+    }
+
+    const putRes = await ghFetch(token, 'contents/index.html', 'PUT', {
+      message: 'Reorder slides',
+      content: toBase64(html),
+      sha: _reorderSha,
+      branch: BRANCH
+    });
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || 'Push fallito');
+    }
+
+    // Aggiorna lo stato locale con il nuovo HTML
+    _reorderHtml = html;
+    _reorderGroups = parseReorderGroups(html);
+    // Aggiorna i data-orig dopo il salvataggio (nuovo ordine diventa "originale")
+    for (const g of _reorderGroups) {
+      const list = document.getElementById(`rlist-${_reorderGroups.indexOf(g)}`);
+      if (!list) continue;
+      [...list.querySelectorAll('.reorder-item')].forEach((el, i) => { el.dataset.orig = i; });
+    }
+
+    showToast('✓ Ordine salvato su GitHub!', 'ok');
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salva ordine su GitHub';
   }
 }
 
