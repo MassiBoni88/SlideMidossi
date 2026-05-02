@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 3 — VPN e Sicurezza delle Comunicazioni</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.84rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* pacchetto tunnel visuale */
+  .pkt-wrap { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+  .pkt-row  { display: flex; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+  .pkt-field { padding: 4px 8px; text-align: center; border-right: 1px solid var(--border); }
+  .pkt-field:last-child { border-right: none; }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Quinto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 3 — VPN e Sicurezza delle Comunicazioni</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 13</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Unità 3</div>
+  <div class="big" style="color:var(--accent1);">VPN e Sicurezza</div>
+  <div class="big" style="color:var(--accent1);">delle Comunicazioni</div>
+  <div class="sub" style="font-size:1.0rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Tunneling · IPsec · SSL VPN · MPLS · SD-WAN
+  </div>
+  <div class="sub">Quinto anno · Sistemi e Reti · Baldino, Rondano, Spano, Iacobelli</div>
+  <div class="tag-row">
+    <span class="tag tag-green">VPN Site-to-Site</span>
+    <span class="tag tag-blue">IPsec · IKE</span>
+    <span class="tag tag-yellow">SSL/TLS VPN</span>
+    <span class="tag tag-red">MPLS · SD-WAN</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content">
+        <h4>Introduzione alle VPN</h4>
+        <p>Cos'è una VPN · Tunneling · Tipi: Site-to-Site, Remote Access, Extranet</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>IPsec</h4>
+        <p>AH e ESP · Transport mode vs Tunnel mode · IKE · Security Association</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>SSL/TLS VPN</h4>
+        <p>Clientless vs Full Tunnel · Confronto con IPsec · Funzionamento a livello 7</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">04</div>
+      <div class="ov-content">
+        <h4>Configurazione VPN Cisco</h4>
+        <p>IPsec Site-to-Site · Crypto map · Transform-set · Verifica tunnel</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">05</div>
+      <div class="ov-content">
+        <h4>MPLS VPN</h4>
+        <p>Label switching · L3VPN · PE / CE / P router · VRF</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — L1: COS'È UNA VPN ═══ -->
+<div class="slide" data-section="vpn-intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">VPN — Virtual Private Network</h2>
+    <span class="section-num">L1 · 03/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Definizione</h3>
+        <p>Una VPN è una rete privata realizzata su un'infrastruttura pubblica (Internet) attraverso tecniche di <strong>tunneling</strong> e <strong>cifratura</strong>. Permette di connettere sedi remote o utenti mobili come se fossero sulla stessa LAN privata, con costi molto inferiori rispetto alle linee dedicate.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il Tunneling</h3>
+        <p>Il tunneling <strong>incapsula</strong> un pacchetto di protocollo X all'interno di un pacchetto di protocollo Y. Il pacchetto originale (con header privato) diventa il payload del nuovo pacchetto che attraversa la rete pubblica.</p>
+        <div class="pkt-wrap" style="margin-top:8px;">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">Pacchetto originale (rete privata):</div>
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1.5;background:rgba(37,99,235,0.1);color:var(--accent4);">IP priv src</div>
+            <div class="pkt-field" style="flex:1.5;background:rgba(37,99,235,0.1);color:var(--accent4);">IP priv dst</div>
+            <div class="pkt-field" style="flex:3;color:var(--ct);">Payload dati</div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--muted);margin:4px 0 2px;">Pacchetto incapsulato (rete pubblica):</div>
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1.2;background:rgba(5,150,105,0.1);color:var(--accent1);">IP pub src</div>
+            <div class="pkt-field" style="flex:1.2;background:rgba(5,150,105,0.1);color:var(--accent1);">IP pub dst</div>
+            <div class="pkt-field" style="flex:1;background:rgba(217,119,6,0.1);color:var(--accent3);">Tunnel hdr</div>
+            <div class="pkt-field" style="flex:1;color:var(--muted);">IP priv</div>
+            <div class="pkt-field" style="flex:2;color:var(--muted);">🔒 Payload cifrato</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Tipi di VPN</h3>
+        <ul>
+          <li><strong>Site-to-Site (LAN-to-LAN)</strong>: collega due o più sedi aziendali in modo permanente; i gateway VPN gestiscono il tunnel trasparentemente agli host</li>
+          <li><strong>Remote Access (Client-to-Site)</strong>: un singolo utente (lavoratore in mobilità) si connette alla rete aziendale tramite client VPN installato sul proprio dispositivo</li>
+          <li><strong>Extranet VPN</strong>: collega la rete aziendale a quella di partner, fornitori o clienti esterni con accesso controllato a risorse specifiche</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Requisiti di una VPN</h3>
+        <ul>
+          <li><strong>Autenticazione</strong>: verifica l'identità dei capi del tunnel</li>
+          <li><strong>Confidenzialità</strong>: i dati viaggiano cifrati (DES, 3DES, AES)</li>
+          <li><strong>Integrità</strong>: hash garantisce che il pacchetto non sia stato alterato (MD5, SHA)</li>
+          <li><strong>Anti-replay</strong>: numeri di sequenza impediscono attacchi replay</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — L1: CONFRONTO VPN vs WAN ═══ -->
+<div class="slide" data-section="vpn-intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">VPN vs Linee Dedicate — Vantaggi e Limiti</h2>
+    <span class="section-num">L1 · 04/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Vantaggi della VPN</h3>
+        <ul>
+          <li><strong>Costo ridotto</strong>: usa Internet pubblica invece di linee dedicate (Frame Relay, ATM, MPLS privato)</li>
+          <li><strong>Scalabilità</strong>: aggiungere sedi richiede solo configurare un nuovo tunnel, non nuovi circuiti fisici</li>
+          <li><strong>Flessibilità</strong>: supporta utenti mobili e smart working</li>
+          <li><strong>Sicurezza</strong>: crittografia end-to-end su rete non fidata</li>
+          <li><strong>Indipendenza dall'ISP</strong>: funziona su qualsiasi connessione Internet</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Limiti della VPN</h3>
+        <ul>
+          <li><strong>Latenza variabile</strong>: dipende dalla qualità di Internet (nessuna QoS garantita)</li>
+          <li><strong>Overhead</strong>: l'incapsulamento e la cifratura aumentano la dimensione dei pacchetti e il carico CPU</li>
+          <li><strong>Complessità</strong>: configurazione e gestione dei tunnel richiedono competenze specifiche</li>
+          <li><strong>Dipendenza da Internet</strong>: se la connessione cade, il tunnel VPN cade</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Confronto VPN vs Linea Dedicata</h3>
+        <div class="proto-header" style="margin-top:4px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Caratteristica</div>
+            <div class="proto-cell hl-yel">Linea Dedicata</div>
+            <div class="proto-cell hl">VPN su Internet</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Costo</div>
+            <div class="proto-cell hl-red">Alto</div>
+            <div class="proto-cell hl">Basso</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Latenza</div>
+            <div class="proto-cell hl">Garantita</div>
+            <div class="proto-cell hl-yel">Variabile</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Sicurezza fisica</div>
+            <div class="proto-cell hl">Sì</div>
+            <div class="proto-cell hl-yel">Crittografia</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Scalabilità</div>
+            <div class="proto-cell hl-red">Difficile</div>
+            <div class="proto-cell hl">Facile</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Mobilità utenti</div>
+            <div class="proto-cell hl-red">No</div>
+            <div class="proto-cell hl">Sì</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Per applicazioni con requisiti stringenti di latenza (VoIP, videoconferenza, applicazioni real-time) si preferisce <strong>MPLS VPN</strong> che garantisce QoS, oppure connessioni ibride Internet + MPLS (SD-WAN).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — L2: IPSEC ARCHITETTURA ═══ -->
+<div class="slide" data-section="ipsec">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">IPsec — Architettura e Protocolli</h2>
+    <span class="section-num">L2 · 05/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Cos'è IPsec</h3>
+        <p>IPsec (IP Security) è un insieme di protocolli definiti da IETF che operano a <strong>livello 3 (rete)</strong> per fornire sicurezza ai pacchetti IP. Essendo trasparente alle applicazioni, protegge tutto il traffico senza modificare il software applicativo.</p>
+        <p style="margin-top:6px;">È composto da tre elementi fondamentali:</p>
+        <ul style="margin-top:4px;">
+          <li><strong>AH</strong> — Authentication Header (protocollo IP 51)</li>
+          <li><strong>ESP</strong> — Encapsulating Security Payload (protocollo IP 50)</li>
+          <li><strong>IKE</strong> — Internet Key Exchange (porta UDP 500 / 4500)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">AH — Authentication Header</h3>
+        <p>Fornisce <strong>autenticazione</strong> e <strong>integrità</strong> dell'intero pacchetto IP (header + payload), ma <strong>non cifra</strong> i dati. Protegge anche l'header IP esterno.</p>
+        <div class="pkt-wrap" style="margin-top:8px;">
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1;background:rgba(37,99,235,0.1);color:var(--accent4);">IP hdr</div>
+            <div class="pkt-field" style="flex:1.2;background:rgba(220,38,38,0.15);color:var(--accent2);">AH</div>
+            <div class="pkt-field" style="flex:2;color:var(--ct);">Payload (visibile)</div>
+          </div>
+        </div>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:4px;">⚠️ Non compatibile con NAT (protegge anche indirizzi IP che il NAT modifica)</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">ESP — Encapsulating Security Payload</h3>
+        <p>Fornisce <strong>cifratura</strong> (confidenzialità) + <strong>autenticazione</strong> + <strong>integrità</strong> del payload. È il protocollo più usato nelle VPN IPsec.</p>
+        <div class="pkt-wrap" style="margin-top:8px;">
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1;background:rgba(37,99,235,0.1);color:var(--accent4);">IP hdr</div>
+            <div class="pkt-field" style="flex:1;background:rgba(5,150,105,0.15);color:var(--accent1);">ESP hdr</div>
+            <div class="pkt-field" style="flex:2;background:rgba(5,150,105,0.08);color:var(--accent1);">🔒 Payload cifrato</div>
+            <div class="pkt-field" style="flex:1;background:rgba(5,150,105,0.15);color:var(--accent1);">ESP auth</div>
+          </div>
+        </div>
+        <ul style="margin-top:6px;">
+          <li>Cifra: DES, 3DES, AES (128/256 bit)</li>
+          <li>Integrità: HMAC-MD5, HMAC-SHA1/SHA256</li>
+          <li>Compatibile con NAT (NAT-T, UDP 4500)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">SA — Security Association</h3>
+        <p>Una <strong>SA</strong> è un accordo unidirezionale tra i due endpoint che definisce: algoritmo di cifratura, chiavi, algoritmo di autenticazione, durata. Una VPN bidirezionale richiede due SA (una per direzione). Le SA sono identificate da: <strong>SPI</strong> (Security Parameter Index) + IP destinazione + protocollo (AH o ESP).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — L2: IPSEC MODALITÀ E IKE ═══ -->
+<div class="slide" data-section="ipsec">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">IPsec — Modalità e IKE</h2>
+    <span class="section-num">L2 · 06/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Transport Mode</h3>
+        <p>Protegge solo il <strong>payload</strong> del pacchetto IP. L'header IP originale rimane visibile. Usato per comunicazioni <strong>host-to-host</strong> (es. due server nella stessa organizzazione).</p>
+        <div class="pkt-wrap" style="margin-top:8px;">
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:2px;">Originale:</div>
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1;background:rgba(37,99,235,0.1);color:var(--accent4);">IP orig</div>
+            <div class="pkt-field" style="flex:3;color:var(--ct);">TCP/UDP + Dati</div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--muted);margin:4px 0 2px;">Transport mode (ESP):</div>
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1;background:rgba(37,99,235,0.1);color:var(--accent4);">IP orig</div>
+            <div class="pkt-field" style="flex:0.8;background:rgba(5,150,105,0.15);color:var(--accent1);">ESP</div>
+            <div class="pkt-field" style="flex:2.2;background:rgba(5,150,105,0.08);color:var(--accent1);">🔒 TCP/UDP + Dati</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Tunnel Mode</h3>
+        <p>Protegge l'<strong>intero pacchetto IP</strong> originale (header + payload), incapsulandolo in un nuovo pacchetto IP con header pubblico. Usato per VPN <strong>site-to-site</strong> tra gateway.</p>
+        <div class="pkt-wrap" style="margin-top:8px;">
+          <div style="font-size:0.7rem;color:var(--muted);margin-bottom:2px;">Tunnel mode (ESP):</div>
+          <div class="pkt-row">
+            <div class="pkt-field" style="flex:1;background:rgba(5,150,105,0.1);color:var(--accent1);">IP pub</div>
+            <div class="pkt-field" style="flex:0.8;background:rgba(5,150,105,0.15);color:var(--accent1);">ESP</div>
+            <div class="pkt-field" style="flex:0.8;background:rgba(5,150,105,0.08);color:var(--muted);">🔒 IP priv</div>
+            <div class="pkt-field" style="flex:1.4;background:rgba(5,150,105,0.08);color:var(--accent1);">🔒 TCP+Dati</div>
+          </div>
+        </div>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:4px;">L'IP privato originale è nascosto e cifrato — massima privacy.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">IKE — Internet Key Exchange</h3>
+        <p>IKE negozia e gestisce le SA in modo automatico. Funziona in <strong>due fasi</strong>:</p>
+        <ul style="margin-top:6px;">
+          <li><strong>Fase 1 (ISAKMP SA)</strong>: crea un canale sicuro e autenticato per negoziare la SA IPsec. Modalità: <em>Main Mode</em> (6 messaggi, più sicuro) o <em>Aggressive Mode</em> (3 messaggi, più veloce ma meno sicuro)</li>
+          <li><strong>Fase 2 (IPsec SA)</strong>: negozia i parametri del tunnel IPsec vero e proprio (Quick Mode). Usa il canale protetto dalla Fase 1</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">IKEv1 vs IKEv2</h3>
+        <ul>
+          <li><strong>IKEv1</strong>: due fasi separate, più messaggi, più complesso</li>
+          <li><strong>IKEv2</strong>: negoziazione unificata, meno messaggi (4), mobilità integrata (MOBIKE), migliore gestione NAT-T, più robusto contro DoS</li>
+          <li>IKEv2 è lo standard raccomandato oggi</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>In pratica si usa quasi sempre <strong>ESP in Tunnel Mode</strong>: cifra tutto il pacchetto originale ed è compatibile con NAT (NAT Traversal su UDP 4500). AH è raramente usato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — L3: SSL VPN ═══ -->
+<div class="slide" data-section="ssl-vpn">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">SSL/TLS VPN</h2>
+    <span class="section-num">L3 · 07/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Cos'è una SSL VPN</h3>
+        <p>Una SSL VPN usa il protocollo <strong>TLS</strong> (successore di SSL) per creare un tunnel sicuro a <strong>livello applicazione</strong> (livello 7). Opera sulla porta <strong>HTTPS (443)</strong>, che è quasi sempre aperta nei firewall aziendali e nei hotspot pubblici.</p>
+        <ul style="margin-top:6px;">
+          <li>Non richiede configurazione speciale di firewall o NAT</li>
+          <li>Accessibile da qualsiasi browser o con un client leggero</li>
+          <li>Usata soprattutto per <strong>Remote Access</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Clientless SSL VPN</h3>
+        <p>L'utente accede a un <strong>portale web</strong> tramite browser standard. Il gateway SSL fa da proxy per le applicazioni interne (intranet, file server, webmail). Non è necessario installare nessun software. Limitato: non tutto il traffico è tunnelato, solo le applicazioni esposte sul portale.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Full Tunnel SSL VPN</h3>
+        <p>Richiede un <strong>client VPN</strong> (es. Cisco AnyConnect, GlobalProtect). Una volta autenticato, tutto il traffico dell'utente viene instradato attraverso il tunnel TLS verso la rete aziendale. L'host riceve un IP privato aziendale virtuale.</p>
+        <ul style="margin-top:6px;">
+          <li>Split tunneling: solo il traffico aziendale passa per la VPN</li>
+          <li>Full tunneling: tutto il traffico (anche Internet) passa per la VPN</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">IPsec vs SSL VPN</h3>
+        <div class="proto-header" style="margin-top:4px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Aspetto</div>
+            <div class="proto-cell hl-blue">IPsec</div>
+            <div class="proto-cell hl-yel">SSL VPN</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Livello OSI</div>
+            <div class="proto-cell">3 (rete)</div>
+            <div class="proto-cell">7 (applicazione)</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Client</div>
+            <div class="proto-cell">Sempre richiesto</div>
+            <div class="proto-cell">Opzionale</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Porta</div>
+            <div class="proto-cell">UDP 500/4500</div>
+            <div class="proto-cell">TCP/UDP 443</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">NAT</div>
+            <div class="proto-cell">Problematico</div>
+            <div class="proto-cell hl">Nativo</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Uso tipico</div>
+            <div class="proto-cell">Site-to-Site</div>
+            <div class="proto-cell">Remote Access</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — L4: CONFIG IPSEC SITE-TO-SITE ═══ -->
+<div class="slide" data-section="config-cisco">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Configurazione IPsec Site-to-Site su Cisco IOS</h2>
+    <span class="section-num">L4 · 08/13</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Passi di configurazione</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Scenario: Router A (192.168.1.0/24, WAN 203.0.113.1) ↔ Router B (10.0.0.0/24, WAN 198.51.100.1)</p>
+<pre><span class="cmt">! ── FASE 1: Politica ISAKMP ──</span>
+Router(config)# <span class="cmd">crypto isakmp policy</span> <span class="arg">10</span>
+Router(config-isakmp)#  <span class="ok">encryption aes</span> <span class="arg">256</span>
+Router(config-isakmp)#  <span class="ok">hash sha256</span>
+Router(config-isakmp)#  <span class="ok">authentication pre-share</span>
+Router(config-isakmp)#  <span class="ok">group 14</span>
+Router(config-isakmp)#  <span class="ok">lifetime</span> <span class="arg">86400</span>
+
+<span class="cmt">! Chiave pre-condivisa (deve essere uguale su entrambi)</span>
+Router(config)# <span class="cmd">crypto isakmp key</span> <span class="arg">ChiaveSegreta!</span> address <span class="arg">198.51.100.1</span>
+
+<span class="cmt">! ── FASE 2: Transform Set ──</span>
+Router(config)# <span class="cmd">crypto ipsec transform-set</span> <span class="arg">MYSET</span> <span class="ok">esp-aes 256 esp-sha256-hmac</span>
+Router(cfg-crypto-trans)#  <span class="ok">mode tunnel</span>
+
+<span class="cmt">! ACL traffico interessante (rete locale ↔ rete remota)</span>
+Router(config)# <span class="cmd">access-list</span> <span class="arg">101</span> <span class="ok">permit</span> ip 192.168.1.0 0.0.0.255 10.0.0.0 0.0.0.255
+
+<span class="cmt">! Crypto Map</span>
+Router(config)# <span class="cmd">crypto map</span> <span class="arg">MYMAP 10 ipsec-isakmp</span>
+Router(config-crypto-map)#  <span class="ok">set peer</span> <span class="arg">198.51.100.1</span>
+Router(config-crypto-map)#  <span class="ok">set transform-set</span> <span class="arg">MYSET</span>
+Router(config-crypto-map)#  <span class="ok">match address</span> <span class="arg">101</span>
+
+<span class="cmt">! Applica sulla WAN</span>
+Router(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/0</span>
+Router(config-if)#  <span class="ok">crypto map MYMAP</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Verifica del tunnel</h3>
+<pre><span class="cmt">! Stato delle SA IKE (Fase 1)</span>
+Router# <span class="cmd">show crypto isakmp sa</span>
+
+<span class="cmt">! Stato delle SA IPsec (Fase 2)</span>
+Router# <span class="cmd">show crypto ipsec sa</span>
+
+<span class="cmt">! Mappa crypto sull'interfaccia</span>
+Router# <span class="cmd">show crypto map</span>
+
+<span class="cmt">! Debug (solo in lab)</span>
+Router# <span class="cmd">debug crypto isakmp</span>
+Router# <span class="cmd">debug crypto ipsec</span></pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>L'ACL del <strong>traffico interessante</strong> deve essere <strong>speculare</strong> sui due router: se su Router A è <code>permit ip 192.168.1.0 … 10.0.0.0 …</code>, su Router B deve essere <code>permit ip 10.0.0.0 … 192.168.1.0 …</code>.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Il tunnel IPsec si attiva <strong>on-demand</strong>: si stabilisce al primo pacchetto che corrisponde all'ACL di traffico interessante e rimane attivo finché ci sono dati o scade la SA lifetime.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — L5: MPLS VPN ═══ -->
+<div class="slide" data-section="mpls">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">MPLS VPN</h2>
+    <span class="section-num">L5 · 09/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">MPLS — Multiprotocol Label Switching</h3>
+        <p>MPLS è una tecnologia di commutazione che instrada i pacchetti basandosi su <strong>etichette (label)</strong> invece degli indirizzi IP. Le decisioni di inoltro avvengono a livello 2.5 (tra L2 e L3): molto più veloci rispetto alla consultazione della tabella di routing IP.</p>
+        <ul style="margin-top:6px;">
+          <li><strong>LER</strong> (Label Edge Router): applica/rimuove le label ai bordi della rete MPLS</li>
+          <li><strong>LSR</strong> (Label Switch Router): commuta i pacchetti in base alla label nel core</li>
+          <li><strong>LSP</strong> (Label Switched Path): il percorso predefinito che un flusso segue attraverso la rete MPLS</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">MPLS L3VPN — Architettura</h3>
+        <p>Nella MPLS L3VPN il provider offre VPN ai clienti senza richiedere tunnel espliciti. I router sono divisi in tre ruoli:</p>
+        <ul style="margin-top:6px;">
+          <li><strong>CE</strong> (Customer Edge): router del cliente, connesso al PE</li>
+          <li><strong>PE</strong> (Provider Edge): router del provider a bordo rete, gestisce le VRF dei clienti</li>
+          <li><strong>P</strong> (Provider core): router interni del provider, commutano solo label MPLS senza conoscere le rotte dei clienti</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">VRF — Virtual Routing and Forwarding</h3>
+        <p>Ogni cliente sul router PE ha una propria <strong>VRF</strong>: una tabella di routing virtuale e separata. Clienti diversi con gli stessi indirizzi IP privati possono coesistere sullo stesso PE senza conflitti. La separazione è garantita tramite <strong>RT</strong> (Route Target) e <strong>RD</strong> (Route Distinguisher) propagati via <strong>MP-BGP</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">MPLS VPN vs VPN Internet</h3>
+        <div class="proto-header" style="margin-top:4px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Aspetto</div>
+            <div class="proto-cell hl-yel">VPN Internet</div>
+            <div class="proto-cell hl">MPLS VPN</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">QoS</div>
+            <div class="proto-cell hl-red">No</div>
+            <div class="proto-cell hl">Sì (SLA)</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Latenza</div>
+            <div class="proto-cell hl-red">Variabile</div>
+            <div class="proto-cell hl">Garantita</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Costo</div>
+            <div class="proto-cell hl">Basso</div>
+            <div class="proto-cell hl-red">Alto</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Gestione cifr.</div>
+            <div class="proto-cell">Cliente</div>
+            <div class="proto-cell">Provider</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Uso tipico</div>
+            <div class="proto-cell">PMI, remote</div>
+            <div class="proto-cell">Enterprise WAN</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — L6: SD-WAN ═══ -->
+<div class="slide" data-section="mpls">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">SD-WAN — Software Defined WAN</h2>
+    <span class="section-num">L5 · 10/13</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Cos'è SD-WAN</h3>
+        <p>SD-WAN applica i principi del <strong>Software Defined Networking</strong> alle reti WAN aziendali. Separa il piano di controllo (logica di routing centralizzata) dal piano dati (inoltro effettivo dei pacchetti), permettendo di gestire link eterogenei — Internet broadband, MPLS, 4G/5G — come un'unica rete virtuale.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Vantaggi SD-WAN</h3>
+        <ul>
+          <li><strong>Ottimizzazione automatica</strong>: instrada il traffico sul link migliore in base a latenza, jitter, perdita di pacchetti</li>
+          <li><strong>Risparmio costi</strong>: riduce la dipendenza dall'MPLS costoso integrando link Internet economici</li>
+          <li><strong>Gestione centralizzata</strong>: configurazione di tutti i siti da un'unica console</li>
+          <li><strong>Sicurezza integrata</strong>: cifratura automatica dei tunnel tra siti</li>
+          <li><strong>Cloud-friendly</strong>: ottimizza l'accesso diretto ai servizi cloud (SaaS)</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Architettura SD-WAN</h3>
+        <ul>
+          <li><strong>Orchestratore/Controller</strong>: gestisce le policy di routing centralizzate, visibilità su tutta la WAN</li>
+          <li><strong>Edge Device</strong>: apparato fisico o virtuale presso ogni sede, crea tunnel overlay automatici verso tutti gli altri edge</li>
+          <li><strong>Overlay</strong>: rete virtuale cifrata costruita sopra i link fisici sottostanti (underlay)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">SD-WAN vs MPLS vs VPN tradizionale</h3>
+        <ul>
+          <li><strong>MPLS</strong>: QoS garantita, alta affidabilità, costo elevato, gestione rigida</li>
+          <li><strong>VPN Internet</strong>: economica, flessibile, nessuna QoS, gestione manuale</li>
+          <li><strong>SD-WAN</strong>: usa entrambi i link con selezione intelligente, automazione, visibilità applicativa end-to-end</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🌐</span>
+        <span>Soluzioni SD-WAN diffuse: <strong>Cisco Viptela</strong>, <strong>VMware SD-WAN (VeloCloud)</strong>, <strong>Fortinet</strong>. Rappresentano la nuova frontiera delle WAN aziendali, sostituendo progressivamente le reti MPLS tradizionali.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — CONFRONTO SOLUZIONI ═══ -->
+<div class="slide" data-section="confronto">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Scelta della Soluzione VPN — Scenari Reali</h2>
+    <span class="section-num">11/13</span>
+  </div>
+  <div class="one-col" style="gap:11px;">
+    <div class="three-col">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">Scenario A — Due sedi aziendali</h3>
+        <p style="font-size:0.84rem;"><strong>Soluzione: IPsec Site-to-Site</strong></p>
+        <ul style="margin-top:4px;">
+          <li>Tunnel permanente tra i due gateway</li>
+          <li>ESP in Tunnel Mode, IKEv2</li>
+          <li>AES-256 + SHA-256</li>
+          <li>Trasparente agli host</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">Scenario B — Smart working</h3>
+        <p style="font-size:0.84rem;"><strong>Soluzione: SSL VPN / AnyConnect</strong></p>
+        <ul style="margin-top:4px;">
+          <li>Accesso da qualsiasi rete (hotel, hotspot)</li>
+          <li>Porta 443, nessun blocco firewall</li>
+          <li>Autenticazione MFA</li>
+          <li>Split tunneling per il traffico aziendale</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">Scenario C — Rete enterprise multi-sede</h3>
+        <p style="font-size:0.84rem;"><strong>Soluzione: MPLS VPN o SD-WAN</strong></p>
+        <ul style="margin-top:4px;">
+          <li>QoS per VoIP e video</li>
+          <li>SLA garantiti dal provider</li>
+          <li>VRF per separazione clienti</li>
+          <li>SD-WAN per ottimizzare costi</li>
+        </ul>
+      </div>
+    </div>
+    <div class="proto-header">
+      <div class="proto-row">
+        <div class="proto-cell hl-blue w2">Soluzione</div>
+        <div class="proto-cell hl-blue">Livello OSI</div>
+        <div class="proto-cell hl-blue">Cifratura</div>
+        <div class="proto-cell hl-blue">Tipo</div>
+        <div class="proto-cell hl-blue w2">Caso d'uso principale</div>
+        <div class="proto-cell hl-blue">QoS</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell w2" style="font-weight:700;color:var(--accent4);">IPsec ESP tunnel</div>
+        <div class="proto-cell">3</div>
+        <div class="proto-cell hl">AES-256</div>
+        <div class="proto-cell">Site-to-Site</div>
+        <div class="proto-cell w2">Sedi aziendali</div>
+        <div class="proto-cell hl-red">No</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell w2" style="font-weight:700;color:var(--accent3);">SSL VPN</div>
+        <div class="proto-cell">7</div>
+        <div class="proto-cell hl">TLS 1.3</div>
+        <div class="proto-cell">Remote Access</div>
+        <div class="proto-cell w2">Utenti mobili</div>
+        <div class="proto-cell hl-red">No</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell w2" style="font-weight:700;color:var(--accent1);">MPLS L3VPN</div>
+        <div class="proto-cell">2.5</div>
+        <div class="proto-cell hl-yel">Provider</div>
+        <div class="proto-cell">Any-to-Any</div>
+        <div class="proto-cell w2">Enterprise WAN</div>
+        <div class="proto-cell hl">Sì (SLA)</div>
+      </div>
+    </div>
+    <div class="callout callout-green">
+      <span class="callout-icon">✅</span>
+      <span>Nella pratica professionale si combinano più soluzioni: <strong>MPLS + Internet VPN</strong> in failover, oppure <strong>SD-WAN</strong> che gestisce entrambi automaticamente con selezione intelligente del path in base alle applicazioni.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — MAPPA CONCETTUALE ═══ -->
+<div class="slide" data-section="mappa">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Mappa Concettuale — Unità 3</h2>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+    <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;flex:1;align-items:center;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="border-left:3px solid var(--accent1);">
+          <h3 style="font-size:0.82rem;color:var(--accent1);">VPN Base</h3>
+          <p style="font-size:0.75rem;">Tunneling · S-to-S · Remote Access · Extranet · Auth + Integrità + Cifr.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent4);">
+          <h3 style="font-size:0.82rem;color:var(--accent4);">IPsec</h3>
+          <p style="font-size:0.75rem;">AH (51) · ESP (50) · Transport vs Tunnel · IKEv1/v2 · SA · SPI</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent3);">
+          <h3 style="font-size:0.82rem;color:var(--accent3);">SSL VPN</h3>
+          <p style="font-size:0.75rem;">TLS livello 7 · Porta 443 · Clientless · Full Tunnel · AnyConnect</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="background:rgba(96,165,250,0.15);border:2px solid var(--accent4);border-radius:12px;padding:14px 24px;text-align:center;">
+          <div style="font-size:1.2rem;font-weight:800;color:var(--accent4);letter-spacing:-1px;">VPN</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">Rete privata su infrastruttura pubblica</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;">
+          <div style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent4);font-size:0.72rem;">MPLS VPN</div>
+            <div style="font-size:0.65rem;color:var(--muted);">Label · PE/CE/P · VRF</div>
+          </div>
+          <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent1);font-size:0.72rem;">SD-WAN</div>
+            <div style="font-size:0.65rem;color:var(--muted);">SDN · multi-link · policy</div>
+          </div>
+          <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent3);font-size:0.72rem;">Config Cisco</div>
+            <div style="font-size:0.65rem;color:var(--muted);">isakmp · transform-set · crypto map</div>
+          </div>
+          <div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2);font-size:0.72rem;">IPsec SA</div>
+            <div style="font-size:0.65rem;color:var(--muted);">SPI · IKE Fase 1+2 · AES/SHA</div>
+          </div>
+        </div>
+        <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:8px 20px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent3);font-size:0.72rem;">CISCO IOS</div>
+          <div style="font-size:0.65rem;color:var(--muted);">crypto map · transform-set · isakmp policy</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="border-left:3px solid var(--accent4);">
+          <h3 style="font-size:0.82rem;color:var(--accent4);">Config Cisco</h3>
+          <p style="font-size:0.75rem;">isakmp policy · transform-set · crypto map · traffico interessante</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent1);">
+          <h3 style="font-size:0.82rem;color:var(--accent1);">MPLS</h3>
+          <p style="font-size:0.75rem;">Label switching · L3VPN · VRF · QoS garantita</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent4);">
+          <h3 style="font-size:0.82rem;color:var(--accent4);">Cisco Config</h3>
+          <p style="font-size:0.75rem;">isakmp policy · transform-set · crypto map · verifica SA</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Riepilogo — Unità 3</h2>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L1 — VPN</h3>
+        <ul>
+          <li>Rete privata su infrastruttura pubblica tramite <strong>tunneling</strong> e cifratura</li>
+          <li>Tipi: <strong>Site-to-Site</strong> (sedi), <strong>Remote Access</strong> (utenti), <strong>Extranet</strong> (partner)</li>
+          <li>Requisiti: autenticazione, confidenzialità, integrità, anti-replay</li>
+          <li>Vantaggio vs linea dedicata: costo basso, scalabilità, mobilità</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L2 — IPsec</h3>
+        <ul>
+          <li><strong>AH</strong> (prot. 51): autenticazione/integrità, no cifratura, no NAT</li>
+          <li><strong>ESP</strong> (prot. 50): cifratura + autenticazione, compatibile NAT-T (UDP 4500)</li>
+          <li><strong>Transport mode</strong>: host-to-host · <strong>Tunnel mode</strong>: gateway-to-gateway (VPN)</li>
+          <li><strong>IKE</strong>: Fase 1 (ISAKMP SA) + Fase 2 (IPsec SA). IKEv2 raccomandato</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 L3 — SSL VPN</h3>
+        <ul>
+          <li>TLS livello 7, porta <strong>443</strong> — passa ovunque</li>
+          <li>Clientless (solo browser, portale web) vs Full Tunnel (client, IP virtuale)</li>
+          <li>IPsec = S-to-S enterprise · SSL VPN = Remote Access utenti mobili</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L4 — Config Cisco IPsec</h3>
+        <ul>
+          <li>Fase 1: <code>crypto isakmp policy</code> (enc + hash + auth + group)</li>
+          <li>Fase 2: <code>crypto ipsec transform-set</code> (esp-aes + esp-sha-hmac)</li>
+          <li><code>crypto map</code>: associa peer, transform-set e ACL traffico interessante</li>
+          <li>Verifica: <code>show crypto isakmp sa</code>, <code>show crypto ipsec sa</code></li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L5 — MPLS e SD-WAN</h3>
+        <ul>
+          <li>MPLS: label switching, L3VPN con PE/CE/P e VRF, QoS garantita</li>
+          <li>SD-WAN: SDN per WAN, multi-link intelligente, gestione centralizzata</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Prossima unità (4):</strong> Reti wireless — Wi-Fi IEEE 802.11, sicurezza wireless (WPA2/WPA3), architetture controller-based e reti cellulari 4G/5G.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':        'Introduzione',
+    'vpn-intro':    'VPN · Tunneling',
+    'ipsec':        'IPsec · IKE',
+    'ssl-vpn':      'SSL/TLS VPN',
+    'config-cisco': 'Configurazione Cisco',
+    'mpls':         'MPLS · SD-WAN',
+    'confronto':    'Confronto Soluzioni',
+    'mappa':        'Mappa Concettuale',
+    'riepilogo':    'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
