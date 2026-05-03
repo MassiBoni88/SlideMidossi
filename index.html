@@ -137,7 +137,7 @@
 
     /* subject group */
     .subject-group {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .subject-label {
@@ -148,6 +148,82 @@
       color: var(--muted);
       margin-bottom: 8px;
       padding-left: 2px;
+    }
+
+    /* subset accordion */
+    .subset-group {
+      margin-bottom: 6px;
+    }
+
+    .subset-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-align: left;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .subset-header:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .terze  .subset-header:hover { border-color: rgba(79,142,247,0.3); }
+    .quarte .subset-header:hover { border-color: rgba(167,139,250,0.3); }
+    .quinte .subset-header:hover { border-color: rgba(52,211,153,0.3); }
+
+    .subset-icon-label {
+      font-size: 1rem;
+    }
+
+    .subset-arrow {
+      font-size: 0.6rem;
+      color: var(--muted);
+      transition: transform 0.22s ease;
+      margin-right: 2px;
+    }
+
+    .subset-group.open .subset-arrow {
+      transform: rotate(90deg);
+    }
+
+    .subset-count {
+      margin-left: auto;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.05);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .subset-content {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.32s ease, padding 0.32s ease;
+      padding: 0 0 0 12px;
+    }
+
+    .subset-group.open .subset-content {
+      max-height: 1200px;
+      padding: 8px 0 4px 12px;
+    }
+
+    .subset-empty {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-style: italic;
     }
 
     .slides-grid {
@@ -240,7 +316,6 @@
 <body>
   <div class="container">
     <header>
-
       <h1>Materiale<br><span>Didattico</span></h1>
       <p class="subtitle">Slide e guide per le lezioni — seleziona la tua classe</p>
     </header>
@@ -255,55 +330,81 @@
 
       <div class="subject-group">
         <div class="subject-label">Informatica</div>
-        <div class="slides-grid">
-          <a class="slide-card" href="terze/informatica/cpp_introduzione.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Introduzione a C++</div>
-              <div class="slide-filename">cpp_introduzione.html</div>
+
+        <!-- Slide -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">📊</span>
+            <span>Slide</span>
+            <span class="subset-count">5</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+              <a class="slide-card" href="terze/informatica/cpp_introduzione.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Introduzione a C++</div>
+                  <div class="slide-filename">cpp_introduzione.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="terze/informatica/cpp_operatori_stringhe.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Assegnazione, Comparazione, Bool. Stringhe, Matt</div>
+                  <div class="slide-filename">cpp_operatori_stringhe.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="terze/informatica/cpp_controllo_flusso.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">If, While, Do-While, For, Break/Continue</div>
+                  <div class="slide-filename">cpp_controllo_flusso.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="terze/informatica/cpp_array_struct_funzioni.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Array, Struct, Funzioni, Librerie personalizzate</div>
+                  <div class="slide-filename">cpp_array_struct_funzioni.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="terze/informatica/cpp_slides.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Scope, Overloading, Parametri di default</div>
+                  <div class="slide-filename">cpp_slides.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
             </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="terze/informatica/cpp_operatori_stringhe.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Assegnazione, Comparazione, Bool. Stringhe, Matt</div>
-              <div class="slide-filename">cpp_operatori_stringhe.html</div>
+          </div>
+        </div>
+
+        <!-- Esercizi -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">✏️</span>
+            <span>Esercizi</span>
+            <span class="subset-count">1</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+              <a class="slide-card" href="terze/informatica/Esercizio_Festival_Musicale.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Esercizio Festival Musicale</div>
+                  <div class="slide-filename">Esercizio_Festival_Musicale.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
             </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="terze/informatica/cpp_controllo_flusso.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">If, While, Do-While, For, Break/Continue</div>
-              <div class="slide-filename">cpp_controllo_flusso.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="terze/informatica/cpp_array_struct_funzioni.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Array, Struct, Funzioni, Librerie personalizzate</div>
-              <div class="slide-filename">cpp_array_struct_funzioni.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="terze/informatica/cpp_slides.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Scope, Overloading, Parametri di default</div>
-              <div class="slide-filename">cpp_slides.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-                  <a class="slide-card" href="terze/informatica/Esercizio_Festival_Musicale.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Esercizio Festival Musicale</div>
-              <div class="slide-filename">Esercizio_Festival_Musicale.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
+          </div>
         </div>
       </div>
     </div>
@@ -318,34 +419,58 @@
 
       <div class="subject-group">
         <div class="subject-label">Sistemi e Reti</div>
-        <div class="slides-grid">
-          <a class="slide-card" href="quarte/sistemi e reti/unita7_dhcp_dns.html">
-            <span class="slide-icon">🌐</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 7 — DHCP e DNS</div>
-              <div class="slide-filename">unita7_dhcp_dns.html</div>
+
+        <!-- Slide -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">📊</span>
+            <span>Slide</span>
+            <span class="subset-count">3</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+              <a class="slide-card" href="quarte/sistemi e reti/unita7_dhcp_dns.html">
+                <span class="slide-icon">🌐</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 7 — DHCP e DNS</div>
+                  <div class="slide-filename">unita7_dhcp_dns.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quarte/sistemi e reti/dhcp-linux-guida.html">
+                <span class="slide-icon">🐧</span>
+                <div class="slide-info">
+                  <div class="slide-title">Guida — DHCP su Linux</div>
+                  <div class="slide-filename">dhcp-linux-guida.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quarte/sistemi e reti/Protocolli di Routing.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Protocolli di routing</div>
+                  <div class="slide-filename">Protocolli di Routing.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
             </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quarte/sistemi e reti/dhcp-linux-guida.html">
-            <span class="slide-icon">🐧</span>
-            <div class="slide-info">
-              <div class="slide-title">Guida — DHCP su Linux</div>
-              <div class="slide-filename">dhcp-linux-guida.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quarte/sistemi e reti/Protocolli di Routing.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Protocolli di routing</div>
-              <div class="slide-filename">Protocolli di Routing.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
+          </div>
+        </div>
+
+        <!-- Esercizi -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">✏️</span>
+            <span>Esercizi</span>
+            <span class="subset-count">0</span>
+          </button>
+          <div class="subset-content">
+            <p class="subset-empty">Nessun esercizio disponibile.</p>
+          </div>
         </div>
       </div>
-    
     </div>
 
     <!-- QUINTE -->
@@ -358,60 +483,91 @@
 
       <div class="subject-group">
         <div class="subject-label">Sistemi e Reti</div>
-        <div class="slides-grid">
-          <a class="slide-card" href="quinte/sistemi e reti/unita1_crittografia.html">
-            <span class="slide-icon">🔐</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 1 — Tecniche di Crittografia</div>
-              <div class="slide-filename">unita1_crittografia.html</div>
+
+        <!-- Slide -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">📊</span>
+            <span>Slide</span>
+            <span class="subset-count">6</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+              <a class="slide-card" href="quinte/sistemi e reti/unita1_crittografia.html">
+                <span class="slide-icon">🔐</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 1 — Tecniche di Crittografia</div>
+                  <div class="slide-filename">unita1_crittografia.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quinte/sistemi e reti/unita2_sicurezza_reti_locali.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 2 — Efficienza e sicurezza nelle reti locali</div>
+                  <div class="slide-filename">unita2_sicurezza_reti_locali.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quinte/sistemi e reti/unita3_vpn.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 3 — VPN</div>
+                  <div class="slide-filename">unita3_vpn.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quinte/sistemi e reti/unita4_5_wireless_mobile.html">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 4 e 5 — Reti Wireless e Mobile</div>
+                  <div class="slide-filename">unita4_5_wireless_mobile.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quinte/sistemi e reti/unita6_cablaggio_cloud.html">
+                <span class="slide-icon">☁️</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 6 — Cablaggio e Cloud</div>
+                  <div class="slide-filename">unita6_cablaggio_cloud.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+              <a class="slide-card" href="quinte/sistemi e reti/unita7_architetture_web.html">
+                <span class="slide-icon">🏗️</span>
+                <div class="slide-info">
+                  <div class="slide-title">Unità 7 — Architetture Web</div>
+                  <div class="slide-filename">unita7_architetture_web.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
             </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quinte/sistemi e reti/unita2_sicurezza_reti_locali.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 2 - Efficienza e sicurezza nelle reti locali</div>
-              <div class="slide-filename">unita2_sicurezza_reti_locali.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quinte/sistemi e reti/unita3_vpn.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 3 - VPN</div>
-              <div class="slide-filename">unita3_vpn.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quinte/sistemi e reti/unita4_5_wireless_mobile.html">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 4 e 5 - Reti Wireless e Mobile</div>
-              <div class="slide-filename">unita4_5_wireless_mobile.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quinte/sistemi e reti/unita6_cablaggio_cloud.html">
-            <span class="slide-icon">☁️</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 6 — Cablaggio e Cloud</div>
-              <div class="slide-filename">unita6_cablaggio_cloud.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
-          <a class="slide-card" href="quinte/sistemi e reti/unita7_architetture_web.html">
-            <span class="slide-icon">🏗️</span>
-            <div class="slide-info">
-              <div class="slide-title">Unità 7 — Architetture Web</div>
-              <div class="slide-filename">unita7_architetture_web.html</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>
+          </div>
+        </div>
+
+        <!-- Esercizi -->
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">✏️</span>
+            <span>Esercizi</span>
+            <span class="subset-count">0</span>
+          </button>
+          <div class="subset-content">
+            <p class="subset-empty">Nessun esercizio disponibile.</p>
+          </div>
         </div>
       </div>
     </div>
 
     <footer>A.S. 2025/2026 &nbsp;·&nbsp; <a href="admin.html" style="color:inherit;opacity:0.4;text-decoration:none;font-size:0.8em;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">&#9881;</a></footer>
   </div>
+
+  <script>
+    function toggleSubset(btn) {
+      btn.closest('.subset-group').classList.toggle('open');
+    }
+  </script>
 </body>
 </html>
