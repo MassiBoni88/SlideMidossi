@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent2: #7c3aed;
+      --accent3: #059669;
+      --text: #1e293b;
+      --muted: #64748b;
+      --terze: #2563eb;
+      --quarte: #7c3aed;
+      --quinte: #059669;
+      --card-hover: #f1f5f9;
+      --border-hover: rgba(0,0,0,0.15);
+      --grid: rgba(37,99,235,0.04);
+      --surface-raised: rgba(0,0,0,0.03);
+      --surface-raised-hover: rgba(0,0,0,0.05);
+      --surface-chip: rgba(0,0,0,0.05);
+    }
+    [data-theme="dark"] {
       --bg: #0f1117;
       --surface: #181c27;
       --border: #252a3a;
@@ -18,6 +37,12 @@
       --terze: #4f8ef7;
       --quarte: #a78bfa;
       --quinte: #34d399;
+      --card-hover: #1e2233;
+      --border-hover: rgba(255,255,255,0.12);
+      --grid: rgba(79,142,247,0.04);
+      --surface-raised: rgba(255,255,255,0.03);
+      --surface-raised-hover: rgba(255,255,255,0.06);
+      --surface-chip: rgba(255,255,255,0.05);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,6 +53,7 @@
       font-family: 'Sora', sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
     }
 
     /* background grid */
@@ -36,8 +62,8 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
@@ -161,7 +187,7 @@
       gap: 10px;
       width: 100%;
       padding: 11px 16px;
-      background: rgba(255,255,255,0.03);
+      background: var(--surface-raised);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
@@ -174,8 +200,8 @@
     }
 
     .subset-header:hover {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(255,255,255,0.12);
+      background: var(--surface-raised-hover);
+      border-color: var(--border-hover);
     }
 
     .terze  .subset-header:hover { border-color: rgba(79,142,247,0.3); }
@@ -202,7 +228,7 @@
       font-family: 'Space Mono', monospace;
       font-size: 10px;
       color: var(--muted);
-      background: rgba(255,255,255,0.05);
+      background: var(--surface-chip);
       padding: 2px 8px;
       border-radius: 20px;
     }
@@ -262,8 +288,8 @@
     .quinte .slide-card::before { background: var(--quinte); }
 
     .slide-card:hover {
-      border-color: rgba(255,255,255,0.12);
-      background: #1e2233;
+      border-color: var(--border-hover);
+      background: var(--card-hover);
       transform: translateX(4px);
     }
 
@@ -311,9 +337,35 @@
       color: var(--muted);
       text-align: center;
     }
+
+    #theme-btn {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      z-index: 100;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
   </style>
+  <script>
+    (function(){ var t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
 </head>
 <body>
+  <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
   <div class="container">
     <header>
       <h1>Materiale<br><span>Didattico</span></h1>
@@ -569,6 +621,16 @@
     function toggleSubset(btn) {
       btn.closest('.subset-group').classList.toggle('open');
     }
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      const next = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.getElementById('theme-btn').textContent = next === 'dark' ? '◑ Light' : '◐ Dark';
+    }
+    document.getElementById('theme-btn').textContent =
+      document.documentElement.getAttribute('data-theme') === 'dark' ? '◑ Light' : '◐ Dark';
   </script>
 </body>
 </html>

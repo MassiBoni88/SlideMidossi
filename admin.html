@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Materiale Didattico</title>
   <style>
     :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --border: #e2e8f0;
+      --accent: #00a382;
+      --text: #1e293b;
+      --muted: #64748b;
+      --error: #dc2626;
+      --home-bg: rgba(248,250,252,0.9);
+      --home-border: rgba(0,163,130,0.3);
+    }
+    [data-theme="dark"] {
       --bg: #0d0f14;
       --panel: #13161f;
       --border: #1e2330;
@@ -13,12 +24,15 @@
       --text: #e8eaf0;
       --muted: #6b7280;
       --error: #ff6b6b;
+      --home-bg: rgba(13,15,20,0.9);
+      --home-border: rgba(0,212,170,0.25);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg); color: var(--text);
       font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
     }
 
     /* ── LOGIN ── */
@@ -185,11 +199,39 @@
     .load-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
     .load-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .empty-list { color: var(--muted); font-size: 0.85rem; padding: 10px 0; }
+
+    /* ── HOME BUTTON ── */
+    .home-link {
+      position: fixed; top: 10px; left: 14px; z-index: 9999;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--home-bg); backdrop-filter: blur(8px);
+      border: 1px solid var(--home-border); border-radius: 50%;
+      text-decoration: none; color: var(--accent);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .home-link:hover { transform: scale(1.12); border-color: var(--accent); }
+
+    /* ── THEME BUTTON ── */
+    #theme-btn {
+      position: fixed; top: 10px; right: 14px; z-index: 9999;
+      background: var(--home-bg); backdrop-filter: blur(8px);
+      border: 1px solid var(--home-border);
+      color: var(--muted); padding: 5px 13px; border-radius: 6px;
+      font-size: 0.8rem; cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
   </style>
+  <script>
+    (function(){ var t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+  </script>
 </head>
 <body>
 
-<a href="index.html" title="Torna all'homepage" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(0,212,170,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(0,212,170,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(0,212,170,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+<a href="index.html" title="Torna all'homepage" class="home-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+<button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
 
 <!-- ════════ LOGIN ════════ -->
 <div id="login-screen">
@@ -323,6 +365,17 @@
 const OWNER  = 'MassiBoni88';
 const REPO   = 'SlideMidossi';
 const BRANCH = 'main';
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('theme-btn').textContent = next === 'dark' ? '◑ Light' : '◐ Dark';
+}
+document.getElementById('theme-btn').textContent =
+  document.documentElement.getAttribute('data-theme') === 'dark' ? '◑ Light' : '◐ Dark';
 
 let selectedFile = null;
 
