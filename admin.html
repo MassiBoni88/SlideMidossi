@@ -259,6 +259,15 @@
       </div>
 
       <div class="field">
+        <label>Tipo</label>
+        <select id="tipo" onchange="checkReady()">
+          <option value="">— seleziona —</option>
+          <option value="slide">📊 Slide</option>
+          <option value="esercizi">✏️ Esercizi</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label>File HTML</label>
         <div class="upload-area" id="drop-zone"
              onclick="document.getElementById('file-input').click()"
@@ -401,6 +410,7 @@ function checkReady() {
     && document.getElementById('anno').value
     && document.getElementById('materia').value.trim()
     && document.getElementById('titolo').value.trim()
+    && document.getElementById('tipo').value
     && selectedFile;
   document.getElementById('upload-btn').disabled = !ok;
 }
@@ -411,6 +421,7 @@ async function doUpload() {
   const anno    = document.getElementById('anno').value;
   const materia = document.getElementById('materia').value.trim().toLowerCase();
   const titolo  = document.getElementById('titolo').value.trim();
+  const tipo    = document.getElementById('tipo').value;
   const fname   = selectedFile.name;
   const filePath = `${anno}/${materia}/${fname}`;
 
@@ -422,13 +433,11 @@ async function doUpload() {
   try {
     const content = await readAsText(selectedFile);
 
-    // 1. Controlla se il file esiste già (serve sha per aggiornare)
     setProgress(true, 25);
     const checkRes = await ghFetch(token, `contents/${encodeURIComponent(filePath)}`);
     const putBody  = { message: `Add ${fname}`, content: toBase64(content), branch: BRANCH };
     if (checkRes.ok) putBody.sha = (await checkRes.json()).sha;
 
-    // 2. Carica il file HTML
     setProgress(true, 50);
     const upRes = await ghFetch(token, `contents/${encodeURIComponent(filePath)}`, 'PUT', putBody);
     if (!upRes.ok) {
@@ -436,9 +445,8 @@ async function doUpload() {
       throw new Error(err.message || 'Upload fallito');
     }
 
-    // 3. Aggiorna index.html
     setProgress(true, 75);
-    await updateIndex(token, anno, materia, fname, titolo);
+    await updateIndex(token, anno, materia, fname, titolo, tipo);
 
     setProgress(true, 100);
     showToast(`✓ "${fname}" caricato con successo!`, 'ok');
@@ -453,26 +461,107 @@ async function doUpload() {
   }
 }
 
+/* ── COSTRUTTORI HTML ── */
+function buildCard(href, titolo, fname) {
+  return `              <a class="slide-card" href="${href}">
+                <span class="slide-icon">📄</span>
+                <div class="slide-info">
+                  <div class="slide-title">${titolo}</div>
+                  <div class="slide-filename">${fname}</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>`;
+}
+
+function buildSubsetGroup(tipoLabel, tipoIcon, cardHtml) {
+  return `
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">${tipoIcon}</span>
+            <span>${tipoLabel}</span>
+            <span class="subset-count">1</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+${cardHtml}
+            </div>
+          </div>
+        </div>`;
+}
+
+function buildEmptySubsetGroup(tipoLabel, tipoIcon) {
+  return `
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">${tipoIcon}</span>
+            <span>${tipoLabel}</span>
+            <span class="subset-count">0</span>
+          </button>
+          <div class="subset-content">
+            <p class="subset-empty">Nessun elemento disponibile.</p>
+          </div>
+        </div>`;
+}
+
+function buildSubjectGroup(materiaLabel, cardHtml, tipo) {
+  const slideBlock = tipo === 'slide'
+    ? buildSubsetGroup('Slide', '📊', cardHtml)
+    : buildEmptySubsetGroup('Slide', '📊');
+  const esercBlock = tipo === 'esercizi'
+    ? buildSubsetGroup('Esercizi', '✏️', cardHtml)
+    : buildEmptySubsetGroup('Esercizi', '✏️');
+  return `
+      <div class="subject-group">
+        <div class="subject-label">${materiaLabel}</div>
+${slideBlock}
+${esercBlock}
+      </div>
+`;
+}
+
+function buildNewSection(anno, sectionKey, badge, display, materiaLabel, cardHtml, tipo) {
+  return `
+    <!-- ${sectionKey} -->
+    <div class="class-section ${anno}">
+      <div class="class-header">
+        <span class="class-badge badge-${anno}">${badge}</span>
+        <span class="class-label">${display}</span>
+        <div class="class-line"></div>
+      </div>
+${buildSubjectGroup(materiaLabel, cardHtml, tipo)}
+    </div>
+
+    `;
+}
+
+/* aggiorna il contatore subset-count dell'elemento subset-group che inizia a fromIdx */
+function updateSubsetCount(html, subsetGroupStart, delta) {
+  const MARK = '<span class="subset-count">';
+  const btnStart = html.indexOf('<button class="subset-header"', subsetGroupStart);
+  const btnEnd   = html.indexOf('</button>', btnStart);
+  const countIdx = html.indexOf(MARK, btnStart);
+  if (countIdx === -1 || countIdx > btnEnd) return html;
+  const countEnd = html.indexOf('</span>', countIdx);
+  const current  = parseInt(html.slice(countIdx + MARK.length, countEnd)) || 0;
+  const next     = Math.max(0, current + delta);
+  return html.slice(0, countIdx + MARK.length) + next + html.slice(countEnd);
+}
+
 /* ── AGGIORNA INDEX.HTML ── */
-async function updateIndex(token, anno, materia, fname, titolo) {
+async function updateIndex(token, anno, materia, fname, titolo, tipo) {
   const res = await ghFetch(token, 'contents/index.html');
   if (!res.ok) throw new Error('Impossibile leggere index.html');
   const data = await res.json();
-
-  // Decodifica contenuto (GitHub lo manda in base64 con newline)
   let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
 
-  const href    = `${anno}/${materia}/${fname}`;
-  const newCard = `          <a class="slide-card" href="${href}">
-            <span class="slide-icon">📄</span>
-            <div class="slide-info">
-              <div class="slide-title">${titolo}</div>
-              <div class="slide-filename">${fname}</div>
-            </div>
-            <span class="slide-arrow">→</span>
-          </a>`;
+  const href       = `${anno}/${materia}/${fname}`;
+  const newCard    = buildCard(href, titolo, fname);
+  const tipoLabel  = tipo === 'esercizi' ? 'Esercizi' : 'Slide';
+  const tipoIcon   = tipo === 'esercizi' ? '✏️' : '📊';
 
-  const annoLabels = { prime:'PRIME', seconde:'SECONDE', terze:'TERZE', quarte:'QUARTE', quinte:'QUINTE' };
+  const annoLabels  = { prime:'PRIME', seconde:'SECONDE', terze:'TERZE', quarte:'QUARTE', quinte:'QUINTE' };
   const annoDisplay = { prime:'Classi Prime', seconde:'Classi Seconde', terze:'Classi Terze', quarte:'Classi Quarte', quinte:'Classi Quinte' };
   const annoBadge   = { prime:'1°', seconde:'2°', terze:'3°', quarte:'4°', quinte:'5°' };
   const sectionKey  = annoLabels[anno] || anno.toUpperCase();
@@ -484,50 +573,80 @@ async function updateIndex(token, anno, materia, fname, titolo) {
   if (secIdx === -1) {
     // Sezione anno non esiste — creala prima del footer
     const footerIdx = html.indexOf('<footer>');
-    const newSection = `
-    <!-- ${sectionKey} -->
-    <div class="class-section ${anno}">
-      <div class="class-header">
-        <span class="class-badge badge-${anno}">${annoBadge[anno] || '?'}</span>
-        <span class="class-label">${annoDisplay[anno] || anno}</span>
-        <div class="class-line"></div>
-      </div>
-
-      <div class="subject-group">
-        <div class="subject-label">${materiaLabel}</div>
-        <div class="slides-grid">
-${newCard}
-        </div>
-      </div>
-    </div>
-
-    `;
-    html = html.slice(0, footerIdx) + newSection + html.slice(footerIdx);
+    html = html.slice(0, footerIdx)
+      + buildNewSection(anno, sectionKey, annoBadge[anno] || '?', annoDisplay[anno] || anno, materiaLabel, newCard, tipo)
+      + html.slice(footerIdx);
   } else {
-    // Sezione esiste — cerca il gruppo materia all'interno
-    const nextSec = html.indexOf('<!-- ', secIdx + secComment.length);
-    const secEnd  = nextSec !== -1 ? nextSec : html.indexOf('<footer>');
-    const subjMarker = `<div class="subject-label">${materiaLabel}</div>`;
-    const subjIdx    = html.toLowerCase().indexOf(subjMarker.toLowerCase(), secIdx);
+    const classSectionOpen  = html.indexOf('<div class="class-section', secIdx);
+    const classSectionClose = findClosingDiv(html, classSectionOpen);
 
-    if (subjIdx !== -1 && subjIdx < secEnd) {
-      // Gruppo materia esiste — inserisci card prima della chiusura slides-grid
-      const gridOpen  = html.indexOf('<div class="slides-grid">', subjIdx);
-      const gridClose = findClosingDiv(html, gridOpen);
-      html = html.slice(0, gridClose) + newCard + '\n        ' + html.slice(gridClose);
+    // Cerca il subject-group della materia richiesta
+    let subjGroupStart = -1;
+    let from = classSectionOpen;
+    while (from < classSectionClose) {
+      const sgIdx = html.indexOf('<div class="subject-group">', from);
+      if (sgIdx === -1 || sgIdx >= classSectionClose) break;
+      const lblIdx = html.indexOf('<div class="subject-label">', sgIdx);
+      const lblEnd = html.indexOf('</div>', lblIdx);
+      const lbl    = html.slice(lblIdx + '<div class="subject-label">'.length, lblEnd).trim();
+      if (lbl.toLowerCase() === materiaLabel.toLowerCase()) {
+        subjGroupStart = sgIdx;
+        break;
+      }
+      from = sgIdx + 1;
+    }
+
+    if (subjGroupStart === -1) {
+      // Subject-group non esiste — aggiungilo prima della chiusura class-section
+      html = html.slice(0, classSectionClose)
+        + buildSubjectGroup(materiaLabel, newCard, tipo)
+        + html.slice(classSectionClose);
     } else {
-      // Gruppo materia non esiste — aggiungilo prima della chiusura class-section
-      const classSectionOpen  = html.indexOf('<div class="class-section', secIdx);
-      const classSectionClose = findClosingDiv(html, classSectionOpen);
-      const newGroup = `
-      <div class="subject-group">
-        <div class="subject-label">${materiaLabel}</div>
-        <div class="slides-grid">
-${newCard}
-        </div>
-      </div>
-    `;
-      html = html.slice(0, classSectionClose) + newGroup + html.slice(classSectionClose);
+      const subjGroupEnd = findClosingDiv(html, subjGroupStart);
+
+      // Cerca il subset-group per il tipo scelto
+      let subsetGroupStart = -1;
+      let subFrom = subjGroupStart;
+      while (subFrom < subjGroupEnd) {
+        const subgIdx = html.indexOf('<div class="subset-group">', subFrom);
+        if (subgIdx === -1 || subgIdx >= subjGroupEnd) break;
+        const btnIdx  = html.indexOf('<button class="subset-header"', subgIdx);
+        const btnEnd  = html.indexOf('</button>', btnIdx);
+        if (html.slice(btnIdx, btnEnd).includes(`<span>${tipoLabel}</span>`)) {
+          subsetGroupStart = subgIdx;
+          break;
+        }
+        subFrom = subgIdx + 1;
+      }
+
+      if (subsetGroupStart === -1) {
+        // Subset-group non esiste — aggiungilo prima della chiusura subject-group
+        html = html.slice(0, subjGroupEnd)
+          + buildSubsetGroup(tipoLabel, tipoIcon, newCard)
+          + '\n      '
+          + html.slice(subjGroupEnd);
+      } else {
+        const subgEnd    = findClosingDiv(html, subsetGroupStart);
+        const GRID_OPEN  = '<div class="slides-grid">';
+        const gridIdx    = html.indexOf(GRID_OPEN, subsetGroupStart);
+
+        if (gridIdx !== -1 && gridIdx < subgEnd) {
+          // slides-grid esiste — aggiungi la card prima della chiusura
+          const gridClose = findClosingDiv(html, gridIdx);
+          html = html.slice(0, gridClose) + '\n' + newCard + '\n            ' + html.slice(gridClose);
+        } else {
+          // Nessuna slides-grid (messagio vuoto) — sostituiscila
+          const emptyStart = html.indexOf('<p class="subset-empty">', subsetGroupStart);
+          if (emptyStart !== -1 && emptyStart < subgEnd) {
+            const emptyEnd = html.indexOf('</p>', emptyStart) + '</p>'.length;
+            html = html.slice(0, emptyStart)
+              + `<div class="slides-grid">\n${newCard}\n            </div>`
+              + html.slice(emptyEnd);
+          }
+        }
+        // Aggiorna il contatore
+        html = updateSubsetCount(html, subsetGroupStart, 1);
+      }
     }
   }
 
@@ -593,13 +712,12 @@ function showToast(msg, type) {
 
 function resetForm() {
   selectedFile = null;
-  ['anno','materia','titolo'].forEach(id => document.getElementById(id).value = '');
+  ['anno','materia','titolo','tipo'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('upload-name').textContent = '';
   document.getElementById('path-wrap').style.display = 'none';
   document.getElementById('file-input').value = '';
 }
 
-// Aggiorna bottone al cambio dei campi
 ['materia','titolo'].forEach(id =>
   document.getElementById(id).addEventListener('input', checkReady)
 );
@@ -652,7 +770,6 @@ function confirmDelete(path, sha) {
 async function doDelete(path, sha) {
   const token = getToken();
   try {
-    // 1. Elimina il file
     const res = await ghFetch(token, `contents/${encodeURIComponent(path)}`, 'DELETE', {
       message: `Remove ${path.split('/').pop()}`,
       sha,
@@ -663,7 +780,6 @@ async function doDelete(path, sha) {
       throw new Error(err.message || 'Eliminazione fallita');
     }
 
-    // 2. Rimuovi la card da index.html
     await removeFromIndex(token, path);
 
     showToast(`✓ "${path.split('/').pop()}" eliminato`, 'ok');
@@ -676,10 +792,10 @@ async function doDelete(path, sha) {
 /* ══════════════════════════════════════════
    RIORDINA FILE
 ══════════════════════════════════════════ */
-let _reorderHtml = '';
-let _reorderSha  = '';
+let _reorderHtml   = '';
+let _reorderSha    = '';
 let _reorderGroups = [];
-let _dragSrc = null;
+let _dragSrc       = null;
 
 async function loadReorderUI() {
   const token = getToken();
@@ -706,30 +822,63 @@ async function loadReorderUI() {
   }
 }
 
+// Analizza i subset-group (Slide / Esercizi) come unità riordinabili
 function parseReorderGroups(html) {
-  const groups = [];
+  const groups   = [];
   const GRID_OPEN = '<div class="slides-grid">';
-  let from = 0;
+  let sgFrom = 0;
+
   while (true) {
-    const gStart = html.indexOf('<div class="subject-group">', from);
-    if (gStart === -1) break;
+    // Trova il prossimo subject-group
+    const subjStart = html.indexOf('<div class="subject-group">', sgFrom);
+    if (subjStart === -1) break;
+    const subjEnd = findClosingDiv(html, subjStart);
 
-    const lblStart = html.indexOf('<div class="subject-label">', gStart);
-    const lblEnd   = html.indexOf('</div>', lblStart);
-    const label    = html.slice(lblStart + '<div class="subject-label">'.length, lblEnd).trim();
+    // Leggi la label della materia
+    const lblIdx  = html.indexOf('<div class="subject-label">', subjStart);
+    const lblEnd  = html.indexOf('</div>', lblIdx);
+    const subjLbl = lblIdx < subjEnd
+      ? html.slice(lblIdx + '<div class="subject-label">'.length, lblEnd).trim()
+      : '—';
 
-    const gridOpen         = html.indexOf(GRID_OPEN, gStart);
-    const gridContentStart = gridOpen + GRID_OPEN.length;
-    const gridClose        = findClosingDiv(html, gridOpen);
-    const gridContent      = html.slice(gridContentStart, gridClose);
+    // Scansiona i subset-group all'interno
+    let subFrom = lblEnd;
+    while (subFrom < subjEnd) {
+      const subgStart = html.indexOf('<div class="subset-group">', subFrom);
+      if (subgStart === -1 || subgStart >= subjEnd) break;
+      const subgEnd = findClosingDiv(html, subgStart);
 
-    groups.push({
-      gStart, label,
-      gridContentStart, gridClose,
-      cards: extractSlideCards(gridContent)
-    });
-    from = gStart + 1;
+      // Leggi la label del tipo (Slide / Esercizi) dal button
+      const btnIdx     = html.indexOf('<button class="subset-header"', subgStart);
+      const btnEnd     = html.indexOf('</button>', btnIdx);
+      const btnContent = html.slice(btnIdx, btnEnd);
+      const spanMatch  = [...btnContent.matchAll(/<span>([^<]+)<\/span>/g)];
+      // Il testo del tipo è quello che contiene solo lettere
+      const tipoSpan   = spanMatch.find(m => /^[A-Za-zÀ-ÿ ]+$/.test(m[1].trim()));
+      const tipoLbl    = tipoSpan ? tipoSpan[1].trim() : '—';
+
+      const label    = `${subjLbl} — ${tipoLbl}`;
+      const gridIdx  = html.indexOf(GRID_OPEN, subgStart);
+
+      if (gridIdx !== -1 && gridIdx < subgEnd) {
+        const gridContentStart = gridIdx + GRID_OPEN.length;
+        const gridClose        = findClosingDiv(html, gridIdx);
+        const gridContent      = html.slice(gridContentStart, gridClose);
+
+        groups.push({
+          label,
+          gridContentStart,
+          gridClose,
+          cards: extractSlideCards(gridContent)
+        });
+      }
+
+      subFrom = subgEnd + 1;
+    }
+
+    sgFrom = subjEnd + 1;
   }
+
   return groups;
 }
 
@@ -739,10 +888,10 @@ function extractSlideCards(gridContent) {
   while (true) {
     const cStart = gridContent.indexOf('<a class="slide-card"', from);
     if (cStart === -1) break;
-    const cEnd = gridContent.indexOf('</a>', cStart) + '</a>'.length;
+    const cEnd    = gridContent.indexOf('</a>', cStart) + '</a>'.length;
     const cardHtml = gridContent.slice(cStart, cEnd);
-    const titleM = cardHtml.match(/<div class="slide-title">([^<]+)<\/div>/);
-    const fnameM = cardHtml.match(/<div class="slide-filename">([^<]+)<\/div>/);
+    const titleM   = cardHtml.match(/<div class="slide-title">([^<]+)<\/div>/);
+    const fnameM   = cardHtml.match(/<div class="slide-filename">([^<]+)<\/div>/);
     cards.push({
       html:  cardHtml,
       title: titleM ? titleM[1] : '—',
@@ -822,7 +971,6 @@ async function saveOrder() {
   btn.disabled = true; btn.textContent = 'Salvataggio…';
 
   try {
-    // Rileggi SHA aggiornato prima di scrivere
     const chk = await ghFetch(token, 'contents/index.html');
     if (!chk.ok) throw new Error('Impossibile leggere index.html');
     const chkData = await chk.json();
@@ -842,8 +990,8 @@ async function saveOrder() {
 
       const newContent = '\n' + items.map(item => {
         const origIdx = parseInt(item.dataset.orig);
-        return '          ' + g.cards[origIdx].html;
-      }).join('\n') + '\n        ';
+        return '              ' + g.cards[origIdx].html;
+      }).join('\n') + '\n            ';
 
       html = html.slice(0, g.gridContentStart) + newContent + html.slice(g.gridClose);
     }
@@ -859,10 +1007,8 @@ async function saveOrder() {
       throw new Error(err.message || 'Push fallito');
     }
 
-    // Aggiorna lo stato locale con il nuovo HTML
-    _reorderHtml = html;
+    _reorderHtml   = html;
     _reorderGroups = parseReorderGroups(html);
-    // Aggiorna i data-orig dopo il salvataggio (nuovo ordine diventa "originale")
     for (const g of _reorderGroups) {
       const list = document.getElementById(`rlist-${_reorderGroups.indexOf(g)}`);
       if (!list) continue;
@@ -883,16 +1029,23 @@ async function removeFromIndex(token, filePath) {
   const data = await res.json();
   let html = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
 
-  // Trova la card con l'href corrispondente e la rimuove
   const hrefSnippet = `href="${filePath}"`;
   const hrefPos = html.indexOf(hrefSnippet);
-  if (hrefPos === -1) return; // card non presente, nulla da fare
+  if (hrefPos === -1) return;
 
   const cardStart = html.lastIndexOf('<a class="slide-card"', hrefPos);
   const cardEnd   = html.indexOf('</a>', hrefPos) + '</a>'.length;
   if (cardStart === -1) return;
 
+  // Trova il subset-group padre per aggiornare il contatore
+  const subsetGroupStart = html.lastIndexOf('<div class="subset-group">', cardStart);
+
   html = html.slice(0, cardStart).trimEnd() + '\n' + html.slice(cardEnd).replace(/^\s*\n/, '');
+
+  // Decrementa il contatore del subset-group
+  if (subsetGroupStart !== -1) {
+    html = updateSubsetCount(html, subsetGroupStart, -1);
+  }
 
   const putRes = await ghFetch(token, 'contents/index.html', 'PUT', {
     message: `Remove link to ${filePath.split('/').pop()} from index`,
