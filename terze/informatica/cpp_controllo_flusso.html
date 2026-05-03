@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ — Strutture di Controllo del Flusso</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  .kw  { color: var(--accent4); font-weight: 700; }
+  .cm  { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* flow diagram */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .flow-box {
+    border-radius: 6px; padding: 7px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700;
+    text-align: center; width: fit-content; min-width: 130px;
+  }
+  .flow-diamond {
+    width: 0; height: 0;
+    border-left: 52px solid transparent;
+    border-right: 52px solid transparent;
+    position: relative; margin: 0;
+  }
+  .flow-diamond span {
+    position: absolute; top: -14px; left: -38px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    width: 76px; text-align: center;
+  }
+  .flow-arrow { font-size: 1.1rem; color: var(--muted); line-height: 1; margin: 1px 0; }
+  .flow-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 220px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Programmazione · C++</div>
+    <div class="title-bar">Strutture di Controllo del Flusso</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 10</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">C++</div>
+  <div class="big" style="color:var(--accent1);">Controllo del Flusso</div>
+  <div class="sub">Selezione · Iterazione · Salto</div>
+  <div class="tag-row">
+    <span class="tag tag-green">if / else</span>
+    <span class="tag tag-blue">switch</span>
+    <span class="tag tag-yellow">while · do-while · for</span>
+    <span class="tag tag-red">break · continue</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content">
+        <h4>Selezione: if / if-else</h4>
+        <p>Eseguire blocchi di codice in base a una condizione booleana · else if a cascata</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>Selezione multipla: switch</h4>
+        <p>Confrontare una variabile con più valori costanti · case · default · break</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Cicli: while e do-while</h4>
+        <p>Ripetere codice finché una condizione è vera · differenza tra pre e post-test</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Ciclo for e salti</h4>
+        <p>Iterazione a contatore · for annidati · break per uscire · continue per saltare</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — IF ═══ -->
+<div class="slide" data-section="if">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">L'istruzione <code style="font-size:inherit">if</code></h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Come funziona</h3>
+        <p>Il blocco di codice tra le graffe viene eseguito <strong>solo se</strong> la condizione tra parentesi è <code>true</code>. Se la condizione è <code>false</code>, il blocco viene saltato.</p>
+      </div>
+      <pre><span class="cm">// Sintassi base</span>
+<span class="kw">if</span> (condizione) {
+  <span class="cm">// eseguito solo se condizione == true</span>
+}
+
+<span class="cm">// if ... else</span>
+<span class="kw">if</span> (condizione) {
+  <span class="cm">// ramo vero</span>
+} <span class="kw">else</span> {
+  <span class="cm">// ramo falso</span>
+}
+
+<span class="cm">// if ... else if ... else</span>
+<span class="kw">if</span> (voto <span class="op">&gt;=</span> <span class="num">9</span>) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Ottimo\n"</span>;
+} <span class="kw">else if</span> (voto <span class="op">&gt;=</span> <span class="num">6</span>) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Sufficiente\n"</span>;
+} <span class="kw">else</span> {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Insufficiente\n"</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> eta <span class="op">=</span> <span class="num">20</span>;
+
+  <span class="kw">if</span> (eta <span class="op">&gt;=</span> <span class="num">18</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Maggiorenne\n"</span>;
+  } <span class="kw">else</span> {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Minorenne\n"</span>;
+  }
+
+  <span class="kw">int</span> voto <span class="op">=</span> <span class="num">7</span>;
+
+  <span class="kw">if</span> (voto <span class="op">&gt;=</span> <span class="num">9</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Ottimo\n"</span>;
+  } <span class="kw">else if</span> (voto <span class="op">&gt;=</span> <span class="num">6</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Sufficiente\n"</span>;
+  } <span class="kw">else</span> {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Insufficiente\n"</span>;
+  }
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>Con una sola istruzione le graffe sono opzionali, ma è buona pratica includerle sempre per evitare errori di leggibilità.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — IF ANNIDATI + OPERATORE TERNARIO ═══ -->
+<div class="slide" data-section="if">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">if annidati e operatore ternario</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">if annidati</h3>
+        <p>Un <code>if</code> può contenerne un altro al suo interno. Ogni blocco ha la propria condizione indipendente. Attenzione: troppa profondità rende il codice difficile da leggere.</p>
+      </div>
+      <pre><span class="kw">int</span> x <span class="op">=</span> <span class="num">15</span>;
+
+<span class="kw">if</span> (x <span class="op">&gt;</span> <span class="num">0</span>) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Positivo\n"</span>;
+
+  <span class="kw">if</span> (x <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"e pari\n"</span>;
+  } <span class="kw">else</span> {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"e dispari\n"</span>;
+  }
+
+} <span class="kw">else</span> {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Non positivo\n"</span>;
+}
+<span class="cm">// Output: Positivo  e dispari</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Operatore ternario <code>? :</code></h3>
+        <p>È una forma compatta di <code>if-else</code> su una sola riga. Restituisce uno dei due valori in base alla condizione.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+variabile <span class="op">=</span> (condizione) <span class="op">?</span> val_vero <span class="op">:</span> val_falso;
+
+<span class="cm">// Esempio equivalente</span>
+<span class="kw">int</span> a <span class="op">=</span> <span class="num">10</span>, b <span class="op">=</span> <span class="num">20</span>;
+
+<span class="cm">// Con if-else</span>
+<span class="kw">int</span> max;
+<span class="kw">if</span> (a <span class="op">&gt;</span> b) max <span class="op">=</span> a;
+<span class="kw">else</span>        max <span class="op">=</span> b;
+
+<span class="cm">// Con ternario (equivalente)</span>
+<span class="kw">int</span> max2 <span class="op">=</span> (a <span class="op">&gt;</span> b) <span class="op">?</span> a <span class="op">:</span> b;
+
+cout <span class="op">&lt;&lt;</span> max  <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 20</span>
+cout <span class="op">&lt;&lt;</span> max2 <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 20</span></pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Usa il ternario solo per espressioni semplici. Per logica complessa preferisci <code>if-else</code> per mantenere il codice leggibile.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — SWITCH ═══ -->
+<div class="slide" data-section="switch">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">L'istruzione <code style="font-size:inherit">switch</code></h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Quando usarlo</h3>
+        <p>Lo <code>switch</code> confronta una variabile con una serie di valori costanti (<code>case</code>). È più leggibile di una lunga catena di <code>else if</code> quando si confronta la stessa variabile con valori discreti.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+<span class="kw">switch</span> (variabile) {
+  <span class="kw">case</span> <span class="num">valore1</span>:
+    <span class="cm">// codice</span>
+    <span class="kw">break</span>;
+  <span class="kw">case</span> <span class="num">valore2</span>:
+    <span class="cm">// codice</span>
+    <span class="kw">break</span>;
+  <span class="kw">default</span>:
+    <span class="cm">// se nessun case corrisponde</span>
+}</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>Attenzione al fall-through:</strong> senza <code>break</code>, l'esecuzione continua nel <code>case</code> successivo. È un errore comune ma a volte usato intenzionalmente.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> giorno <span class="op">=</span> <span class="num">3</span>;
+
+  <span class="kw">switch</span> (giorno) {
+    <span class="kw">case</span> <span class="num">1</span>:
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Lunedì\n"</span>;
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">2</span>:
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Martedì\n"</span>;
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">3</span>:
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Mercoledì\n"</span>;
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="num">6</span>:
+    <span class="kw">case</span> <span class="num">7</span>:
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Weekend!\n"</span>;
+      <span class="kw">break</span>;
+    <span class="kw">default</span>:
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Altro giorno\n"</span>;
+  }
+  <span class="cm">// Output: Mercoledì</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Case 6 e 7 senza <code>break</code> tra loro: è il <strong>fall-through intenzionale</strong> per gestire più valori con lo stesso codice.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — WHILE ═══ -->
+<div class="slide" data-section="while">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il ciclo <code style="font-size:inherit">while</code></h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Pre-test: condizione prima del corpo</h3>
+        <p>Il ciclo <code>while</code> valuta la condizione <strong>prima</strong> di eseguire il corpo. Se la condizione è subito <code>false</code>, il corpo non viene mai eseguito. Usato quando il numero di iterazioni non è noto a priori.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+<span class="kw">while</span> (condizione) {
+  <span class="cm">// corpo del ciclo</span>
+  <span class="cm">// aggiorna la variabile di controllo!</span>
+}
+
+<span class="cm">// Esempio: conta da 1 a 5</span>
+<span class="kw">int</span> i <span class="op">=</span> <span class="num">1</span>;
+<span class="kw">while</span> (i <span class="op">&lt;=</span> <span class="num">5</span>) {
+  cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  i<span class="op">++</span>;
+}
+<span class="cm">// Output: 1 2 3 4 5</span></pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>Loop infinito:</strong> se dimentichi di aggiornare la variabile di controllo (<code>i++</code>), la condizione rimane sempre <code>true</code> e il programma si blocca.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Somma finché input > 0</span>
+  <span class="kw">int</span> n, somma <span class="op">=</span> <span class="num">0</span>;
+
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Inserisci numeri (0 per finire):\n"</span>;
+  cin <span class="op">&gt;&gt;</span> n;
+
+  <span class="kw">while</span> (n <span class="op">!=</span> <span class="num">0</span>) {
+    somma <span class="op">+=</span> n;
+    cin <span class="op">&gt;&gt;</span> n;
+  }
+
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Somma: "</span> <span class="op">&lt;&lt;</span> somma <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Il <code>while</code> è ideale quando la condizione di uscita dipende da un input esterno o da un evento imprevedibile, come nell'esempio sopra.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — DO-WHILE ═══ -->
+<div class="slide" data-section="do-while">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il ciclo <code style="font-size:inherit">do-while</code></h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Post-test: corpo eseguito almeno una volta</h3>
+        <p>Il ciclo <code>do-while</code> esegue il corpo <strong>prima</strong> di valutare la condizione. Questo garantisce che il blocco venga eseguito <strong>almeno una volta</strong>, indipendentemente dalla condizione.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+<span class="kw">do</span> {
+  <span class="cm">// corpo eseguito almeno una volta</span>
+} <span class="kw">while</span> (condizione);  <span class="cm">// ← punto e virgola!</span>
+
+<span class="cm">// Confronto: while vs do-while</span>
+<span class="kw">int</span> x <span class="op">=</span> <span class="num">10</span>;
+
+<span class="cm">// while: condizione subito falsa → 0 iterazioni</span>
+<span class="kw">while</span> (x <span class="op">&lt;</span> <span class="num">5</span>) {
+  cout <span class="op">&lt;&lt;</span> x;   <span class="cm">// non stampato mai</span>
+}
+
+<span class="cm">// do-while: corpo eseguito 1 volta</span>
+<span class="kw">do</span> {
+  cout <span class="op">&lt;&lt;</span> x;   <span class="cm">// stampa 10</span>
+} <span class="kw">while</span> (x <span class="op">&lt;</span> <span class="num">5</span>);</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Validazione input: chiedi finché valido</span>
+  <span class="kw">int</span> voto;
+
+  <span class="kw">do</span> {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Inserisci voto (0-10): "</span>;
+    cin <span class="op">&gt;&gt;</span> voto;
+
+    <span class="kw">if</span> (voto <span class="op">&lt;</span> <span class="num">0</span> <span class="op">||</span> voto <span class="op">&gt;</span> <span class="num">10</span>) {
+      cout <span class="op">&lt;&lt;</span> <span class="str">"Voto non valido!\n"</span>;
+    }
+
+  } <span class="kw">while</span> (voto <span class="op">&lt;</span> <span class="num">0</span> <span class="op">||</span> voto <span class="op">&gt;</span> <span class="num">10</span>);
+
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Voto accettato: "</span> <span class="op">&lt;&lt;</span> voto <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Il <code>do-while</code> è la scelta naturale per la <strong>validazione dell'input</strong>: devi chiedere il valore almeno una volta, poi ripetere solo se non è valido.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — FOR ═══ -->
+<div class="slide" data-section="for">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il ciclo <code style="font-size:inherit">for</code></h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Ciclo a contatore</h3>
+        <p>Il <code>for</code> è ideale quando il numero di iterazioni è noto. Riunisce inizializzazione, condizione e aggiornamento in una sola riga.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+<span class="kw">for</span> (inizializzazione; condizione; aggiornamento) {
+  <span class="cm">// corpo</span>
+}
+
+<span class="cm">// Conta avanti: 1, 2, 3, 4, 5</span>
+<span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">1</span>; i <span class="op">&lt;=</span> <span class="num">5</span>; i<span class="op">++</span>) {
+  cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+}
+<span class="cm">// Output: 1 2 3 4 5</span>
+
+<span class="cm">// Conta indietro: 5, 4, 3, 2, 1</span>
+<span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">5</span>; i <span class="op">&gt;=</span> <span class="num">1</span>; i<span class="op">--</span>) {
+  cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+}
+<span class="cm">// Output: 5 4 3 2 1</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Tavola del 7</span>
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">1</span>; i <span class="op">&lt;=</span> <span class="num">10</span>; i<span class="op">++</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"7 x "</span> <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" = "</span>
+         <span class="op">&lt;&lt;</span> <span class="num">7</span> <span class="op">*</span> i <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  }
+
+  <span class="cm">// For annidati: tabellina 1-3</span>
+  <span class="kw">for</span> (<span class="kw">int</span> r <span class="op">=</span> <span class="num">1</span>; r <span class="op">&lt;=</span> <span class="num">3</span>; r<span class="op">++</span>) {
+    <span class="kw">for</span> (<span class="kw">int</span> c <span class="op">=</span> <span class="num">1</span>; c <span class="op">&lt;=</span> <span class="num">3</span>; c<span class="op">++</span>) {
+      cout <span class="op">&lt;&lt;</span> r <span class="op">*</span> c <span class="op">&lt;&lt;</span> <span class="str">"\t"</span>;
+    }
+    cout <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  }
+  <span class="cm">// 1  2  3</span>
+  <span class="cm">// 2  4  6</span>
+  <span class="cm">// 3  6  9</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>La variabile <code>i</code> dichiarata nel <code>for</code> esiste solo all'interno del ciclo (scope locale). Non è accessibile fuori dalle graffe.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — FOR RANGE-BASED ═══ -->
+<div class="slide" data-section="for">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">for range-based e confronto cicli</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">for range-based (C++11)</h3>
+        <p>Permette di iterare su ogni elemento di una collezione (array, stringa, vettore) senza gestire manualmente l'indice.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Iterare su un array</span>
+  <span class="kw">int</span> numeri[] <span class="op">=</span> {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>};
+
+  <span class="kw">for</span> (<span class="kw">int</span> n : numeri) {
+    cout <span class="op">&lt;&lt;</span> n <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  }
+  <span class="cm">// Output: 10 20 30 40</span>
+
+  <span class="cm">// Iterare su una stringa</span>
+  string parola <span class="op">=</span> <span class="str">"Ciao"</span>;
+  <span class="kw">for</span> (<span class="kw">char</span> c : parola) {
+    cout <span class="op">&lt;&lt;</span> c <span class="op">&lt;&lt;</span> <span class="str">"-"</span>;
+  }
+  <span class="cm">// Output: C-i-a-o-</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Quando usare quale ciclo?</h3>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Ciclo</div>
+          <div class="proto-cell hl-blue" style="font-weight:700; flex:3">Usalo quando…</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;">for</div>
+          <div class="proto-cell" style="flex:3; text-align:left; padding-left:8px;">conosci il numero esatto di iterazioni</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;">for range</div>
+          <div class="proto-cell" style="flex:3; text-align:left; padding-left:8px;">devi scorrere tutti gli elementi di una collezione</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;">while</div>
+          <div class="proto-cell" style="flex:3; text-align:left; padding-left:8px;">il numero di iterazioni non è noto a priori</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;">do-while</div>
+          <div class="proto-cell" style="flex:3; text-align:left; padding-left:8px;">il corpo deve essere eseguito almeno una volta (validazione input)</div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Il <code>for</code> range-based è più sicuro e leggibile del classico <code>for</code> con indice quando non ti serve l'indice numerico durante l'iterazione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — BREAK / CONTINUE ═══ -->
+<div class="slide" data-section="break-continue">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)"><code style="font-size:inherit">break</code> e <code style="font-size:inherit">continue</code></h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">break — interrompe il ciclo</h3>
+        <p><code>break</code> termina immediatamente il ciclo (o lo <code>switch</code>) più interno e passa all'istruzione successiva dopo il blocco.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// break: esce dal ciclo quando trova 5</span>
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">1</span>; i <span class="op">&lt;=</span> <span class="num">10</span>; i<span class="op">++</span>) {
+    <span class="kw">if</span> (i <span class="op">==</span> <span class="num">5</span>) {
+      <span class="kw">break</span>;   <span class="cm">// esci dal for</span>
+    }
+    cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  }
+  <span class="cm">// Output: 1 2 3 4</span>
+
+  cout <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+
+  <span class="cm">// break nel while: cerca il primo pari</span>
+  <span class="kw">int</span> n <span class="op">=</span> <span class="num">1</span>;
+  <span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="kw">if</span> (n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>) <span class="kw">break</span>;
+    n<span class="op">++</span>;
+  }
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Primo pari: "</span> <span class="op">&lt;&lt;</span> n <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  <span class="cm">// Output: Primo pari: 2</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">continue — salta all'iterazione successiva</h3>
+        <p><code>continue</code> salta il resto del corpo del ciclo per l'iterazione corrente e passa direttamente alla prossima, valutando di nuovo la condizione.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Stampa solo i numeri dispari</span>
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">1</span>; i <span class="op">&lt;=</span> <span class="num">10</span>; i<span class="op">++</span>) {
+    <span class="kw">if</span> (i <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>) {
+      <span class="kw">continue</span>;  <span class="cm">// salta i pari</span>
+    }
+    cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  }
+  <span class="cm">// Output: 1 3 5 7 9</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="proto-header" style="margin-top:4px;">
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;">Comando</div>
+          <div class="proto-cell hl" style="font-weight:700; flex:2">Effetto</div>
+          <div class="proto-cell hl" style="font-weight:700;">Funziona con</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700; color:var(--accent2)">break</div>
+          <div class="proto-cell" style="flex:2; text-align:left; padding-left:8px;">Termina il ciclo</div>
+          <div class="proto-cell">for, while, do-while, switch</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700; color:var(--accent3)">continue</div>
+          <div class="proto-cell" style="flex:2; text-align:left; padding-left:8px;">Salta alla prossima iterazione</div>
+          <div class="proto-cell">for, while, do-while</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- fine #stage -->
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:10%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: Introduzione</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+
+  const sectionLabels = {
+    'intro':         'Panoramica',
+    'if':            'Selezione — if / if-else',
+    'switch':        'Selezione multipla — switch',
+    'while':         'Ciclo — while',
+    'do-while':      'Ciclo — do-while',
+    'for':           'Ciclo — for',
+    'break-continue': 'Salti — break / continue'
+  };
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent =
+      'Sezione: ' + (sectionLabels[sec] || sec);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
