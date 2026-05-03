@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHCP Relay Agent con Ridondanza – ITT Midossi</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:      #0f2a4a;
+    --blue:      #1a5276;
+    --accent:    #2e86c1;
+    --light-blue:#d6eaf8;
+    --orange:    #c0392b;
+    --orange-lt: #fdecea;
+    --green:     #1e8449;
+    --code-bg:   #0d1117;
+    --code-fg:   #e6edf3;
+    --bg:        #f7f9fc;
+    --paper:     #ffffff;
+    --border:    #dde4ed;
+    --text:      #1a2332;
+    --muted:     #5a6a80;
+    --th-bg:     #0f2a4a;
+    --th-fg:     #ffffff;
+    --tr-alt:    #eaf4fb;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 40px auto 80px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(15,42,74,.07);
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  .doc-header {
+    background: var(--navy);
+    padding: 48px 56px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(46,134,193,.18);
+  }
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 60px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(46,134,193,.10);
+  }
+  .school-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.55);
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-family: 'Source Serif 4', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    position: relative; z-index: 1;
+  }
+  .doc-subtitle {
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(255,255,255,.7);
+    margin-bottom: 28px;
+    position: relative; z-index: 1;
+  }
+  .meta-row { display: flex; gap: 24px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .meta-pill {
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,.8);
+    font-weight: 500;
+  }
+
+  /* TOC */
+  .toc {
+    background: #f0f6fc;
+    border-left: 4px solid var(--accent);
+    padding: 24px 32px;
+  }
+  .toc-title {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+  .toc ol { padding-left: 20px; columns: 2; column-gap: 32px; }
+  .toc li { margin-bottom: 4px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 13.5px; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* CONTENT */
+  .content { padding: 48px 56px; }
+
+  h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 22px; font-weight: 700; color: var(--navy);
+    margin: 48px 0 16px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--light-blue);
+    display: flex; align-items: center; gap: 12px;
+  }
+  h1:first-child { margin-top: 0; }
+  .h1-num {
+    background: var(--navy); color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  h2 {
+    font-size: 16px; font-weight: 600; color: var(--blue);
+    margin: 28px 0 12px; padding-left: 12px;
+    border-left: 3px solid var(--accent);
+  }
+  h3 {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    margin: 20px 0 10px; text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  p { margin-bottom: 12px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  li { margin-bottom: 5px; }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    background: #eef2f7;
+    border: 1px solid #d0d9e8;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+
+  /* NETWORK DIAGRAM */
+  .network-diagram {
+    background: #0d1117;
+    border-radius: 8px;
+    padding: 28px 36px;
+    margin: 20px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.8;
+    color: #e6edf3;
+    overflow-x: auto;
+    border: 1px solid #30363d;
+  }
+  .nd-device { color: #79c0ff; font-weight: 500; }
+  .nd-ip     { color: #ffa657; }
+  .nd-link   { color: #6e7681; }
+  .nd-router { color: #56d364; font-weight: 500; }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; margin: 16px 0 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead tr { background: var(--th-bg); }
+  thead th {
+    color: var(--th-fg); padding: 10px 14px;
+    font-weight: 600; text-align: left;
+    font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:nth-child(even) { background: var(--tr-alt); }
+  tbody tr:hover { background: #dceefb; }
+  td { padding: 9px 14px; vertical-align: middle; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--blue); }
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 12px; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  }
+  .badge-primary { background: #d5f5e3; color: #1e8449; }
+  .badge-backup  { background: #fdecea; color: #c0392b; }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid #30363d;
+    border-radius: 8px; overflow: hidden;
+    margin: 16px 0 24px; font-size: 13px;
+  }
+  .code-bar {
+    background: #161b22; border-bottom: 1px solid #30363d;
+    padding: 8px 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .code-bar .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-bar .dot:nth-child(1) { background: #ff5f57; }
+  .code-bar .dot:nth-child(2) { background: #febc2e; }
+  .code-bar .dot:nth-child(3) { background: #28c840; }
+  .code-bar .label { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6e7681; }
+  .code-body { padding: 20px 24px; overflow-x: auto; }
+  .code-body pre { font-family: 'JetBrains Mono', monospace; line-height: 1.7; color: #e6edf3; white-space: pre; }
+  .ck { color: #ff7b72; }
+  .cv { color: #ffa657; }
+  .cc { color: #6e7681; font-style: italic; }
+
+  /* NOTE / INFO */
+  .note {
+    display: flex; gap: 12px;
+    background: #fff8e1; border-left: 4px solid #f39c12;
+    border-radius: 0 6px 6px 0; padding: 14px 18px;
+    margin: 14px 0 20px; font-size: 13.5px;
+  }
+  .note-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .note strong { font-weight: 600; color: #7d6608; }
+  .note div > strong:first-child { display: block; margin-bottom: 2px; }
+  .info {
+    display: flex; gap: 12px;
+    background: #eaf4fb; border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0; padding: 14px 18px;
+    margin: 14px 0 20px; font-size: 13.5px;
+  }
+  .info strong { font-weight: 600; display: block; margin-bottom: 2px; color: var(--blue); }
+
+  /* STEP LIST */
+  .steps { list-style: none; padding: 0; margin: 14px 0; }
+  .steps li { display: flex; gap: 14px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num {
+    background: var(--accent); color: white;
+    font-weight: 700; font-size: 12px;
+    min-width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  /* GUI STEP BOX */
+  .gui-box {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 14px 0 20px;
+  }
+  .gui-box .gui-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gui-box .gui-path span { color: var(--accent); font-weight: 600; }
+  .gui-tag {
+    display: inline-block;
+    background: var(--navy);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+
+  .ok   { color: #1e8449; font-weight: 600; }
+  .warn { color: #c0392b; font-weight: 600; }
+
+  /* QUESTIONS */
+  .questions { list-style: none; padding: 0; counter-reset: qcnt; }
+  .questions li {
+    counter-increment: qcnt;
+    display: flex; gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .questions li:hover { background: var(--tr-alt); }
+  .questions li::before {
+    content: counter(qcnt);
+    background: var(--navy); color: white;
+    font-weight: 700; font-size: 12px;
+    min-width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* FOOTER */
+  .doc-footer {
+    background: #f0f6fc; border-top: 1px solid var(--border);
+    padding: 20px 56px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted);
+  }
+  .doc-footer strong { color: var(--navy); }
+
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; border: none; border-radius: 0; max-width: 100%; }
+    .doc-header, thead tr { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .code-block { break-inside: avoid; }
+    h1, h2 { break-after: avoid; }
+  }
+  @media (max-width: 640px) {
+    .content, .doc-header { padding: 28px 24px; }
+    .doc-footer { padding: 16px 24px; flex-direction: column; gap: 6px; text-align: center; }
+    .toc { padding: 18px 24px; }
+    .toc ol { columns: 1; }
+    .doc-title { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="doc-header">
+    <div class="school-tag">ITT Midossi · Civita Castellana · Reti di Calcolatori</div>
+    <div class="doc-title">DHCP Relay Agent<br>con Ridondanza Incrociata</div>
+    <p class="doc-subtitle">Configurazione su Cisco Packet Tracer — Esercitazione guidata</p>
+    <div class="meta-row">
+      <span class="meta-pill">🎯 Classe IV / V</span>
+      <span class="meta-pill">⏱ 90 minuti</span>
+      <span class="meta-pill">🖥 Cisco Packet Tracer</span>
+      <span class="meta-pill">📡 Protocollo DHCP</span>
+    </div>
+  </header>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-title">Indice</div>
+    <ol>
+      <li><a href="#obiettivi">Obiettivi</a></li>
+      <li><a href="#schema">Schema di rete</a></li>
+      <li><a href="#topologia">Fase 1 – Topologia</a></li>
+      <li><a href="#ip-gui">Fase 2 – IP via GUI</a></li>
+      <li><a href="#pool">Fase 3 – Pool DHCP</a></li>
+      <li><a href="#router">Fase 4 – Router CLI</a></li>
+      <li><a href="#verifica">Fase 5 – Verifica</a></li>
+      <li><a href="#ridondanza">Fase 6 – Test ridondanza</a></li>
+      <li><a href="#domande">Domande di verifica</a></li>
+    </ol>
+  </nav>
+
+  <main class="content">
+
+    <!-- 1. OBIETTIVI -->
+    <h1 id="obiettivi"><span class="h1-num">1</span> Obiettivi dell'esercitazione</h1>
+    <p>Al termine di questa esercitazione lo studente sarà in grado di:</p>
+    <ul>
+      <li>Spiegare il ruolo del <strong>DHCP Relay Agent</strong> in una rete segmentata</li>
+      <li>Configurare due server DHCP con pool <strong>primari (75%) e di backup (25%)</strong></li>
+      <li>Usare la <strong>GUI di Packet Tracer</strong> per configurare IP, server e pool DHCP</li>
+      <li>Usare la <strong>CLI del router</strong> solo per il comando <code>ip helper-address</code></li>
+      <li>Verificare il corretto funzionamento della <strong>ridondanza DHCP</strong></li>
+    </ul>
+
+    <!-- 2. SCHEMA -->
+    <h1 id="schema"><span class="h1-num">2</span> Schema di rete e indirizzamento</h1>
+    <p>La rete è composta da due LAN collegate da un router. Ogni LAN ha il proprio server DHCP: gestisce il <strong>75% degli indirizzi</strong> della propria rete (da <code>.3</code> a <code>.190</code>) e il <strong>25% come backup</strong> per l'altra rete (da <code>.191</code> a <code>.254</code>).</p>
+
+    <div class="network-diagram">
+<span class="nd-device">  [Server0: 192.168.1.2]</span>                  <span class="nd-device">[Server1: 192.168.2.2]</span>
+         <span class="nd-link">|                                          |</span>
+    <span class="nd-link">[Switch A]                            [Switch B]</span>
+         <span class="nd-link">|                                          |</span>
+ <span class="nd-ip">Fa0/0 (192.168.1.1)</span>               <span class="nd-ip">Fa0/1 (192.168.2.1)</span>
+         <span class="nd-link">+------------</span><span class="nd-router">[ ROUTER ]</span><span class="nd-link">------------+</span>
+ <span class="nd-link">[PC-A1] [PC-A2] ...             [PC-B1] [PC-B2] ...</span>
+    </div>
+
+    <h2>2.1 Tabella degli indirizzi IP statici</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dispositivo</th><th>Indirizzo IP</th><th>Subnet Mask</th><th>Gateway</th></tr></thead>
+        <tbody>
+          <tr><td>Router – Fa0/0 (LAN A)</td><td class="mono">192.168.1.1</td><td class="mono">255.255.255.0</td><td>—</td></tr>
+          <tr><td>Router – Fa0/1 (LAN B)</td><td class="mono">192.168.2.1</td><td class="mono">255.255.255.0</td><td>—</td></tr>
+          <tr><td>Server0 (DHCP LAN A)</td><td class="mono">192.168.1.2</td><td class="mono">255.255.255.0</td><td class="mono">192.168.1.1</td></tr>
+          <tr><td>Server1 (DHCP LAN B)</td><td class="mono">192.168.2.2</td><td class="mono">255.255.255.0</td><td class="mono">192.168.2.1</td></tr>
+          <tr><td>PC-A1, PC-A2 …</td><td class="mono">Da DHCP</td><td class="mono">Da DHCP</td><td class="mono">192.168.1.1</td></tr>
+          <tr><td>PC-B1, PC-B2 …</td><td class="mono">Da DHCP</td><td class="mono">Da DHCP</td><td class="mono">192.168.2.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>2.2 Distribuzione dei pool DHCP (75% / 25% su 254 indirizzi)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Server</th><th>Nome pool</th><th>Start IP</th><th>Max User</th><th>Range completo</th><th>Tipo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Server0 <span class="mono">(192.168.1.2)</span></td>
+            <td class="mono">LAN_A</td>
+            <td class="mono">192.168.1.3</td>
+            <td class="mono">188</td>
+            <td class="mono">.3 → .190</td>
+            <td><span class="badge badge-primary">75% LAN A – primario</span></td>
+          </tr>
+          <tr>
+            <td>Server0 <span class="mono">(192.168.1.2)</span></td>
+            <td class="mono">LAN_B_Backup</td>
+            <td class="mono">192.168.2.191</td>
+            <td class="mono">64</td>
+            <td class="mono">.191 → .254</td>
+            <td><span class="badge badge-backup">25% LAN B – backup</span></td>
+          </tr>
+          <tr>
+            <td>Server1 <span class="mono">(192.168.2.2)</span></td>
+            <td class="mono">LAN_B</td>
+            <td class="mono">192.168.2.3</td>
+            <td class="mono">188</td>
+            <td class="mono">.3 → .190</td>
+            <td><span class="badge badge-primary">75% LAN B – primario</span></td>
+          </tr>
+          <tr>
+            <td>Server1 <span class="mono">(192.168.2.2)</span></td>
+            <td class="mono">LAN_A_Backup</td>
+            <td class="mono">192.168.1.191</td>
+            <td class="mono">64</td>
+            <td class="mono">.191 → .254</td>
+            <td><span class="badge badge-backup">25% LAN A – backup</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="note-icon">📌</span><div><strong>Perché si parte da .3?</strong>Gli indirizzi .1 (router) e .2 (server DHCP) sono già assegnati staticamente. Il pool DHCP inizia da .3 per evitare conflitti di indirizzo.</div></div>
+
+    <!-- 3. TOPOLOGIA -->
+    <h1 id="topologia"><span class="h1-num">3</span> Fase 1 – Creazione della topologia</h1>
+    <p>Aprire Cisco Packet Tracer e costruire la rete trascinando i dispositivi nell'area di lavoro.</p>
+
+    <h2>3.1 Aggiungere i dispositivi</h2>
+    <ol class="steps">
+      <li><span class="step-num">1</span><span><strong>Network Devices → Routers</strong>: aggiungere un router <strong>1941</strong> (o 2811/2911).</span></li>
+      <li><span class="step-num">2</span><span><strong>Network Devices → Switches</strong>: aggiungere <strong>due Switch 2960</strong>.</span></li>
+      <li><span class="step-num">3</span><span><strong>End Devices → Server</strong>: aggiungere <strong>due Server</strong>. Rinominarli <code>Server0</code> e <code>Server1</code>.</span></li>
+      <li><span class="step-num">4</span><span><strong>End Devices → PC</strong>: aggiungere almeno <strong>due PC per ogni LAN</strong>.</span></li>
+    </ol>
+
+    <h2>3.2 Collegare i dispositivi con cavi Straight-Through</h2>
+    <ul>
+      <li>Router <code>Fa0/0</code> → Switch A</li>
+      <li>Router <code>Fa0/1</code> → Switch B</li>
+      <li>Server0 → Switch A &nbsp;|&nbsp; PC-A1, PC-A2 → Switch A</li>
+      <li>Server1 → Switch B &nbsp;|&nbsp; PC-B1, PC-B2 → Switch B</li>
+    </ul>
+
+    <!-- 4. IP GUI -->
+    <h1 id="ip-gui"><span class="h1-num">4</span> Fase 2 – Configurazione IP (via GUI)</h1>
+    <p>Tutti i passaggi di questa fase si eseguono dall'<strong>interfaccia grafica</strong>, senza CLI.</p>
+
+    <h2>4.1 Configurare l'IP del Router (via GUI)</h2>
+    <p>Cliccare sul Router → tab <strong>Config</strong> → sezione <strong>INTERFACE → FastEthernet0/0</strong>:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Interfaccia</th><th>IP Address</th><th>Subnet Mask</th><th>Port Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>FastEthernet0/0</strong> (LAN A)</td><td class="mono">192.168.1.1</td><td class="mono">255.255.255.0</td><td>On ✔</td></tr>
+          <tr><td><strong>FastEthernet0/1</strong> (LAN B)</td><td class="mono">192.168.2.1</td><td class="mono">255.255.255.0</td><td>On ✔</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info"><span style="font-size:18px;flex-shrink:0">ℹ️</span><div><strong>Alternativa CLI per il router</strong>Se preferisci usare la CLI anche per gli IP del router, puoi farlo. La GUI del tab Config è però più rapida e produce lo stesso risultato. L'unica cosa che <em>richiede obbligatoriamente</em> la CLI è il comando <code>ip helper-address</code>, trattato nella Fase 4.</div></div>
+
+    <h2>4.2 Configurare Server0 (LAN A)</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>IP Address</td><td class="mono">192.168.1.2</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.1.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8 (opzionale)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>4.3 Configurare Server1 (LAN B)</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>IP Address</td><td class="mono">192.168.2.2</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.2.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8 (opzionale)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>4.4 Configurare i PC client (IP automatico)</h2>
+    <ol class="steps">
+
+    </ol>
+    <div class="note"><span class="note-icon">📌</span><div><strong>IP a 0.0.0.0?</strong>I PC riceveranno l'indirizzo IP solo dopo aver completato la Fase 4 (relay agent sul router). Per ora lasciare DHCP selezionato e proseguire.</div></div>
+
+    <!-- 5. POOL DHCP -->
+    <h1 id="pool"><span class="h1-num">5</span> Fase 3 – Configurazione pool DHCP (via GUI)</h1>
+    <p>Percorso: cliccare sul Server → tab <strong>Services → DHCP</strong>. Ogni server deve avere <strong>due pool</strong> attivi e il <strong>serverPool di default neutralizzato</strong>.</p>
+
+    <div class="note"><span class="note-icon">⚠️</span><div><strong>Il serverPool di default non si può eliminare</strong> — Packet Tracer non permette di rimuoverlo. Va <strong>neutralizzato</strong>: cliccarci sopra nella tabella e impostare <strong>Maximum number of users = 0</strong>, poi cliccare <strong>Save</strong>. In questo modo non assegnerà mai indirizzi.</div></div>
+
+    <h2>5.1 Pool su Server0 (LAN A)</h2>
+
+    <h3>Pool 1 – LAN_A &nbsp;·&nbsp; primario (75% di LAN A)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>Pool Name</td><td class="mono">LAN_A</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.1.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8</td></tr>
+          <tr><td>Start IP Address</td><td class="mono">192.168.1.3</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Maximum number of users</td><td class="mono">...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Cliccare su <strong>Add</strong> per salvare il pool.</p>
+
+    <h3>Pool 2 – LAN_B_Backup &nbsp;·&nbsp; backup (25% di LAN B)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>Pool Name</td><td class="mono">LAN_B_Backup</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.2.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8</td></tr>
+          <tr><td>Start IP Address</td><td class="mono">192.168.2.191</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Maximum number of users</td><td class="mono">...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Cliccare su <strong>Add</strong> per salvare il pool.</p>
+
+    <h2>5.2 Pool su Server1 (LAN B)</h2>
+
+    <h3>Pool 1 – LAN_B &nbsp;·&nbsp; primario (75% di LAN B)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>Pool Name</td><td class="mono">LAN_B</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.2.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8</td></tr>
+          <tr><td>Start IP Address</td><td class="mono">192.168.2.3</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Maximum number of users</td><td class="mono">...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Cliccare su <strong>Add</strong> per salvare il pool.</p>
+
+    <h3>Pool 2 – LAN_A_Backup &nbsp;·&nbsp; backup (25% di LAN A)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>Pool Name</td><td class="mono">LAN_A_Backup</td></tr>
+          <tr><td>Default Gateway</td><td class="mono">192.168.1.1</td></tr>
+          <tr><td>DNS Server</td><td class="mono">8.8.8.8</td></tr>
+          <tr><td>Start IP Address</td><td class="mono">192.168.1.191</td></tr>
+          <tr><td>Subnet Mask</td><td class="mono">255.255.255.0</td></tr>
+          <tr><td>Maximum number of users</td><td class="mono">...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Cliccare su <strong>Add</strong> per salvare il pool.</p>
+
+    <!-- 6. ROUTER CLI -->
+    <h1 id="router"><span class="h1-num">6</span> Fase 4 – Relay Agent sul Router (CLI)</h1>
+    <p>Questa è l'<strong>unica fase che richiede la CLI</strong>: il comando <code>ip helper-address</code> non è disponibile nella GUI di Packet Tracer. Tutti gli altri parametri del router sono già stati impostati via GUI nella Fase 2.</p>
+    <p>Cliccare sul Router → tab <strong>CLI</strong> → premere Invio per accedere alla console.</p>
+
+    <h2>6.1 Entrare in modalità di configurazione</h2>
+    <div class="code-block">
+      <div class="code-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="label">Router CLI</span></div>
+      <div class="code-body"><pre><span class="ck">Router&gt;</span> enable
+<span class="ck">Router#</span> configure terminal</pre></div>
+    </div>
+
+    <h2>6.2 Relay sull'interfaccia Fa0/0 (LAN A)</h2>
+    <p>Il router inoltrerà le richieste DHCP di LAN A a <strong>entrambi</strong> i server:</p>
+    <div class="code-block">
+      <div class="code-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="label">Router CLI – Fa0/0 (LAN A)</span></div>
+      <div class="code-body"><pre><span class="ck">Router(config)#</span> interface FastEthernet0/0
+<span class="cc">! Server0: primario per LAN A</span>
+<span class="ck">Router(config-if)#</span> ip helper-address <span class="cv">192.168.1.2</span>
+<span class="cc">! Server1: ha il pool LAN_A_Backup (25% di backup)</span>
+<span class="ck">Router(config-if)#</span> ip helper-address <span class="cv">192.168.2.2</span>
+<span class="ck">Router(config-if)#</span> exit</pre></div>
+    </div>
+
+    <h2>6.3 Relay sull'interfaccia Fa0/1 (LAN B)</h2>
+    <div class="code-block">
+      <div class="code-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span class="label">Router CLI – Fa0/1 (LAN B)</span></div>
+      <div class="code-body"><pre><span class="ck">Router(config)#</span> interface FastEthernet0/1
+<span class="cc">! Server1: primario per LAN B</span>
+<span class="ck">Router(config-if)#</span> ip helper-address <span class="cv">192.168.2.2</span>
+<span class="cc">! Server0: ha il pool LAN_B_Backup (25% di backup)</span>
+<span class="ck">Router(config-if)#</span> ip helper-address <span class="cv">192.168.1.2</span>
+<span class="ck">Router(config-if)#</span> exit
+<span class="ck">Router(config)#</span> end</pre></div>
+    </div>
+
+    <div class="note"><span class="note-icon">📌</span><div><strong>Perché due ip helper-address?</strong>Con due <code>ip helper-address</code> sulla stessa interfaccia il router invia la richiesta DHCP a <em>entrambi</em> i server contemporaneamente. Il PC accetta la prima <code>DHCPOFFER</code> ricevuta — normalmente quella del server primario, che ha il pool più grande e risponde più velocemente.</div></div>
+
+    <!-- 7. VERIFICA -->
+    <h1 id="verifica"><span class="h1-num">7</span> Fase 5 – Verifica del funzionamento</h1>
+
+    <h2>7.1 Verifica sui PC client</h2>
+    <ol class="steps">
+      <li><span class="step-num">1</span><span>PC → <strong>Desktop → IP Configuration</strong>: verificare che il campo IP Address sia nel range <code>192.168.x.3 – .190</code> (pool primario).</span></li>
+      <li><span class="step-num">2</span><span>Se il PC mostra ancora <code>0.0.0.0</code>: cliccare <strong>Static</strong>, attendere 2 secondi, poi cliccare di nuovo <strong>DHCP</strong> per forzare una nuova richiesta.</span></li>
+      <li><span class="step-num">3</span><span>In alternativa aprire <strong>Desktop → Command Prompt</strong> e digitare <code>ipconfig /all</code> per vedere tutti i dettagli.</span></li>
+    </ol>
+
+    <!-- 8. RIDONDANZA -->
+    <h1 id="ridondanza"><span class="h1-num">8</span> Fase 6 – Test della ridondanza</h1>
+    <p>Verifica che il meccanismo di backup funzioni simulando il guasto del server primario.</p>
+
+    <h2>8.1 Simulare il guasto di Server0 (primario LAN A)</h2>
+    <ol class="steps">
+      <li><span class="step-num">1</span><span>Cliccare su <strong>Server0 → Services → DHCP</strong> → impostare il servizio su <strong style="color:var(--orange)">Off</strong>.</span></li>
+      <li><span class="step-num">2</span><span>Su un PC della LAN A: Desktop → IP Configuration → cliccare <strong>Static</strong>, poi di nuovo <strong>DHCP</strong>.</span></li>
+      <li><span class="step-num">3</span><span>Verificare che il PC riceva un IP nel range <strong><code>192.168.1.191 – 192.168.1.254</code></strong> — erogato da Server1 tramite il pool <code>LAN_A_Backup</code>.</span></li>
+    </ol>
+
+    <h2>8.2 Tabella dei risultati attesi</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Scenario</th><th>Server che risponde</th><th>Range IP assegnato</th><th>Esito</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Funzionamento normale – LAN A</td>
+            <td>Server0 (primario)</td>
+            <td class="mono">192.168.1.3 – .190</td>
+            <td class="ok">✔ Normale</td>
+          </tr>
+          <tr>
+            <td>Server0 guasto – LAN A</td>
+            <td>Server1 (backup)</td>
+            <td class="mono">192.168.1.191 – .254</td>
+            <td class="warn">⚡ Backup attivo</td>
+          </tr>
+          <tr>
+            <td>Funzionamento normale – LAN B</td>
+            <td>Server1 (primario)</td>
+            <td class="mono">192.168.2.3 – .190</td>
+            <td class="ok">✔ Normale</td>
+          </tr>
+          <tr>
+            <td>Server1 guasto – LAN B</td>
+            <td>Server0 (backup)</td>
+            <td class="mono">192.168.2.191 – .254</td>
+            <td class="warn">⚡ Backup attivo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 9. DOMANDE -->
+    <h1 id="domande"><span class="h1-num">9</span> Domande di verifica</h1>
+    <ol class="questions">
+      <li>Perché senza il relay agent i PC non riceverebbero un IP dai server DHCP di un'altra rete?</li>
+      <li>Cosa succede se su un'interfaccia del router si configura un solo <code>ip helper-address</code>? La ridondanza funziona ancora?</li>
+      <li>Quale protocollo trasporta i messaggi DHCP? Su quale porta UDP lavora il server?</li>
+      <li>Se entrambi i server rispondono alla richiesta DHCP, come fa il client a scegliere quale offerta accettare?</li>
+      <li>Come mai il pool primario inizia da <code>.3</code> e non da <code>.1</code>? Cosa succederebbe se iniziasse da <code>.1</code>?</li>
+      <li>Proponi un'alternativa al relay agent per distribuire indirizzi IP ai client di LAN A senza usare <code>ip helper-address</code>.</li>
+    </ol>
+
+  </main>
+
+  <footer class="doc-footer">
+    <span><strong>ITT Midossi</strong> · Civita Castellana · Reti di Calcolatori</span>
+    <span>Cisco Packet Tracer – Esercitazione pratica</span>
+  </footer>
+
+</div>
+</body>
+</html>
