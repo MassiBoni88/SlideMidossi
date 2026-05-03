@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ — Operatori, Stringhe e Booleani</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  .kw  { color: var(--accent4); font-weight: 700; }
+  .cm  { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 200px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Programmazione · C++</div>
+    <div class="title-bar">Operatori, Stringhe e Variabili Booleane in C++</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 10</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">C++</div>
+  <div class="big" style="color:var(--accent1);">Operatori, Stringhe</div>
+  <div class="big" style="color:var(--accent4);">e Booleani</div>
+  <div class="sub">Programmazione · Fondamenti del Linguaggio</div>
+  <div class="tag-row">
+    <span class="tag tag-green">Operatori Aritmetici</span>
+    <span class="tag tag-blue">Operatori Logici</span>
+    <span class="tag tag-yellow">Stringhe</span>
+    <span class="tag tag-red">Booleani</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content">
+        <h4>Operatori Aritmetici</h4>
+        <p>+, -, *, /, % · Incremento e decremento · Precedenza degli operatori</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>Operatori di Assegnazione</h4>
+        <p>=, +=, -=, *=, /=, %= · Assegnazione composta · Esempi pratici</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Operatori di Comparazione e Logici</h4>
+        <p>==, !=, &lt;, &gt;, &lt;=, &gt;= · &amp;&amp;, ||, ! · Espressioni booleane</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Stringhe e Booleani</h4>
+        <p>std::string · Concatenazione · length() · Accesso ai caratteri · bool</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — OPERATORI ARITMETICI ═══ -->
+<div class="slide" data-section="operatori-aritmetici">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Operatori Aritmetici</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;">Operatore</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Nome</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">Esempio</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">Risultato</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">+</div>
+          <div class="proto-cell">Addizione</div>
+          <div class="proto-cell">10 + 3</div>
+          <div class="proto-cell">13</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">-</div>
+          <div class="proto-cell">Sottrazione</div>
+          <div class="proto-cell">10 - 3</div>
+          <div class="proto-cell">7</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">*</div>
+          <div class="proto-cell">Moltiplicazione</div>
+          <div class="proto-cell">10 * 3</div>
+          <div class="proto-cell">30</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">/</div>
+          <div class="proto-cell">Divisione</div>
+          <div class="proto-cell">10 / 3</div>
+          <div class="proto-cell">3</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">%</div>
+          <div class="proto-cell">Modulo (resto)</div>
+          <div class="proto-cell">10 % 3</div>
+          <div class="proto-cell">1</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">++</div>
+          <div class="proto-cell">Incremento</div>
+          <div class="proto-cell">x++</div>
+          <div class="proto-cell">x + 1</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">--</div>
+          <div class="proto-cell">Decremento</div>
+          <div class="proto-cell">x--</div>
+          <div class="proto-cell">x - 1</div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>Divisione intera:</strong> se entrambi gli operandi sono <code>int</code>, il risultato è intero (10 / 3 = 3, non 3.33). Per ottenere un decimale usa <code>double</code>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> a <span class="op">=</span> <span class="num">10</span>, b <span class="op">=</span> <span class="num">3</span>;
+
+  cout <span class="op">&lt;&lt;</span> a <span class="op">+</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 13</span>
+  cout <span class="op">&lt;&lt;</span> a <span class="op">-</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 7</span>
+  cout <span class="op">&lt;&lt;</span> a <span class="op">*</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 30</span>
+  cout <span class="op">&lt;&lt;</span> a <span class="op">/</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 3</span>
+  cout <span class="op">&lt;&lt;</span> a <span class="op">%</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1</span>
+
+  a<span class="op">++</span>;
+  cout <span class="op">&lt;&lt;</span> a <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;      <span class="cm">// 11</span>
+
+  b<span class="op">--</span>;
+  cout <span class="op">&lt;&lt;</span> b <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;      <span class="cm">// 2</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span><strong>Precedenza:</strong> *, / e % hanno priorità su + e -. Usa le parentesi per forzare l'ordine di valutazione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — OPERATORI DI ASSEGNAZIONE ═══ -->
+<div class="slide" data-section="operatori-assegnazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Operatori di Assegnazione</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Cos'è l'assegnazione?</h3>
+        <p>L'operatore <code>=</code> assegna un valore a una variabile. Gli operatori composti combinano un'operazione aritmetica con l'assegnazione, rendendo il codice più conciso.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Operatore</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Equivalente a</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">Esempio</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">Risultato (x=10)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">=</div>
+          <div class="proto-cell">x = val</div>
+          <div class="proto-cell">x = 5</div>
+          <div class="proto-cell">5</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">+=</div>
+          <div class="proto-cell">x = x + val</div>
+          <div class="proto-cell">x += 5</div>
+          <div class="proto-cell">15</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">-=</div>
+          <div class="proto-cell">x = x - val</div>
+          <div class="proto-cell">x -= 3</div>
+          <div class="proto-cell">7</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">*=</div>
+          <div class="proto-cell">x = x * val</div>
+          <div class="proto-cell">x *= 2</div>
+          <div class="proto-cell">20</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">/=</div>
+          <div class="proto-cell">x = x / val</div>
+          <div class="proto-cell">x /= 2</div>
+          <div class="proto-cell">5</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">%=</div>
+          <div class="proto-cell">x = x % val</div>
+          <div class="proto-cell">x %= 3</div>
+          <div class="proto-cell">1</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> x <span class="op">=</span> <span class="num">10</span>;
+
+  x <span class="op">+=</span> <span class="num">5</span>;
+  cout <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 15</span>
+
+  x <span class="op">-=</span> <span class="num">3</span>;
+  cout <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 12</span>
+
+  x <span class="op">*=</span> <span class="num">2</span>;
+  cout <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 24</span>
+
+  x <span class="op">/=</span> <span class="num">4</span>;
+  cout <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 6</span>
+
+  x <span class="op">%=</span> <span class="num">4</span>;
+  cout <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 2</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span><strong>Buona pratica:</strong> preferisci <code>x += 1</code> o <code>x++</code> invece di <code>x = x + 1</code>. Il codice risulta più leggibile e conciso.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — OPERATORI DI COMPARAZIONE ═══ -->
+<div class="slide" data-section="operatori-comparazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Operatori di Comparazione</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Cosa restituiscono?</h3>
+        <p>Gli operatori di comparazione confrontano due valori e restituiscono un risultato <strong>booleano</strong>: <code>true</code> (vero) oppure <code>false</code> (falso). Sono fondamentali per costruire condizioni nelle strutture di controllo.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-yel" style="font-weight:700;">Operatore</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">Significato</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">Esempio (x=5)</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">Risultato</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">==</div>
+          <div class="proto-cell">Uguale a</div>
+          <div class="proto-cell">x == 5</div>
+          <div class="proto-cell hl">true</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">!=</div>
+          <div class="proto-cell">Diverso da</div>
+          <div class="proto-cell">x != 3</div>
+          <div class="proto-cell hl">true</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">&gt;</div>
+          <div class="proto-cell">Maggiore di</div>
+          <div class="proto-cell">x &gt; 3</div>
+          <div class="proto-cell hl">true</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">&lt;</div>
+          <div class="proto-cell">Minore di</div>
+          <div class="proto-cell">x &lt; 3</div>
+          <div class="proto-cell hl-red">false</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">&gt;=</div>
+          <div class="proto-cell">Maggiore o uguale</div>
+          <div class="proto-cell">x &gt;= 5</div>
+          <div class="proto-cell hl">true</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">&lt;=</div>
+          <div class="proto-cell">Minore o uguale</div>
+          <div class="proto-cell">x &lt;= 4</div>
+          <div class="proto-cell hl-red">false</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> x <span class="op">=</span> <span class="num">5</span>;
+
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">==</span> <span class="num">5</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1 (true)</span>
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">!=</span> <span class="num">3</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1 (true)</span>
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">&gt;</span>  <span class="num">3</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1 (true)</span>
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">&lt;</span>  <span class="num">3</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 0 (false)</span>
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">&gt;=</span> <span class="num">5</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1 (true)</span>
+  cout <span class="op">&lt;&lt;</span> (x <span class="op">&lt;=</span> <span class="num">4</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 0 (false)</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>Errore comune:</strong> non confondere <code>==</code> (confronto) con <code>=</code> (assegnazione). Scrivere <code>if (x = 5)</code> assegna 5 a x invece di confrontare!</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — OPERATORI LOGICI ═══ -->
+<div class="slide" data-section="operatori-logici">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Operatori Logici</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Combinare condizioni</h3>
+        <p>Gli operatori logici combinano più espressioni booleane per creare condizioni complesse. Sono usati principalmente nelle istruzioni <code>if</code>, <code>while</code> e <code>for</code>.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-red" style="font-weight:700;">Operatore</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">Nome</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">Descrizione</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">&amp;&amp;</div>
+          <div class="proto-cell">AND logico</div>
+          <div class="proto-cell" style="text-align:left;padding-left:8px;">true se <strong>entrambe</strong> le condizioni sono vere</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">||</div>
+          <div class="proto-cell">OR logico</div>
+          <div class="proto-cell" style="text-align:left;padding-left:8px;">true se <strong>almeno una</strong> condizione è vera</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">!</div>
+          <div class="proto-cell">NOT logico</div>
+          <div class="proto-cell" style="text-align:left;padding-left:8px;"><strong>Inverte</strong> il valore booleano</div>
+        </div>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;">A</div>
+          <div class="proto-cell hl" style="font-weight:700;">B</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">A &amp;&amp; B</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;">A || B</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">!A</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">true</div><div class="proto-cell">true</div>
+          <div class="proto-cell hl">true</div><div class="proto-cell hl">true</div><div class="proto-cell hl-red">false</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">true</div><div class="proto-cell">false</div>
+          <div class="proto-cell hl-red">false</div><div class="proto-cell hl">true</div><div class="proto-cell hl-red">false</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">false</div><div class="proto-cell">true</div>
+          <div class="proto-cell hl-red">false</div><div class="proto-cell hl">true</div><div class="proto-cell hl">true</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">false</div><div class="proto-cell">false</div>
+          <div class="proto-cell hl-red">false</div><div class="proto-cell hl-red">false</div><div class="proto-cell hl">true</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> x <span class="op">=</span> <span class="num">5</span>;
+
+  <span class="cm">// AND: entrambe le condizioni devono essere vere</span>
+  <span class="kw">if</span> (x <span class="op">&gt;</span> <span class="num">3</span> <span class="op">&amp;&amp;</span> x <span class="op">&lt;</span> <span class="num">10</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"x è tra 3 e 10\n"</span>;
+  }
+
+  <span class="cm">// OR: almeno una condizione vera</span>
+  <span class="kw">if</span> (x <span class="op">==</span> <span class="num">5</span> <span class="op">||</span> x <span class="op">==</span> <span class="num">7</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"x è 5 oppure 7\n"</span>;
+  }
+
+  <span class="cm">// NOT: inverte la condizione</span>
+  <span class="kw">if</span> (<span class="op">!</span>(x <span class="op">==</span> <span class="num">3</span>)) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"x NON è 3\n"</span>;
+  }
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span><strong>Short-circuit:</strong> con <code>&amp;&amp;</code>, se il primo operando è false, il secondo non viene valutato. Con <code>||</code>, se il primo è true, il secondo viene saltato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — STRINGHE ═══ -->
+<div class="slide" data-section="stringhe">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Stringhe in C++</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">std::string</h3>
+        <p>In C++ le stringhe si gestiscono con il tipo <code>string</code>, incluso nell'intestazione <code>&lt;string&gt;</code>. Una stringa è una sequenza di caratteri racchiusi tra virgolette doppie.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Dichiarazione e inizializzazione</span>
+  string nome <span class="op">=</span> <span class="str">"Mario"</span>;
+  string cognome <span class="op">=</span> <span class="str">"Rossi"</span>;
+
+  cout <span class="op">&lt;&lt;</span> nome    <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// Mario</span>
+  cout <span class="op">&lt;&lt;</span> cognome <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// Rossi</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>Includi sempre <code>#include &lt;string&gt;</code> quando usi <code>std::string</code>. In molti compilatori è inclusa implicitamente tramite <code>&lt;iostream&gt;</code>, ma è buona pratica includerla esplicitamente.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Input di stringhe</h3>
+        <p>Con <code>cin</code> si legge una parola sola (si ferma agli spazi). Per leggere una riga intera si usa <code>getline()</code>.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  string parola, frase;
+
+  <span class="cm">// Legge una sola parola</span>
+  cin <span class="op">&gt;&gt;</span> parola;
+
+  <span class="cm">// Legge una riga intera (con spazi)</span>
+  cin.<span class="fn">ignore</span>();
+  <span class="fn">getline</span>(cin, frase);
+
+  cout <span class="op">&lt;&lt;</span> parola <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  cout <span class="op">&lt;&lt;</span> frase  <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — CONCATENAZIONE E LUNGHEZZA ═══ -->
+<div class="slide" data-section="stringhe">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Concatenazione e Lunghezza</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Concatenazione</h3>
+        <p>L'operatore <code>+</code> unisce due o più stringhe. Si può usare anche <code>+=</code> per aggiungere in coda a una stringa esistente. La funzione <code>append()</code> è un'alternativa equivalente.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  string nome    <span class="op">=</span> <span class="str">"Mario"</span>;
+  string cognome <span class="op">=</span> <span class="str">"Rossi"</span>;
+
+  <span class="cm">// Concatenazione con +</span>
+  string nomeCompleto <span class="op">=</span> nome <span class="op">+</span> <span class="str">" "</span> <span class="op">+</span> cognome;
+  cout <span class="op">&lt;&lt;</span> nomeCompleto <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// Mario Rossi</span>
+
+  <span class="cm">// Concatenazione con +=</span>
+  nome <span class="op">+=</span> <span class="str">" Bianchi"</span>;
+  cout <span class="op">&lt;&lt;</span> nome <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;       <span class="cm">// Mario Bianchi</span>
+
+  <span class="cm">// Con append()</span>
+  string s <span class="op">=</span> <span class="str">"Ciao"</span>;
+  s.<span class="fn">append</span>(<span class="str">" Mondo"</span>);
+  cout <span class="op">&lt;&lt;</span> s <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;          <span class="cm">// Ciao Mondo</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Lunghezza della stringa</h3>
+        <p>Il metodo <code>length()</code> (o equivalente <code>size()</code>) restituisce il numero di caratteri della stringa come valore intero senza segno.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  string testo <span class="op">=</span> <span class="str">"Programmazione"</span>;
+
+  <span class="cm">// Lunghezza con length()</span>
+  cout <span class="op">&lt;&lt;</span> testo.<span class="fn">length</span>() <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// 14</span>
+
+  <span class="cm">// Equivalente con size()</span>
+  cout <span class="op">&lt;&lt;</span> testo.<span class="fn">size</span>()   <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// 14</span>
+
+  <span class="cm">// Uso pratico</span>
+  <span class="kw">if</span> (testo.<span class="fn">length</span>() <span class="op">&gt;</span> <span class="num">10</span>) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Stringa lunga\n"</span>;
+  }
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#9432;</span>
+        <span><code>length()</code> e <code>size()</code> sono identici per <code>std::string</code>. Entrambi restituiscono un <code>size_t</code> (intero senza segno).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — ACCESSO AI CARATTERI ═══ -->
+<div class="slide" data-section="stringhe">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Accesso ai Caratteri</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Indici e operatore [ ]</h3>
+        <p>Ogni carattere di una stringa è accessibile tramite il suo indice, che parte da <strong>0</strong>. L'operatore <code>[]</code> restituisce o modifica il carattere alla posizione indicata. Il metodo <code>at()</code> è simile ma verifica i limiti.</p>
+      </div>
+      <pre><span class="str">"C++"</span>
+  ^  ^  ^
+  0  1  2    <span class="cm">← indici</span>
+
+<span class="str">"Ciao"</span>
+  ^  ^  ^  ^
+  0  1  2  3</pre>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  string s <span class="op">=</span> <span class="str">"Ciao"</span>;
+
+  <span class="cm">// Accesso con []</span>
+  cout <span class="op">&lt;&lt;</span> s[<span class="num">0</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// C</span>
+  cout <span class="op">&lt;&lt;</span> s[<span class="num">1</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// i</span>
+  cout <span class="op">&lt;&lt;</span> s[<span class="num">3</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// o</span>
+
+  <span class="cm">// Accesso con at()</span>
+  cout <span class="op">&lt;&lt;</span> s.<span class="fn">at</span>(<span class="num">2</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// a</span>
+
+  <span class="cm">// Modifica di un carattere</span>
+  s[<span class="num">0</span>] <span class="op">=</span> <span class="str">'M'</span>;
+  cout <span class="op">&lt;&lt;</span> s <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;      <span class="cm">// Miao</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Altri metodi utili</h3>
+        <p>La classe <code>string</code> offre numerosi metodi per lavorare con le sottostringhe, la ricerca e la trasformazione.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Metodo</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;" style="flex:2">Descrizione</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Esempio</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">substr(pos, n)</div>
+          <div class="proto-cell">Sottostringa da pos, n caratteri</div>
+          <div class="proto-cell">s.substr(0,3)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">find(str)</div>
+          <div class="proto-cell">Posizione della prima occorrenza</div>
+          <div class="proto-cell">s.find("ia")</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">empty()</div>
+          <div class="proto-cell">true se la stringa è vuota</div>
+          <div class="proto-cell">s.empty()</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">erase(pos, n)</div>
+          <div class="proto-cell">Elimina n caratteri da pos</div>
+          <div class="proto-cell">s.erase(1,2)</div>
+        </div>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>Attenzione agli indici:</strong> accedere con <code>[]</code> a un indice fuori dai limiti causa comportamento non definito. Usa <code>at()</code> per un controllo sicuro (lancia un'eccezione).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — VARIABILI BOOLEANE ═══ -->
+<div class="slide" data-section="booleani">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Variabili Booleane</h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Il tipo bool</h3>
+        <p>Il tipo <code>bool</code> può contenere solo due valori: <code>true</code> (vero, equivale a 1) oppure <code>false</code> (falso, equivale a 0). È il tipo restituito dagli operatori di comparazione e logici.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;">Valore</div>
+          <div class="proto-cell hl" style="font-weight:700;">Rappresentazione numerica</div>
+          <div class="proto-cell hl" style="font-weight:700;">Output cout</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">true</div>
+          <div class="proto-cell">1</div>
+          <div class="proto-cell">1</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">false</div>
+          <div class="proto-cell">0</div>
+          <div class="proto-cell">0</div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Per stampare <code>true</code>/<code>false</code> invece di 1/0 usa <code>cout &lt;&lt; boolalpha</code> prima della stampa.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Dichiarazione diretta</span>
+  <span class="kw">bool</span> piove <span class="op">=</span> <span class="kw">true</span>;
+  <span class="kw">bool</span> sole  <span class="op">=</span> <span class="kw">false</span>;
+
+  cout <span class="op">&lt;&lt;</span> piove <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 1</span>
+  cout <span class="op">&lt;&lt;</span> sole  <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 0</span>
+
+  <span class="cm">// Stampa testuale con boolalpha</span>
+  cout <span class="op">&lt;&lt;</span> boolalpha;
+  cout <span class="op">&lt;&lt;</span> piove <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// true</span>
+  cout <span class="op">&lt;&lt;</span> sole  <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// false</span>
+
+  <span class="cm">// Valore da un'espressione</span>
+  <span class="kw">int</span> x <span class="op">=</span> <span class="num">7</span>;
+  <span class="kw">bool</span> maggioreDiCinque <span class="op">=</span> (x <span class="op">&gt;</span> <span class="num">5</span>);
+  cout <span class="op">&lt;&lt;</span> maggioreDiCinque <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// true</span>
+
+  <span class="cm">// Uso in un if</span>
+  <span class="kw">if</span> (piove) {
+    cout <span class="op">&lt;&lt;</span> <span class="str">"Prendi l'ombrello!\n"</span>;
+  }
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span><strong>Conversione implicita:</strong> qualsiasi valore numerico diverso da 0 è considerato <code>true</code>. Solo 0 è <code>false</code>. Evita di usare interi al posto di booleani per chiarezza.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- fine #stage -->
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:10%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: intro</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    const sec = slides[current].dataset.section || '';
+    const labels = {
+      'intro': 'Panoramica',
+      'operatori-aritmetici': 'Operatori Aritmetici',
+      'operatori-assegnazione': 'Operatori di Assegnazione',
+      'operatori-comparazione': 'Operatori di Comparazione',
+      'operatori-logici': 'Operatori Logici',
+      'stringhe': 'Stringhe',
+      'booleani': 'Variabili Booleane'
+    };
+    document.getElementById('section-label').textContent = 'Sezione: ' + (labels[sec] || sec);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
