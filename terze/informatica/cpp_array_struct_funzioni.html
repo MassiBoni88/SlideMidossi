@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ — Array, Strutture, Funzioni e Librerie</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; justify-content: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-r { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  .kw  { color: var(--accent4); font-weight: 700; }
+  .cm  { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); }
+  .ty  { color: #c084fc; }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.hl-pur   { background: rgba(192,132,252,0.1); color: #c084fc; }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* file badge */
+  .file-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .file-h   { background: rgba(217,119,6,0.12); color: var(--accent3); border: 1px solid rgba(217,119,6,0.3); }
+  .file-cpp { background: rgba(37,99,235,0.12); color: var(--accent4); border: 1px solid rgba(37,99,235,0.3); }
+  .file-main{ background: rgba(5,150,105,0.12); color: var(--accent1); border: 1px solid rgba(5,150,105,0.3); }
+
+  /* memory diagram per array */
+  .mem-row { display: flex; gap: 0; margin: 8px 0 4px; }
+  .mem-cell {
+    flex: 1; border: 1px solid var(--border); padding: 6px 4px;
+    text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    background: var(--code-bg);
+  }
+  .mem-cell.hl { background: rgba(52,211,153,0.12); color: var(--accent1); font-weight: 700; }
+  .mem-idx { display: flex; gap: 0; margin-bottom: 2px; }
+  .mem-idx span { flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 230px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l, .two-col-r { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Programmazione · C++</div>
+    <div class="title-bar">Array, Strutture, Funzioni e Librerie Personalizzate</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 12</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">C++</div>
+  <div class="big" style="color:var(--accent1);">Array, Strutture</div>
+  <div class="big" style="color:var(--accent4);">Funzioni e Librerie</div>
+  <div class="sub">Programmazione · Organizzazione del codice</div>
+  <div class="tag-row">
+    <span class="tag tag-green">Array</span>
+    <span class="tag tag-blue">struct</span>
+    <span class="tag tag-yellow">Funzioni</span>
+    <span class="tag tag-red">Librerie .h / .cpp</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content">
+        <h4>Array</h4>
+        <p>Dichiarazione · Inizializzazione · Accesso tramite indice · Array multidimensionali</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>Strutture (struct)</h4>
+        <p>Definizione · Campi di tipi diversi · Accesso con il punto · Array di strutture</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Funzioni</h4>
+        <p>void senza parametri · void con parametri · con valore di ritorno · prototipo</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Librerie personalizzate</h4>
+        <p>File header .h · Implementazione .cpp · #include nel main · compilazione</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — ARRAY: DICHIARAZIONE E ACCESSO ═══ -->
+<div class="slide" data-section="array">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Array — Dichiarazione e Accesso</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Cos'è un array?</h3>
+        <p>Un array è una sequenza di elementi dello <strong>stesso tipo</strong> memorizzati in posizioni di memoria consecutive. Ogni elemento è accessibile tramite il suo <strong>indice</strong>, che parte da <strong>0</strong>.</p>
+      </div>
+      <pre><span class="cm">// Sintassi</span>
+<span class="kw">tipo</span> nome[dimensione];
+
+<span class="cm">// Dichiarazione e inizializzazione</span>
+<span class="kw">int</span> voti[<span class="num">5</span>] <span class="op">=</span> {<span class="num">8</span>, <span class="num">6</span>, <span class="num">9</span>, <span class="num">7</span>, <span class="num">5</span>};
+
+<span class="cm">// Inizializzazione a zero</span>
+<span class="kw">int</span> contatori[<span class="num">10</span>] <span class="op">=</span> {<span class="num">0</span>};
+
+<span class="cm">// Dimensione dedotta automaticamente</span>
+<span class="kw">int</span> numeri[] <span class="op">=</span> {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>};  <span class="cm">// size = 3</span></pre>
+      <div style="margin-top:2px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">voti[5] in memoria:</div>
+        <div class="mem-idx">
+          <span>[0]</span><span>[1]</span><span>[2]</span><span>[3]</span><span>[4]</span>
+        </div>
+        <div class="mem-row">
+          <div class="mem-cell hl">8</div>
+          <div class="mem-cell">6</div>
+          <div class="mem-cell hl">9</div>
+          <div class="mem-cell">7</div>
+          <div class="mem-cell">5</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> voti[<span class="num">5</span>] <span class="op">=</span> {<span class="num">8</span>, <span class="num">6</span>, <span class="num">9</span>, <span class="num">7</span>, <span class="num">5</span>};
+
+  <span class="cm">// Accesso singolo</span>
+  cout <span class="op">&lt;&lt;</span> voti[<span class="num">0</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 8</span>
+  cout <span class="op">&lt;&lt;</span> voti[<span class="num">2</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 9</span>
+
+  <span class="cm">// Modifica</span>
+  voti[<span class="num">1</span>] <span class="op">=</span> <span class="num">10</span>;
+
+  <span class="cm">// Scorrere con for</span>
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">5</span>; i<span class="op">++</span>) {
+    cout <span class="op">&lt;&lt;</span> voti[i] <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  }
+  <span class="cm">// Output: 8 10 9 7 5</span>
+
+  <span class="cm">// Calcolo della media</span>
+  <span class="kw">int</span> somma <span class="op">=</span> <span class="num">0</span>;
+  <span class="kw">for</span> (<span class="kw">int</span> v : voti) somma <span class="op">+=</span> v;
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Media: "</span> <span class="op">&lt;&lt;</span> somma <span class="op">/</span> <span class="num">5.0</span> <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>L'indice va da <strong>0</strong> a <strong>n-1</strong>. Accedere a <code>voti[5]</code> su un array di 5 elementi è un errore fuori dai limiti (undefined behavior).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — ARRAY MULTIDIMENSIONALI ═══ -->
+<div class="slide" data-section="array">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Array Multidimensionali</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Array 2D — matrici</h3>
+        <p>Un array bidimensionale si comporta come una <strong>tabella</strong> con righe e colonne. Si accede agli elementi con due indici: <code>[riga][colonna]</code>.</p>
+      </div>
+      <pre><span class="cm">// Dichiarazione: 3 righe, 4 colonne</span>
+<span class="kw">int</span> matrice[<span class="num">3</span>][<span class="num">4</span>];
+
+<span class="cm">// Inizializzazione</span>
+<span class="kw">int</span> m[<span class="num">2</span>][<span class="num">3</span>] <span class="op">=</span> {
+  {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>},   <span class="cm">// riga 0</span>
+  {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>}    <span class="cm">// riga 1</span>
+};
+
+<span class="cm">// Accesso: riga 1, colonna 2</span>
+cout <span class="op">&lt;&lt;</span> m[<span class="num">1</span>][<span class="num">2</span>] <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 6</span></pre>
+      <div style="margin-top:4px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);margin-bottom:4px;">m[2][3] visualizzata:</div>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue" style="font-weight:700;"></div>
+            <div class="proto-cell hl-blue" style="font-weight:700;">[0]</div>
+            <div class="proto-cell hl-blue" style="font-weight:700;">[1]</div>
+            <div class="proto-cell hl-blue" style="font-weight:700;">[2]</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl" style="font-weight:700;">[0]</div>
+            <div class="proto-cell">1</div><div class="proto-cell">2</div><div class="proto-cell">3</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl" style="font-weight:700;">[1]</div>
+            <div class="proto-cell">4</div><div class="proto-cell">5</div><div class="proto-cell hl-yel">6</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="kw">int</span> m[<span class="num">3</span>][<span class="num">3</span>] <span class="op">=</span> {
+    {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>},
+    {<span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>},
+    {<span class="num">7</span>, <span class="num">8</span>, <span class="num">9</span>}
+  };
+
+  <span class="cm">// Stampa la matrice con for annidati</span>
+  <span class="kw">for</span> (<span class="kw">int</span> r <span class="op">=</span> <span class="num">0</span>; r <span class="op">&lt;</span> <span class="num">3</span>; r<span class="op">++</span>) {
+    <span class="kw">for</span> (<span class="kw">int</span> c <span class="op">=</span> <span class="num">0</span>; c <span class="op">&lt;</span> <span class="num">3</span>; c<span class="op">++</span>) {
+      cout <span class="op">&lt;&lt;</span> m[r][c] <span class="op">&lt;&lt;</span> <span class="str">"\t"</span>;
+    }
+    cout <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  }
+  <span class="cm">// Output:</span>
+  <span class="cm">// 1  2  3</span>
+  <span class="cm">// 4  5  6</span>
+  <span class="cm">// 7  8  9</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Per conoscere la dimensione di un array in fase di compilazione usa <code>sizeof(arr) / sizeof(arr[0])</code> che restituisce il numero di elementi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — STRUCT ═══ -->
+<div class="slide" data-section="struct">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Le strutture — <code style="font-size:inherit">struct</code></h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Cos'è una struct?</h3>
+        <p>Una <code>struct</code> raggruppa variabili di <strong>tipi diversi</strong> sotto un unico nome. Permette di modellare entità del mondo reale (uno studente, un prodotto, un punto nello spazio) come un unico oggetto.</p>
+      </div>
+      <pre><span class="cm">// Definizione della struttura</span>
+<span class="kw">struct</span> <span class="ty">Studente</span> {
+  <span class="kw">string</span> nome;
+  <span class="kw">int</span>    eta;
+  <span class="kw">float</span>  media;
+};   <span class="cm">// ← punto e virgola obbligatorio</span>
+
+<span class="cm">// Dichiarazione di variabili</span>
+<span class="ty">Studente</span> s1;
+<span class="ty">Studente</span> s2 <span class="op">=</span> {<span class="str">"Luca"</span>, <span class="num">17</span>, <span class="num">8.5</span>};
+
+<span class="cm">// Accesso ai campi con il punto</span>
+s1.nome  <span class="op">=</span> <span class="str">"Anna"</span>;
+s1.eta   <span class="op">=</span> <span class="num">16</span>;
+s1.media <span class="op">=</span> <span class="num">7.2</span>;
+
+cout <span class="op">&lt;&lt;</span> s1.nome  <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// Anna</span>
+cout <span class="op">&lt;&lt;</span> s2.media <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;  <span class="cm">// 8.5</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">struct</span> <span class="ty">Studente</span> {
+  <span class="kw">string</span> nome;
+  <span class="kw">int</span>    eta;
+  <span class="kw">float</span>  media;
+};
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Array di strutture</span>
+  <span class="ty">Studente</span> classe[<span class="num">3</span>] <span class="op">=</span> {
+    {<span class="str">"Anna"</span>,  <span class="num">16</span>, <span class="num">7.2</span>},
+    {<span class="str">"Marco"</span>, <span class="num">17</span>, <span class="num">8.5</span>},
+    {<span class="str">"Sara"</span>,  <span class="num">16</span>, <span class="num">9.1</span>}
+  };
+
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">3</span>; i<span class="op">++</span>) {
+    cout <span class="op">&lt;&lt;</span> classe[i].nome  <span class="op">&lt;&lt;</span> <span class="str">" — media: "</span>
+         <span class="op">&lt;&lt;</span> classe[i].media <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  }
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>La <code>struct</code> si definisce <strong>fuori dal main</strong>, prima di usarla. In C++ (a differenza del C) non serve il prefisso <code>struct</code> al momento della dichiarazione delle variabili.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — FUNZIONI VOID SENZA PARAMETRI ═══ -->
+<div class="slide" data-section="funzioni">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Funzioni <code style="font-size:inherit">void</code> senza parametri</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Perché usare le funzioni?</h3>
+        <p>Una funzione è un blocco di codice con un nome, riutilizzabile più volte. Evita la duplicazione del codice e rende il programma più leggibile e facile da mantenere.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">void — nessun valore di ritorno</h3>
+        <p>Il tipo <code>void</code> indica che la funzione esegue operazioni ma <strong>non restituisce</strong> alcun valore al chiamante. Non ha <code>return</code> (o ha <code>return;</code> senza valore).</p>
+      </div>
+      <pre><span class="cm">// Sintassi funzione void senza parametri</span>
+<span class="kw">void</span> <span class="fn">nomeFunzione</span>() {
+  <span class="cm">// corpo della funzione</span>
+}
+
+<span class="cm">// Chiamata</span>
+<span class="fn">nomeFunzione</span>();</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Definizione PRIMA del main</span>
+<span class="kw">void</span> <span class="fn">saluta</span>() {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Ciao! Benvenuto nel programma.\n"</span>;
+}
+
+<span class="kw">void</span> <span class="fn">separatore</span>() {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"-----------------------------\n"</span>;
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="fn">saluta</span>();       <span class="cm">// chiamata</span>
+  <span class="fn">separatore</span>();   <span class="cm">// chiamata</span>
+  <span class="fn">saluta</span>();       <span class="cm">// riutilizzo</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}
+<span class="cm">// Output:</span>
+<span class="cm">// Ciao! Benvenuto nel programma.</span>
+<span class="cm">// -----------------------------</span>
+<span class="cm">// Ciao! Benvenuto nel programma.</span></pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>La funzione deve essere <strong>definita prima</strong> di essere chiamata, oppure bisogna dichiararne il <strong>prototipo</strong> in cima al file (vedremo nella slide successiva).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — FUNZIONI CON PARAMETRI E RITORNO ═══ -->
+<div class="slide" data-section="funzioni">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Funzioni con parametri e valore di ritorno</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Parametri</h3>
+        <p>I parametri sono variabili che ricevono i valori passati al momento della chiamata. Si dichiarano tra parentesi con tipo e nome. I valori passati si chiamano <strong>argomenti</strong>.</p>
+      </div>
+      <pre><span class="cm">// void CON parametri</span>
+<span class="kw">void</span> <span class="fn">salutaPersona</span>(<span class="kw">string</span> nome) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Ciao, "</span> <span class="op">&lt;&lt;</span> nome <span class="op">&lt;&lt;</span> <span class="str">"!\n"</span>;
+}
+
+<span class="cm">// Tipo di ritorno CON parametri</span>
+<span class="kw">int</span> <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> a <span class="op">+</span> b;
+}
+
+<span class="kw">float</span> <span class="fn">media</span>(<span class="kw">float</span> x, <span class="kw">float</span> y) {
+  <span class="kw">return</span> (x <span class="op">+</span> y) <span class="op">/</span> <span class="num">2.0</span>;
+}
+
+<span class="kw">bool</span> <span class="fn">isPari</span>(<span class="kw">int</span> n) {
+  <span class="kw">return</span> (n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>);
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">void</span> <span class="fn">salutaPersona</span>(<span class="kw">string</span> nome) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Ciao, "</span> <span class="op">&lt;&lt;</span> nome <span class="op">&lt;&lt;</span> <span class="str">"!\n"</span>;
+}
+
+<span class="kw">int</span> <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> a <span class="op">+</span> b;
+}
+
+<span class="kw">bool</span> <span class="fn">isPari</span>(<span class="kw">int</span> n) {
+  <span class="kw">return</span> (n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>);
+}
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="fn">salutaPersona</span>(<span class="str">"Mario"</span>); <span class="cm">// Ciao, Mario!</span>
+
+  <span class="kw">int</span> ris <span class="op">=</span> <span class="fn">somma</span>(<span class="num">3</span>, <span class="num">7</span>);
+  cout <span class="op">&lt;&lt;</span> ris <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;       <span class="cm">// 10</span>
+
+  cout <span class="op">&lt;&lt;</span> <span class="fn">isPari</span>(<span class="num">4</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// 1 (true)</span>
+  cout <span class="op">&lt;&lt;</span> <span class="fn">isPari</span>(<span class="num">7</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// 0 (false)</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span><code>return</code> termina la funzione e restituisce il valore al chiamante. Il tipo del valore restituito deve corrispondere al tipo dichiarato nella firma della funzione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — PROTOTIPO E RIEPILOGO FUNZIONI ═══ -->
+<div class="slide" data-section="funzioni">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Prototipo e riepilogo delle funzioni</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Il prototipo (dichiarazione anticipata)</h3>
+        <p>Permette di definire le funzioni <strong>dopo il main</strong>, dichiarandone solo la firma in cima al file. Così il compilatore conosce la funzione prima di incontrarla nel codice.</p>
+      </div>
+      <pre><span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// Prototipi (dichiarazioni)</span>
+<span class="kw">void</span> <span class="fn">saluta</span>();
+<span class="kw">int</span>  <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b);
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="fn">saluta</span>();
+  cout <span class="op">&lt;&lt;</span> <span class="fn">somma</span>(<span class="num">5</span>, <span class="num">3</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;
+  <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="cm">// Definizioni DOPO il main</span>
+<span class="kw">void</span> <span class="fn">saluta</span>() {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Ciao!\n"</span>;
+}
+
+<span class="kw">int</span> <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> a <span class="op">+</span> b;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Riepilogo dei 4 tipi di funzione</h3>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Tipo</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Parametri</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Ritorno</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Firma</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">void / no param</div>
+          <div class="proto-cell hl-red">no</div>
+          <div class="proto-cell hl-red">no</div>
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;">void f()</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">void / con param</div>
+          <div class="proto-cell hl">sì</div>
+          <div class="proto-cell hl-red">no</div>
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;">void f(int x)</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">con ritorno / no param</div>
+          <div class="proto-cell hl-red">no</div>
+          <div class="proto-cell hl">sì</div>
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;">int f()</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell">con ritorno / con param</div>
+          <div class="proto-cell hl">sì</div>
+          <div class="proto-cell hl">sì</div>
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;">int f(int x)</div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>Una funzione può avere <strong>più parametri</strong> separati da virgola e tipi diversi tra loro: <code>float calcola(int n, float x, string s)</code>.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Una funzione con tipo di ritorno diverso da <code>void</code> deve sempre raggiungere un'istruzione <code>return</code>. Il compilatore avvisa se un percorso non ritorna un valore.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — LIBRERIE: INTRODUZIONE ═══ -->
+<div class="slide" data-section="librerie">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Librerie personalizzate — Panoramica</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Perché separare il codice?</h3>
+        <p>Quando un programma cresce, mettere tutto in un unico file diventa difficile da gestire. Separare il codice in più file permette di:</p>
+        <ul style="margin-top:6px;">
+          <li>Riutilizzare funzioni in più progetti</li>
+          <li>Dividere il lavoro in team</li>
+          <li>Compilare solo le parti modificate</li>
+          <li>Tenere il <code>main.cpp</code> pulito e leggibile</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2)">I tre file</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+          <div>
+            <span class="file-badge file-h">&#128196; matematica.h</span>
+            <p style="font-size:0.85rem;color:var(--ct);margin-top:3px;">File header: contiene i <strong>prototipi</strong> delle funzioni e le definizioni di struct/costanti.</p>
+          </div>
+          <div>
+            <span class="file-badge file-cpp">&#128196; matematica.cpp</span>
+            <p style="font-size:0.85rem;color:var(--ct);margin-top:3px;">File di implementazione: contiene il <strong>corpo</strong> di ogni funzione dichiarata nell'header.</p>
+          </div>
+          <div>
+            <span class="file-badge file-main">&#128196; main.cpp</span>
+            <p style="font-size:0.85rem;color:var(--ct);margin-top:3px;">Punto di ingresso: include l'header e <strong>usa</strong> le funzioni senza conoscerne i dettagli interni.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Schema di dipendenze</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;">
+        <div style="display:flex;gap:12px;">
+          <div class="file-badge file-h" style="font-size:0.9rem;padding:8px 20px;">matematica.h</div>
+        </div>
+        <div style="font-size:1.4rem;color:var(--muted);">&#8595; include</div>
+        <div style="display:flex;gap:16px;">
+          <div class="file-badge file-cpp" style="font-size:0.9rem;padding:8px 20px;">matematica.cpp</div>
+          <div class="file-badge file-main" style="font-size:0.9rem;padding:8px 20px;">main.cpp</div>
+        </div>
+        <div style="font-size:1.4rem;color:var(--muted);">&#8595; compilati insieme</div>
+        <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:6px;padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--accent1);">programma eseguibile</div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9432;</span>
+        <span>Il file <code>.h</code> usa le <strong>include guard</strong> (<code>#ifndef</code>/<code>#define</code>/<code>#endif</code>) per evitare inclusioni multiple dello stesso header.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — LIBRERIE: FILE .h ═══ -->
+<div class="slide" data-section="librerie">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il file header — <code style="font-size:inherit">matematica.h</code></h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Struttura del file .h</h3>
+        <p>Il file header <strong>dichiara</strong> tutto ciò che gli altri file possono usare: prototipi delle funzioni, strutture, costanti e tipi. Non contiene il corpo delle funzioni.</p>
+      </div>
+      <pre><span class="cm">// matematica.h</span>
+
+<span class="cm">// Include guard: evita inclusioni multiple</span>
+<span class="kw">#ifndef</span> MATEMATICA_H
+<span class="kw">#define</span> MATEMATICA_H
+
+<span class="cm">// Costante</span>
+<span class="kw">const double</span> PI <span class="op">=</span> <span class="num">3.14159</span>;
+
+<span class="cm">// Struttura</span>
+<span class="kw">struct</span> <span class="ty">Punto</span> {
+  <span class="kw">double</span> x;
+  <span class="kw">double</span> y;
+};
+
+<span class="cm">// Prototipi delle funzioni</span>
+<span class="kw">int</span>    <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b);
+<span class="kw">double</span> <span class="fn">areaCerchio</span>(<span class="kw">double</span> raggio);
+<span class="kw">void</span>   <span class="fn">stampaPunto</span>(<span class="ty">Punto</span> p);
+
+<span class="kw">#endif</span>  <span class="cm">// MATEMATICA_H</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Come funziona l'include guard</h3>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-red" style="font-weight:700;flex:2;">Direttiva</div>
+          <div class="proto-cell hl-red" style="font-weight:700;flex:3;">Significato</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="flex:2;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">#ifndef NOME_H</div>
+          <div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">Se NOME_H non è ancora definita, procedi</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="flex:2;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">#define NOME_H</div>
+          <div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">Definisce NOME_H così le inclusioni successive vengono saltate</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="flex:2;font-family:'JetBrains Mono',monospace;font-size:0.72rem;">#endif</div>
+          <div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">Chiude il blocco condizionale</div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>In alternativa alle include guard classiche, con i compilatori moderni si può usare <code>#pragma once</code> in cima al file: è più semplice e ha lo stesso effetto.</span>
+      </div>
+      <pre><span class="cm">// Alternativa moderna</span>
+<span class="kw">#pragma once</span>
+
+<span class="cm">// ... contenuto del file .h</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — LIBRERIE: FILE .cpp ═══ -->
+<div class="slide" data-section="librerie">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il file di implementazione — <code style="font-size:inherit">matematica.cpp</code></h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Il .cpp implementa il .h</h3>
+        <p>Il file di implementazione include il proprio header con <code>"matematica.h"</code> (virgolette, non parentesi angolari) e contiene il <strong>corpo completo</strong> di ogni funzione dichiarata nell'header.</p>
+      </div>
+      <pre><span class="cm">// matematica.cpp</span>
+<span class="kw">#include</span> <span class="str">"matematica.h"</span>
+<span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">somma</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> a <span class="op">+</span> b;
+}
+
+<span class="kw">double</span> <span class="fn">areaCerchio</span>(<span class="kw">double</span> raggio) {
+  <span class="kw">return</span> PI <span class="op">*</span> raggio <span class="op">*</span> raggio;
+}
+
+<span class="kw">void</span> <span class="fn">stampaPunto</span>(<span class="ty">Punto</span> p) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"("</span> <span class="op">&lt;&lt;</span> p.x <span class="op">&lt;&lt;</span> <span class="str">", "</span>
+            <span class="op">&lt;&lt;</span> p.y <span class="op">&lt;&lt;</span> <span class="str">")\n"</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Differenza tra &lt; &gt; e " "</h3>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-red" style="font-weight:700;">Sintassi</div>
+          <div class="proto-cell hl-red" style="font-weight:700; flex:2">Dove cerca il file</div>
+          <div class="proto-cell hl-red" style="font-weight:700;">Usato per</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">#include &lt;file&gt;</div>
+          <div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">Directory di sistema / compilatore</div>
+          <div class="proto-cell">Librerie standard</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">#include "file"</div>
+          <div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">Directory del progetto (locale)</div>
+          <div class="proto-cell">Librerie personali</div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span><strong>Convenzione:</strong> usa <code>&lt; &gt;</code> per header di sistema (<code>&lt;iostream&gt;</code>, <code>&lt;string&gt;</code>) e <code>" "</code> per i tuoi file personali (<code>"matematica.h"</code>).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — LIBRERIE: MAIN + COMPILAZIONE ═══ -->
+<div class="slide" data-section="librerie">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il <code style="font-size:inherit">main.cpp</code> e la compilazione</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent1)">main.cpp — usa la libreria</h3>
+        <p>Il main include solo l'header e usa le funzioni. Non ha bisogno di conoscere come sono implementate: è il principio di <strong>astrazione</strong>.</p>
+      </div>
+      <pre><span class="cm">// main.cpp</span>
+<span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span>
+<span class="kw">#include</span> <span class="str">"matematica.h"</span>  <span class="cm">// ← libreria nostra</span>
+<span class="kw">using namespace</span> std;
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+  <span class="cm">// Usa la funzione dalla libreria</span>
+  cout <span class="op">&lt;&lt;</span> <span class="fn">somma</span>(<span class="num">4</span>, <span class="num">7</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>;       <span class="cm">// 11</span>
+
+  cout <span class="op">&lt;&lt;</span> <span class="fn">areaCerchio</span>(<span class="num">5.0</span>) <span class="op">&lt;&lt;</span> <span class="str">"\n"</span>; <span class="cm">// 78.5397</span>
+
+  <span class="ty">Punto</span> p <span class="op">=</span> {<span class="num">3.0</span>, <span class="num">4.0</span>};
+  <span class="fn">stampaPunto</span>(p);                    <span class="cm">// (3, 4)</span>
+
+  <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Struttura del progetto</h3>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;margin-top:6px;color:var(--ct);">
+          <div>progetto/</div>
+          <div>&nbsp;&nbsp;&#9500; <span style="color:var(--accent3);">matematica.h</span> &nbsp;&nbsp;<span style="color:var(--muted);font-size:0.7rem;">← dichiarazioni</span></div>
+          <div>&nbsp;&nbsp;&#9500; <span style="color:var(--accent4);">matematica.cpp</span> &nbsp;<span style="color:var(--muted);font-size:0.7rem;">← implementazioni</span></div>
+          <div>&nbsp;&nbsp;&#9492; <span style="color:var(--accent1);">main.cpp</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted);font-size:0.7rem;">← programma principale</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">Compilazione da terminale (g++)</h3>
+        <pre style="margin-top:6px;"><span class="cm"># Compila tutti i file insieme</span>
+g++ main.cpp matematica.cpp -o programma
+
+<span class="cm"># Oppure in due passi (file oggetto)</span>
+g++ -c matematica.cpp -o matematica.o
+g++ -c main.cpp       -o main.o
+g++ main.o matematica.o -o programma
+
+<span class="cm"># Esegui</span>
+./programma</pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Con IDE come Visual Studio o Code::Blocks, basta aggiungere tutti i file al progetto: la compilazione multipla viene gestita automaticamente.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- fine #stage -->
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:8.33%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: Introduzione</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+
+  const sectionLabels = {
+    'intro':     'Panoramica',
+    'array':     'Array',
+    'struct':    'Strutture — struct',
+    'funzioni':  'Funzioni',
+    'librerie':  'Librerie personalizzate .h / .cpp'
+  };
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent =
+      'Sezione: ' + (sectionLabels[sec] || sec);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
