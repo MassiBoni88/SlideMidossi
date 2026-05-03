@@ -682,6 +682,21 @@ cout <span class="op">&lt;&lt;</span> max2 <span class="op">&lt;&lt;</span> <spa
     if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   changeSlide(-1);
   });
   updateUI();
+
+  // Touch swipe support
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) changeSlide(1);
+      else        changeSlide(-1);
+    }
+  }, { passive: true });
 </script>
 </body>
 </html>
