@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript — Manipolazione del DOM</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent4); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent4); color: #fff; border-color: var(--accent4); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    overflow-y: auto;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; justify-content: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.84rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .fn  { color: var(--accent4); font-weight: 700; }
+  pre .str { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+  pre .num { color: var(--accent1); }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  table.cmp { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.cmp th { background: var(--border); padding: 6px 10px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  table.cmp td { padding: 5px 10px; border-bottom: 1px solid var(--border); color: var(--ct); }
+  table.cmp tr:last-child td { border-bottom: none; }
+  table.cmp td.hl-green { color: var(--accent1); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  table.cmp td.hl-red   { color: var(--accent2); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  table.cmp td.hl-blue  { color: var(--accent4); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  table.cmp td.hl-yel   { color: var(--accent3); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent4); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent4); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 200px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(96,165,250,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(96,165,250,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(96,165,250,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Informatica · Programmazione Web</div>
+    <div class="title-bar">JavaScript — Manipolazione del DOM</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 12</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Il DOM</div>
+  <div class="big" style="color:var(--accent4);">Manipolazione</div>
+  <div class="sub" style="font-size:1.0rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Creare · Modificare · Eliminare elementi HTML con JavaScript
+  </div>
+  <div class="sub">Programmazione Web · Document Object Model</div>
+  <div class="tag-row">
+    <span class="tag tag-blue">Selezionare</span>
+    <span class="tag tag-yellow">Proprietà</span>
+    <span class="tag tag-green">Creare</span>
+    <span class="tag tag-red">Rimuovere</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Contenuti del Modulo</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content">
+        <h4>Struttura del DOM</h4>
+        <p>L'albero dei nodi · Tipi di nodi · document come radice</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">02</div>
+      <div class="ov-content">
+        <h4>Selezionare Elementi</h4>
+        <p>getElementById · querySelector · querySelectorAll</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">03</div>
+      <div class="ov-content">
+        <h4>Proprietà vs Attributi</h4>
+        <p>Proprietà dirette (.id, .className) · quando usare setAttribute</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Contenuto e Stile</h4>
+        <p>textContent · innerHTML · classList · style inline</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">05</div>
+      <div class="ov-content">
+        <h4>Creare e Inserire Elementi</h4>
+        <p>createElement · appendChild · prepend · insertAdjacentElement</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">06</div>
+      <div class="ov-content">
+        <h4>Rimuovere · Navigare · Esempio</h4>
+        <p>remove() · parentElement · children · lista dinamica completa</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — STRUTTURA DEL DOM ═══ -->
+<div class="slide" data-section="albero">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Struttura del DOM</h2>
+    <span class="section-num">01 · 3/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Il DOM come Albero</h3>
+        <p>Quando il browser carica una pagina HTML la converte in un <strong>albero di nodi</strong> in memoria. JavaScript accede a questo albero tramite l'oggetto globale <code>document</code>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Tipi di Nodo principali</h3>
+        <ul>
+          <li><strong>Element</strong> — un tag HTML (<code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>…)</li>
+          <li><strong>Text</strong> — il testo dentro un elemento</li>
+          <li><strong>Document</strong> — la radice dell'intero albero</li>
+          <li><strong>Comment</strong> — i commenti HTML</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>In pratica si lavora quasi sempre con i nodi di tipo <strong>Element</strong>. I metodi come <code>querySelector</code> restituiscono solo elementi, non nodi di testo.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">HTML di esempio</h3>
+        <pre><span class="kw">&lt;html&gt;</span>
+  <span class="kw">&lt;head&gt;</span>
+    <span class="kw">&lt;title&gt;</span>Pagina<span class="kw">&lt;/title&gt;</span>
+  <span class="kw">&lt;/head&gt;</span>
+  <span class="kw">&lt;body&gt;</span>
+    <span class="kw">&lt;h1</span> <span class="fn">id</span>=<span class="str">"titolo"</span><span class="kw">&gt;</span>Ciao!<span class="kw">&lt;/h1&gt;</span>
+    <span class="kw">&lt;ul</span> <span class="fn">id</span>=<span class="str">"lista"</span><span class="kw">&gt;</span>
+      <span class="kw">&lt;li&gt;</span>Primo<span class="kw">&lt;/li&gt;</span>
+      <span class="kw">&lt;li&gt;</span>Secondo<span class="kw">&lt;/li&gt;</span>
+    <span class="kw">&lt;/ul&gt;</span>
+  <span class="kw">&lt;/body&gt;</span>
+<span class="kw">&lt;/html&gt;</span></pre>
+      </div>
+      <div style="overflow:hidden;border-radius:8px;border:1px solid var(--border);">
+        <table class="cmp">
+          <tr><th>Nodo</th><th>Padre</th><th>Figli</th></tr>
+          <tr><td class="hl-blue">html</td><td>document</td><td>head, body</td></tr>
+          <tr><td class="hl-green">body</td><td>html</td><td>h1, ul</td></tr>
+          <tr><td class="hl-yel">ul</td><td>body</td><td>li, li</td></tr>
+          <tr><td class="hl-red">li</td><td>ul</td><td>nodo testo</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — SELEZIONARE ELEMENTI ═══ -->
+<div class="slide" data-section="selezione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Selezionare Elementi</h2>
+    <span class="section-num">02 · 4/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Metodi di Selezione</h3>
+      </div>
+      <pre><span class="cmt">// Per ID — restituisce 1 elemento o null</span>
+<span class="kw">const</span> titolo = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"titolo"</span>);
+
+<span class="cmt">// CSS selector — restituisce il 1° trovato</span>
+<span class="kw">const</span> card    = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".card"</span>);
+<span class="kw">const</span> primoLi = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"ul li"</span>);
+<span class="kw">const</span> btn     = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#mioBtn"</span>);
+
+<span class="cmt">// CSS selector — restituisce tutti (NodeList)</span>
+<span class="kw">const</span> voci = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">"li"</span>);
+voci.<span class="fn">forEach</span>(li => <span class="fn">console</span>.<span class="fn">log</span>(li.textContent));
+
+<span class="cmt">// Cercare dentro un elemento specifico</span>
+<span class="kw">const</span> nav  = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"nav"</span>);
+<span class="kw">const</span> link = nav.<span class="fn">querySelector</span>(<span class="str">"a.attivo"</span>);</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="overflow:hidden;border-radius:8px;border:1px solid var(--border);">
+        <table class="cmp">
+          <tr><th>Metodo</th><th>Ritorna</th><th>Aggiornata?</th></tr>
+          <tr><td class="hl-blue">getElementById</td><td>Element | null</td><td>—</td></tr>
+          <tr><td class="hl-green">querySelector</td><td>Element | null</td><td>—</td></tr>
+          <tr><td class="hl-green">querySelectorAll</td><td>NodeList statica</td><td>No</td></tr>
+          <tr><td class="hl-yel">getElementsByClassName</td><td>HTMLCollection</td><td>Sì</td></tr>
+          <tr><td class="hl-yel">getElementsByTagName</td><td>HTMLCollection</td><td>Sì</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Preferisci sempre <code>querySelector</code> e <code>querySelectorAll</code>: accettano qualsiasi selettore CSS, sono coerenti tra loro e restituiscono tipi prevedibili.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span><code>HTMLCollection</code> è <em>live</em>: se aggiungi o rimuovi elementi il DOM, la collezione cambia automaticamente, il che può causare loop infiniti.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — PROPRIETÀ VS ATTRIBUTI ═══ -->
+<div class="slide" data-section="proprieta">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Proprietà Dirette vs Attributi</h2>
+    <span class="section-num">03 · 5/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Proprietà dirette — il modo corretto</h3>
+        <p>Gli attributi HTML standard hanno una corrispondente <strong>proprietà JavaScript</strong> sull'oggetto Element. Usare la proprietà è più veloce, type-safe e idiomatico.</p>
+      </div>
+      <pre><span class="kw">const</span> el = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"h1"</span>);
+
+<span class="cmt">// id</span>
+el.id = <span class="str">"nuovo-id"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(el.id);           <span class="cmt">// "nuovo-id"</span>
+
+<span class="cmt">// class → className (una stringa)</span>
+el.className = <span class="str">"titolo rosso"</span>;
+
+<span class="cmt">// class → classList (oggetto, più comodo)</span>
+el.classList.<span class="fn">add</span>(<span class="str">"evidenziato"</span>);
+el.classList.<span class="fn">remove</span>(<span class="str">"rosso"</span>);
+el.classList.<span class="fn">toggle</span>(<span class="str">"attivo"</span>);
+el.classList.<span class="fn">contains</span>(<span class="str">"titolo"</span>); <span class="cmt">// true</span>
+
+<span class="cmt">// href, src, value…</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"a"</span>).href  = <span class="str">"https://esempio.it"</span>;
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"img"</span>).src  = <span class="str">"foto.png"</span>;
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"input"</span>).value = <span class="str">"ciao"</span>;</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">setAttribute — solo quando serve</h3>
+        <p><code>setAttribute</code> converte sempre il valore in stringa e bypassa la proprietà JS. Usalo <strong>solo</strong> per attributi non standard.</p>
+      </div>
+      <pre><span class="cmt">// ✅ Usa setAttribute per data-* e aria-*</span>
+el.<span class="fn">setAttribute</span>(<span class="str">"data-indice"</span>, <span class="str">"3"</span>);
+el.<span class="fn">getAttribute</span>(<span class="str">"data-indice"</span>);  <span class="cmt">// "3"</span>
+
+<span class="cmt">// Oppure con dataset (più moderno)</span>
+el.dataset.indice = <span class="str">"3"</span>;
+el.dataset.indice;                  <span class="cmt">// "3"</span>
+
+<span class="cmt">// Attributi ARIA per accessibilità</span>
+el.<span class="fn">setAttribute</span>(<span class="str">"aria-label"</span>, <span class="str">"Chiudi"</span>);
+el.<span class="fn">setAttribute</span>(<span class="str">"aria-expanded"</span>, <span class="str">"true"</span>);
+
+<span class="cmt">// ❌ Evita così per class e id:</span>
+<span class="cmt">// el.setAttribute("class", "rosso"); // usa className/classList</span>
+<span class="cmt">// el.getAttribute("id");             // usa el.id</span></pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Regola pratica: se l'attributo ha un corrispettivo nel DOM (<code>id</code>, <code>class</code>, <code>href</code>, <code>value</code>…), usa la proprietà. Usa <code>setAttribute</code> solo per <code>data-*</code> e <code>aria-*</code>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — CONTENUTO E STILE ═══ -->
+<div class="slide" data-section="proprieta">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Modificare Contenuto e Stile</h2>
+    <span class="section-num">03 · 6/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Contenuto Testuale e HTML</h3>
+      </div>
+      <pre><span class="kw">const</span> p = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"p"</span>);
+
+<span class="cmt">// textContent — solo testo, sicuro</span>
+p.textContent = <span class="str">"Testo aggiornato"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(p.textContent); <span class="cmt">// "Testo aggiornato"</span>
+
+<span class="cmt">// innerHTML — può contenere tag HTML</span>
+p.innerHTML = <span class="str">"&lt;strong&gt;Grassetto&lt;/strong&gt; e normale"</span>;
+
+<span class="cmt">// ⚠️ Mai usare innerHTML con input dell'utente!</span>
+<span class="cmt">// const nome = utente.input;         // potrebbe contenere &lt;script&gt;</span>
+<span class="cmt">// p.innerHTML = nome;                // XSS — pericoloso!</span>
+<span class="cmt">// p.textContent = nome;              // ✅ sicuro</span>
+
+<span class="cmt">// innerText — come textContent ma rispetta il CSS</span>
+<span class="cmt">// (elemento hidden con display:none → restituisce "")</span>
+p.innerText = <span class="str">"Testo visibile"</span>;</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span>Usa <code>textContent</code> ogni volta che inserisci testo fornito dall'utente. <code>innerHTML</code> interpreta i tag e apre la porta agli attacchi <strong>XSS</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Stile Inline e Classi CSS</h3>
+      </div>
+      <pre><span class="kw">const</span> box = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".box"</span>);
+
+<span class="cmt">// Stile inline (proprietà camelCase)</span>
+box.style.color       = <span class="str">"#2563eb"</span>;
+box.style.fontSize    = <span class="str">"1.2rem"</span>;
+box.style.marginTop   = <span class="str">"16px"</span>;
+box.style.display     = <span class="str">"none"</span>;   <span class="cmt">// nasconde</span>
+box.style.display     = <span class="str">""</span>;       <span class="cmt">// ripristina</span>
+
+<span class="cmt">// classList — gestione classi CSS</span>
+box.classList.<span class="fn">add</span>(<span class="str">"attivo"</span>, <span class="str">"grande"</span>); <span class="cmt">// più classi</span>
+box.classList.<span class="fn">remove</span>(<span class="str">"nascosto"</span>);
+box.classList.<span class="fn">toggle</span>(<span class="str">"selezionato"</span>);
+box.classList.<span class="fn">replace</span>(<span class="str">"rosso"</span>, <span class="str">"verde"</span>);
+box.classList.<span class="fn">contains</span>(<span class="str">"attivo"</span>); <span class="cmt">// true/false</span></pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Preferisci <code>classList</code> allo stile inline: tiene la logica nel CSS e il JS diventa più leggibile. Lo stile inline ha priorità massima e sovrascrive tutto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — CREARE ELEMENTI ═══ -->
+<div class="slide" data-section="creazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Creare Nuovi Elementi</h2>
+    <span class="section-num">04 · 7/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">createElement — il metodo base</h3>
+      </div>
+      <pre><span class="cmt">// 1. Crea l'elemento (non è ancora nel DOM)</span>
+<span class="kw">const</span> div = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"div"</span>);
+
+<span class="cmt">// 2. Configura le proprietà</span>
+div.id          = <span class="str">"mioDiv"</span>;
+div.className   = <span class="str">"card attivo"</span>;
+div.textContent = <span class="str">"Sono un nuovo div"</span>;
+
+<span class="cmt">// 3. Aggiungi stile o attributi</span>
+div.style.color = <span class="str">"var(--accent1)"</span>;
+div.<span class="fn">setAttribute</span>(<span class="str">"data-id"</span>, <span class="str">"42"</span>);
+
+<span class="cmt">// Creare un link completo</span>
+<span class="kw">const</span> a   = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"a"</span>);
+a.href      = <span class="str">"https://esempio.it"</span>;
+a.textContent = <span class="str">"Vai al sito"</span>;
+a.target    = <span class="str">"_blank"</span>;
+
+<span class="cmt">// Creare un'immagine</span>
+<span class="kw">const</span> img = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"img"</span>);
+img.src = <span class="str">"foto.png"</span>;
+img.alt = <span class="str">"Descrizione"</span>;</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Struttura annidata</h3>
+        <p>Si possono creare alberi interi prima di inserirli nel DOM.</p>
+      </div>
+      <pre><span class="cmt">// Costruire una card complessa</span>
+<span class="kw">const</span> card  = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"div"</span>);
+card.className = <span class="str">"card"</span>;
+
+<span class="kw">const</span> titolo = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"h3"</span>);
+titolo.textContent = <span class="str">"Titolo Card"</span>;
+
+<span class="kw">const</span> testo = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"p"</span>);
+testo.textContent = <span class="str">"Descrizione della card."</span>;
+
+<span class="cmt">// Annida: prima titolo poi testo dentro card</span>
+card.<span class="fn">appendChild</span>(titolo);
+card.<span class="fn">appendChild</span>(testo);
+
+<span class="cmt">// Adesso card contiene: &lt;div class="card"&gt;</span>
+<span class="cmt">//   &lt;h3&gt;Titolo Card&lt;/h3&gt;</span>
+<span class="cmt">//   &lt;p&gt;Descrizione della card.&lt;/p&gt;</span>
+<span class="cmt">// &lt;/div&gt;</span></pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚡</span>
+        <span>Costruisci la struttura completa <em>prima</em> di inserirla nel DOM: ogni modifica al DOM causa un <strong>reflow</strong> (ricalcolo del layout). Meno inserimenti = pagina più veloce.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — INSERIRE ELEMENTI ═══ -->
+<div class="slide" data-section="creazione">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Inserire Elementi nel DOM</h2>
+    <span class="section-num">04 · 8/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I metodi di inserimento</h3>
+      </div>
+      <pre><span class="kw">const</span> lista = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"ul"</span>);
+<span class="kw">const</span> li    = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+li.textContent = <span class="str">"Nuovo elemento"</span>;
+
+<span class="cmt">// In fondo ai figli</span>
+lista.<span class="fn">appendChild</span>(li);
+
+<span class="cmt">// In testa ai figli</span>
+lista.<span class="fn">prepend</span>(li);
+
+<span class="cmt">// Prima di un elemento di riferimento</span>
+<span class="kw">const</span> terzo = lista.<span class="fn">querySelector</span>(<span class="str">"li:nth-child(3)"</span>);
+lista.<span class="fn">insertBefore</span>(li, terzo);
+
+<span class="cmt">// Posizione precisa con insertAdjacentElement</span>
+<span class="cmt">// "beforebegin" | "afterbegin" | "beforeend" | "afterend"</span>
+terzo.<span class="fn">insertAdjacentElement</span>(<span class="str">"afterend"</span>, li);
+
+<span class="cmt">// Sostituire un figlio</span>
+lista.<span class="fn">replaceChild</span>(li, terzo);     <span class="cmt">// (nuovo, vecchio)</span>
+terzo.<span class="fn">replaceWith</span>(li);              <span class="cmt">// forma moderna</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">insertAdjacentElement — posizioni</h3>
+      </div>
+      <div style="overflow:hidden;border-radius:8px;border:1px solid var(--border);">
+        <table class="cmp">
+          <tr><th>Posizione</th><th>Dove inserisce</th></tr>
+          <tr><td class="hl-yel">beforebegin</td><td>Prima del tag di apertura (fratello precedente)</td></tr>
+          <tr><td class="hl-green">afterbegin</td><td>Subito dopo il tag di apertura (primo figlio)</td></tr>
+          <tr><td class="hl-green">beforeend</td><td>Subito prima del tag di chiusura (ultimo figlio)</td></tr>
+          <tr><td class="hl-yel">afterend</td><td>Dopo il tag di chiusura (fratello successivo)</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span><code>append()</code> è la versione moderna di <code>appendChild()</code>: accetta anche stringhe di testo e può ricevere <strong>più argomenti</strong> contemporaneamente.<br><code>lista.append(li1, li2, "testo")</code></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — RIMUOVERE ELEMENTI ═══ -->
+<div class="slide" data-section="modifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Rimuovere e Sostituire Elementi</h2>
+    <span class="section-num">05 · 9/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Rimuovere un Elemento</h3>
+      </div>
+      <pre><span class="kw">const</span> el = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".card"</span>);
+
+<span class="cmt">// Metodo moderno (preferito)</span>
+el.<span class="fn">remove</span>();
+
+<span class="cmt">// Metodo classico — tramite il padre</span>
+el.parentElement.<span class="fn">removeChild</span>(el);
+
+<span class="cmt">// Rimuovere tutti i figli di un elemento</span>
+<span class="kw">const</span> lista = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"ul"</span>);
+
+<span class="cmt">// Metodo 1 — innerHTML (svuota l'elemento)</span>
+lista.innerHTML = <span class="str">""</span>;
+
+<span class="cmt">// Metodo 2 — loop (più controllato)</span>
+<span class="kw">while</span> (lista.firstChild) {
+  lista.<span class="fn">removeChild</span>(lista.firstChild);
+}
+
+<span class="cmt">// Metodo 3 — moderno</span>
+lista.<span class="fn">replaceChildren</span>();  <span class="cmt">// svuota senza innerHTML</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Clonare un Elemento</h3>
+      </div>
+      <pre><span class="kw">const</span> originale = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".card"</span>);
+
+<span class="cmt">// cloneNode(true) = copia profonda (figli inclusi)</span>
+<span class="kw">const</span> copia = originale.<span class="fn">cloneNode</span>(<span class="str">true</span>);
+copia.id = <span class="str">"card-copia"</span>;  <span class="cmt">// ⚠️ id deve essere unico</span>
+<span class="fn">document</span>.body.<span class="fn">appendChild</span>(copia);
+
+<span class="cmt">// cloneNode(false) = solo il tag, senza figli</span>
+<span class="kw">const</span> guscio = originale.<span class="fn">cloneNode</span>(<span class="str">false</span>);</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Dopo <code>cloneNode(true)</code> i figli clonati mantengono gli stessi <code>id</code> dell'originale: ricordati di cambiarli, gli <code>id</code> devono essere unici nella pagina.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span>Svuotare con <code>innerHTML = ""</code> è pratico ma rimuove anche gli <strong>event listener</strong> aggiunti ai figli. Usa <code>replaceChildren()</code> o il loop con <code>removeChild</code> per un controllo maggiore.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — NAVIGARE L'ALBERO ═══ -->
+<div class="slide" data-section="modifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Navigare l'Albero DOM</h2>
+    <span class="section-num">05 · 10/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Proprietà di Navigazione</h3>
+      </div>
+      <pre><span class="kw">const</span> li = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"li.attivo"</span>);
+
+<span class="cmt">// ↑ Padre</span>
+li.parentElement;          <span class="cmt">// il &lt;ul&gt; o &lt;ol&gt;</span>
+li.parentElement.parentElement; <span class="cmt">// nonno</span>
+
+<span class="cmt">// ← Fratelli →</span>
+li.previousElementSibling; <span class="cmt">// li precedente</span>
+li.nextElementSibling;      <span class="cmt">// li successivo</span>
+
+<span class="cmt">// ↓ Figli</span>
+li.parentElement.children;         <span class="cmt">// tutti i figli</span>
+li.parentElement.firstElementChild; <span class="cmt">// primo</span>
+li.parentElement.lastElementChild;  <span class="cmt">// ultimo</span>
+li.parentElement.childElementCount; <span class="cmt">// quanti</span>
+
+<span class="cmt">// Cercare il più vicino antenato che fa match</span>
+li.<span class="fn">closest</span>(<span class="str">".container"</span>); <span class="cmt">// risale fino a trovarlo</span>
+li.<span class="fn">closest</span>(<span class="str">"form"</span>);        <span class="cmt">// o null</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="overflow:hidden;border-radius:8px;border:1px solid var(--border);">
+        <table class="cmp">
+          <tr><th>Proprietà</th><th>Direzione</th><th>Tipo restituito</th></tr>
+          <tr><td class="hl-blue">parentElement</td><td>↑ su</td><td>Element | null</td></tr>
+          <tr><td class="hl-green">children</td><td>↓ giù</td><td>HTMLCollection</td></tr>
+          <tr><td class="hl-green">firstElementChild</td><td>↓ giù</td><td>Element | null</td></tr>
+          <tr><td class="hl-green">lastElementChild</td><td>↓ giù</td><td>Element | null</td></tr>
+          <tr><td class="hl-yel">previousElementSibling</td><td>← fratello</td><td>Element | null</td></tr>
+          <tr><td class="hl-yel">nextElementSibling</td><td>→ fratello</td><td>Element | null</td></tr>
+          <tr><td class="hl-red">closest()</td><td>↑ antenato</td><td>Element | null</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span><code>closest()</code> è molto utile nella gestione degli eventi: se clicchi su un <code>&lt;span&gt;</code> dentro un <code>&lt;li&gt;</code>, puoi recuperare il <code>&lt;li&gt;</code> con <code>span.closest("li")</code> senza sapere quanti livelli ci sono in mezzo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — ESEMPIO LISTA DINAMICA ═══ -->
+<div class="slide" data-section="esempio">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Esempio Completo — Lista Dinamica</h2>
+    <span class="section-num">06 · 11/12</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">HTML di partenza</h3>
+        <pre><span class="kw">&lt;input</span> <span class="fn">id</span>=<span class="str">"campo"</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">placeholder</span>=<span class="str">"Aggiungi..."</span><span class="kw">&gt;</span>
+<span class="kw">&lt;button</span> <span class="fn">id</span>=<span class="str">"aggiungi"</span><span class="kw">&gt;</span>+<span class="kw">&lt;/button&gt;</span>
+<span class="kw">&lt;ul</span> <span class="fn">id</span>=<span class="str">"lista"</span><span class="kw">&gt;&lt;/ul&gt;</span></pre>
+      </div>
+      <pre><span class="kw">const</span> campo    = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"campo"</span>);
+<span class="kw">const</span> btnAgg   = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"aggiungi"</span>);
+<span class="kw">const</span> lista    = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"lista"</span>);
+
+<span class="kw">function</span> <span class="fn">aggiungiVoce</span>() {
+  <span class="kw">const</span> testo = campo.value.<span class="fn">trim</span>();
+  <span class="kw">if</span> (!testo) <span class="kw">return</span>;
+
+  <span class="kw">const</span> li  = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+  <span class="kw">const</span> btn = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"button"</span>);
+
+  li.textContent   = testo;     <span class="cmt">// testo sicuro</span>
+  btn.textContent  = <span class="str">"✕"</span>;
+  btn.className    = <span class="str">"elimina"</span>;
+  btn.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => li.<span class="fn">remove</span>());
+
+  li.<span class="fn">appendChild</span>(btn);
+  lista.<span class="fn">appendChild</span>(li);
+
+  campo.value = <span class="str">""</span>;           <span class="cmt">// svuota il campo</span>
+  campo.<span class="fn">focus</span>();              <span class="cmt">// rimette il cursore</span>
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <pre><span class="cmt">// Aggiungi al click del bottone</span>
+btnAgg.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, aggiungiVoce);
+
+<span class="cmt">// Aggiungi anche premendo Invio</span>
+campo.<span class="fn">addEventListener</span>(<span class="str">"keydown"</span>, e => {
+  <span class="kw">if</span> (e.key === <span class="str">"Enter"</span>) <span class="fn">aggiungiVoce</span>();
+});
+
+<span class="cmt">// Modificare il testo di una voce al doppio click</span>
+lista.<span class="fn">addEventListener</span>(<span class="str">"dblclick"</span>, e => {
+  <span class="kw">const</span> li = e.target.<span class="fn">closest</span>(<span class="str">"li"</span>);
+  <span class="kw">if</span> (!li) <span class="kw">return</span>;
+  <span class="kw">const</span> nuovo = <span class="fn">prompt</span>(<span class="str">"Modifica:"</span>, li.firstChild.textContent);
+  <span class="kw">if</span> (nuovo !== <span class="kw">null</span>) li.firstChild.textContent = nuovo;
+});</pre>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span><strong>Event delegation</strong>: invece di aggiungere un listener su ogni <code>&lt;li&gt;</code>, ne aggiungiamo uno solo sul <code>&lt;ul&gt;</code> padre. Gli eventi "risalgono" (bubbling) e <code>closest()</code> identifica l'elemento corretto.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Nota che <code>li.textContent = testo</code> non crea vulnerabilità XSS, mentre <code>li.innerHTML = testo</code> sì — specialmente se <code>testo</code> proviene dall'input dell'utente.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Riepilogo</h2>
+    <span class="section-num">07 · 12/12</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Selezionare</h3>
+        <ul>
+          <li><code>getElementById</code></li>
+          <li><code>querySelector</code></li>
+          <li><code>querySelectorAll</code></li>
+          <li><code>closest()</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Proprietà standard</h3>
+        <ul>
+          <li><code>.id</code> · <code>.className</code></li>
+          <li><code>.classList</code></li>
+          <li><code>.href</code> · <code>.src</code> · <code>.value</code></li>
+          <li><code>setAttribute</code> solo per <code>data-*</code>/<code>aria-*</code></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Contenuto e Stile</h3>
+        <ul>
+          <li><code>textContent</code> — testo sicuro</li>
+          <li><code>innerHTML</code> — solo HTML fidato</li>
+          <li><code>style.proprietà</code></li>
+          <li><code>classList.add/remove/toggle</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Creare e Inserire</h3>
+        <ul>
+          <li><code>createElement</code></li>
+          <li><code>appendChild</code> · <code>append</code></li>
+          <li><code>prepend</code></li>
+          <li><code>insertAdjacentElement</code></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Rimuovere</h3>
+        <ul>
+          <li><code>el.remove()</code></li>
+          <li><code>removeChild</code></li>
+          <li><code>replaceWith</code></li>
+          <li><code>replaceChildren()</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Navigare</h3>
+        <ul>
+          <li><code>parentElement</code></li>
+          <li><code>children</code></li>
+          <li><code>nextElementSibling</code></li>
+          <li><code>previousElementSibling</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':      'Introduzione',
+    'albero':     'Struttura del DOM',
+    'selezione':  'Selezionare Elementi',
+    'proprieta':  'Proprietà &amp; Attributi',
+    'creazione':  'Creare Elementi',
+    'modifica':   'Modificare &amp; Rimuovere',
+    'esempio':    'Esempio Completo',
+    'riepilogo':  'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').innerHTML = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  (function() {
+    const t = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('theme-btn').textContent = t === 'dark' ? '◑ Light' : '◐ Dark';
+  })();
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
