@@ -20,6 +20,7 @@
     --code-bg: #f1f5f9;
     --grid: rgba(0,0,0,0.025);
     --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+    --accent5: #7c3aed; --c5t: #5b21b6;
   }
   [data-theme="dark"] {
     --bg: #0d0f14;
@@ -35,6 +36,7 @@
     --code-bg: #080a0f;
     --grid: rgba(255,255,255,0.03);
     --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+    --accent5: #a78bfa; --c5t: #c4b5fd;
   }
 
   html { font-size: 112%; }
@@ -194,6 +196,29 @@
   }
   #stage, #topbar, #nav { position: relative; z-index: 1; }
 
+  /* ── CLOUD MODELLI TABLE ── */
+  .cloud-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .ct-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+  .ct-row:last-child { border-bottom: none; }
+  .ct-cell { padding: 7px 10px; border-right: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ct); display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.4; }
+  .ct-cell:first-child { justify-content: flex-start; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--text); }
+  .ct-cell:last-child { border-right: none; }
+  .ct-head .ct-cell { background: var(--panel); font-weight: 700; font-size: 0.8rem; padding: 9px 10px; }
+  .col-haas { background: rgba(248,113,113,0.12); color: var(--accent2) !important; font-weight: 700; }
+  .col-iaas { background: rgba(251,191,36,0.12);  color: var(--accent3) !important; font-weight: 700; }
+  .col-paas { background: rgba(96,165,250,0.12);  color: var(--accent4) !important; font-weight: 700; }
+  .col-daas { background: rgba(167,139,250,0.12); color: var(--accent5) !important; font-weight: 700; }
+  .col-saas { background: rgba(52,211,153,0.12);  color: var(--accent1) !important; font-weight: 700; }
+  .yes { color: var(--accent1) !important; font-weight: 700; font-size: 0.9rem; }
+  .no  { color: var(--accent2) !important; font-weight: 700; font-size: 0.9rem; }
+  .par { color: var(--accent3) !important; font-weight: 700; font-size: 0.78rem; }
+  .stack-wrap { display: flex; gap: 6px; align-items: stretch; flex-shrink: 0; }
+  .stack-col { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: stretch; }
+  .stack-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700; text-align: center; padding: 4px 2px; border-radius: 4px; letter-spacing: 0.5px; }
+  .stack-layer { font-size: 0.65rem; text-align: center; padding: 4px 3px; border-radius: 4px; border: 1px solid var(--border); color: var(--ct); font-family: 'JetBrains Mono', monospace; line-height: 1.3; }
+  .layer-provider { opacity: 0.45; }
+  .layer-client { font-weight: 700; color: var(--text) !important; opacity: 1; border-color: currentColor; }
+
   /* ── MOBILE ── */
   @media (max-width: 640px) {
     html { font-size: 100%; }
@@ -233,7 +258,7 @@
     <div class="title-bar">Unità 6 — Progettare Strutture di Rete: Dal Cablaggio al Cloud</div>
   </div>
   <div id="topbar-right">
-    <div id="slide-counter">01 / 15</div>
+    <div id="slide-counter">01 / 16</div>
     <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
   </div>
 </div>
@@ -689,7 +714,7 @@
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent2)"></div>
     <h2 style="color:var(--accent2)">Le Soluzioni Cloud</h2>
-    <span class="section-num">Lezione 6 · 01/03</span>
+    <span class="section-num">Lezione 6 · 01/04</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -743,7 +768,7 @@
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent2)"></div>
     <h2 style="color:var(--accent2)">Architettura Cloud e Modelli di Servizio (XaaS)</h2>
-    <span class="section-num">Lezione 6 · 02/03</span>
+    <span class="section-num">Lezione 6 · 02/04</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -793,12 +818,224 @@
   </div>
 </div>
 
-<!-- ═══ SLIDE 12 — L6: CLOUD NELLA PA ═══ -->
+<!-- ═══ SLIDE 12 — CONFRONTO MODELLI CLOUD ═══ -->
+<div class="slide" data-section="cloud">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Confronto tra i Modelli di Servizio Cloud</h2>
+    <span class="section-num">Lezione 6 · 03/04</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:0;">
+
+    <div class="cloud-table">
+      <div class="ct-row ct-head">
+        <div class="ct-cell">Caratteristica</div>
+        <div class="ct-cell col-haas">🔩 HaaS</div>
+        <div class="ct-cell col-iaas">🖥️ IaaS</div>
+        <div class="ct-cell col-paas">⚙️ PaaS</div>
+        <div class="ct-cell col-daas">🖱️ DaaS</div>
+        <div class="ct-cell col-saas">☁️ SaaS</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Nome completo</div>
+        <div class="ct-cell" style="font-size:0.64rem;">Hardware as a Service</div>
+        <div class="ct-cell" style="font-size:0.64rem;">Infrastructure as a Service</div>
+        <div class="ct-cell" style="font-size:0.64rem;">Platform as a Service</div>
+        <div class="ct-cell" style="font-size:0.64rem;">Desktop as a Service</div>
+        <div class="ct-cell" style="font-size:0.64rem;">Software as a Service</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Cosa ricevi</div>
+        <div class="ct-cell">Server fisico dedicato</div>
+        <div class="ct-cell">VM virtuale pronta</div>
+        <div class="ct-cell">Piattaforma di sviluppo</div>
+        <div class="ct-cell">Desktop virtuale remoto</div>
+        <div class="ct-cell">Applicazione via browser</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Virtualizzazione</div>
+        <div class="ct-cell no">✗ No</div>
+        <div class="ct-cell yes">✓ Sì</div>
+        <div class="ct-cell yes">✓ Sì</div>
+        <div class="ct-cell yes">✓ Sì</div>
+        <div class="ct-cell yes">✓ Sì</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Hardware dedicato</div>
+        <div class="ct-cell yes">✓ Solo tuo</div>
+        <div class="ct-cell no">✗ Condiviso</div>
+        <div class="ct-cell no">✗ Condiviso</div>
+        <div class="ct-cell no">✗ Condiviso</div>
+        <div class="ct-cell no">✗ Condiviso</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Gestisci il SO</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell no">✗ Fornitore</div>
+        <div class="ct-cell no">✗ Fornitore</div>
+        <div class="ct-cell no">✗ Fornitore</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Gestisci le app</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell par">~ Parziale</div>
+        <div class="ct-cell no">✗ Fornitore</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Gestisci i dati</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell yes">✓ Tu</div>
+        <div class="ct-cell par">~ Parziale</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Scalabilità</div>
+        <div class="ct-cell" style="color:var(--accent2);">Bassa</div>
+        <div class="ct-cell" style="color:var(--accent3);">Alta</div>
+        <div class="ct-cell" style="color:var(--accent1);">Molto alta</div>
+        <div class="ct-cell" style="color:var(--accent1);">Molto alta</div>
+        <div class="ct-cell" style="color:var(--accent1);">Totale</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Flessibilità tecnica</div>
+        <div class="ct-cell" style="color:var(--accent1);">Massima</div>
+        <div class="ct-cell" style="color:var(--accent1);">Alta</div>
+        <div class="ct-cell" style="color:var(--accent3);">Media</div>
+        <div class="ct-cell" style="color:var(--accent2);">Bassa</div>
+        <div class="ct-cell" style="color:var(--accent2);">Minima</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Costo</div>
+        <div class="ct-cell" style="color:var(--accent2);">Alto, fisso</div>
+        <div class="ct-cell" style="color:var(--accent3);">Pay-per-use</div>
+        <div class="ct-cell" style="color:var(--accent3);">Pay-per-use</div>
+        <div class="ct-cell" style="color:var(--accent1);">Abbonamento</div>
+        <div class="ct-cell" style="color:var(--accent1);">Abbonamento</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Competenze richieste</div>
+        <div class="ct-cell" style="color:var(--accent2);">Sysadmin esperto</div>
+        <div class="ct-cell" style="color:var(--accent2);">Sysadmin</div>
+        <div class="ct-cell" style="color:var(--accent3);">Sviluppatore</div>
+        <div class="ct-cell" style="color:var(--accent1);">Utente base</div>
+        <div class="ct-cell" style="color:var(--accent1);">Utente finale</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Esempi reali</div>
+        <div class="ct-cell" style="font-size:0.65rem;">OVH Bare Metal, Hetzner</div>
+        <div class="ct-cell" style="font-size:0.65rem;">AWS EC2, Azure VM, GCE</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Heroku, Google App Engine, Azure App</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Amazon WorkSpaces, Azure Virtual Desktop</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Gmail, Office 365, Google Docs, Salesforce</div>
+      </div>
+      <div class="ct-row">
+        <div class="ct-cell">Uso tipico</div>
+        <div class="ct-cell" style="font-size:0.65rem;">AI/HPC, gaming server, compliance</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Startup, dev/test, web hosting</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Deploy app, CI/CD, microservizi</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Smart working, BYOD aziendale</div>
+        <div class="ct-cell" style="font-size:0.65rem;">Produttività, CRM, email, collaborazione</div>
+      </div>
+    </div>
+
+    <div class="stack-wrap">
+      <div style="display:flex;flex-direction:column;gap:3px;justify-content:flex-end;width:90px;flex-shrink:0;">
+        <div style="font-size:0.6rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:2px;">Layer gestito da:</div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Hardware</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Virtualizzazione</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Rete / Storage</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Sistema Operativo</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Runtime / Middleware</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Applicazione</span></div>
+        <div style="height:24px;display:flex;align-items:center;"><span style="font-size:0.65rem;color:var(--muted);">Dati</span></div>
+      </div>
+      <div class="stack-col">
+        <div class="stack-label" style="background:rgba(248,113,113,0.15);color:var(--accent2);">HaaS</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent2);color:var(--accent2);">Fornitore</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+      </div>
+      <div class="stack-col">
+        <div class="stack-label" style="background:rgba(251,191,36,0.15);color:var(--accent3);">IaaS</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent3);color:var(--accent3);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent3);color:var(--accent3);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent3);color:var(--accent3);">Fornitore</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+      </div>
+      <div class="stack-col">
+        <div class="stack-label" style="background:rgba(96,165,250,0.15);color:var(--accent4);">PaaS</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent4);color:var(--accent4);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent4);color:var(--accent4);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent4);color:var(--accent4);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent4);color:var(--accent4);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent4);color:var(--accent4);">Fornitore</div>
+        <div class="stack-layer layer-client">Cliente</div>
+        <div class="stack-layer layer-client">Cliente</div>
+      </div>
+      <div class="stack-col">
+        <div class="stack-label" style="background:rgba(167,139,250,0.15);color:var(--accent5);">DaaS</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent5);color:var(--accent5);">Fornitore</div>
+        <div class="stack-layer layer-client">Cliente</div>
+      </div>
+      <div class="stack-col">
+        <div class="stack-label" style="background:rgba(52,211,153,0.15);color:var(--accent1);">SaaS</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+        <div class="stack-layer layer-provider" style="border-color:var(--accent1);color:var(--accent1);">Fornitore</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">La regola generale</h3>
+        <ul>
+          <li>Più sali nella pila → <strong>meno gestisci tu</strong>, più gestisce il fornitore</li>
+          <li><strong>HaaS</strong>: massimo controllo, massima responsabilità</li>
+          <li><strong>SaaS</strong>: zero configurazione, zero controllo sull'infrastruttura</li>
+          <li>La scelta dipende da: competenze disponibili, budget, flessibilità necessaria</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent5);">🖱️ DaaS — il meno noto</h3>
+        <ul>
+          <li>Il fornitore eroga un <strong>desktop completo via cloud</strong></li>
+          <li>L'utente si connette da qualsiasi dispositivo (anche un tablet)</li>
+          <li>Il PC fisico diventa solo uno schermo e una tastiera</li>
+          <li>Usato per <strong>smart working, BYOD, call center</strong></li>
+          <li>Esempi: Amazon WorkSpaces, Azure Virtual Desktop, Citrix DaaS</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — L6: CLOUD NELLA PA ═══ -->
 <div class="slide" data-section="cloud">
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent2)"></div>
     <h2 style="color:var(--accent2)">Il Cloud nella Pubblica Amministrazione</h2>
-    <span class="section-num">Lezione 6 · 03/03</span>
+    <span class="section-num">Lezione 6 · 04/04</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
