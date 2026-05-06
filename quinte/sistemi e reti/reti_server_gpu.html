@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reti Aziendali — Server, Cablaggio e Hardware AI</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f8fafc; --border: #e2e8f0;
+    --accent1: #059669; --accent2: #dc2626; --accent3: #d97706; --accent4: #2563eb;
+    --text: #1e293b; --muted: #64748b; --ct: #475569; --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14; --panel: #13161f; --border: #1e2330;
+    --accent1: #34d399; --accent2: #f87171; --accent3: #fbbf24; --accent4: #60a5fa;
+    --text: #e8eaf0; --muted: #6b7280; --ct: #6b7280; --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big { font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+  .tag { padding: 6px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-shrink: 0; }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.84rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+  .callout { border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">Quarto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Reti Aziendali — Server, Cablaggio e Hardware AI</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 15</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Reti Aziendali</div>
+  <div class="big" style="color:var(--accent1);">Server · Cablaggio</div>
+  <div class="big" style="color:var(--accent4);">e Hardware AI</div>
+  <div class="sub">Cablaggio strutturato · Tipologie di server · GPU e TFLOPS</div>
+  <div class="tag-row">
+    <span class="tag tag-green">Cablaggio Strutturato</span>
+    <span class="tag tag-blue">Tipologie Server</span>
+    <span class="tag tag-yellow">GPU · CUDA · Tensor</span>
+    <span class="tag tag-red">TFLOPS · AI Hardware</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content">
+        <h4>Cablaggio Strutturato</h4>
+        <p>CD · BD · FD · TO · Distanze massime · VCC · HCC · Standard ISO/IEC 11801</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>Rame vs Fibra</h4>
+        <p>UTP / STP · Categorie Cat.5e→Cat.8 · Perché la fibra nelle dorsali</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Tipologie di Server</h4>
+        <p>Tower · Rack · Blade · Form factor · Contesti d'uso aziendali</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">04</div>
+      <div class="ov-content">
+        <h4>Server Aziendali</h4>
+        <p>File server · FTP · Web · Application · Mail · Active Directory · VNC</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">05</div>
+      <div class="ov-content">
+        <h4>GPU e Hardware AI</h4>
+        <p>CUDA core · Tensor core · RT core · TFLOPS · Cluster AI · Data center</p>
+      </div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">06</div>
+      <div class="ov-content">
+        <h4>NVIDIA H100</h4>
+        <p>Specifiche reali · 16.896 CUDA · 528 Tensor · FP8/FP16 · NVLink</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — CABLAGGIO STRUTTURATO ═══ -->
+<div class="slide" data-section="cablaggio">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Cablaggio Strutturato — ISO/IEC 11801</h2>
+    <span class="section-num">03/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 CD — Campus Distributor</h3>
+        <p>Centro stella di comprensorio. <strong>Cervello centrale</strong> dell'intera rete di campus. Ce n'è uno solo. Distanza massima verso BD: <strong>2000 m</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 BD — Building Distributor</h3>
+        <p>Centro stella di edificio. Nodo principale di ogni edificio. Distribuisce ai piani. Distanza massima verso FD: <strong>500 m</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 FD — Floor Distributor</h3>
+        <p>Centro stella di piano. L'armadio rack di piano. Distanza massima verso TO: <strong>90 m</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">⬜ TO — Telecommunication Outlet</h3>
+        <p>Presa RJ-45 a muro. Dal TO al dispositivo finale (cavo patch): max <strong>5 m</strong>.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">I due tipi di cablaggio</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Tipo</div>
+            <div class="proto-cell hl-blue">Sigla</div>
+            <div class="proto-cell hl-blue w2">Collega</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;"><strong>Verticale</strong> (dorsale)</div>
+            <div class="proto-cell hl">VCC</div>
+            <div class="proto-cell w2">CD → BD → FD</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;"><strong>Orizzontale</strong></div>
+            <div class="proto-cell hl-yel">HCC</div>
+            <div class="proto-cell w2">FD → TO → PC</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Schema distanze</h3>
+        <pre><span class="ok">CD</span> ──(2000m)──► <span class="cmd">BD</span> ──(500m)──► <span class="arg">FD</span> ──(90m)──► <span class="kw">TO</span> ──(5m)──► PC</pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Il cablaggio orizzontale usa quasi sempre <strong>doppino in rame</strong> (UTP/FTP cat. 6/6A). La fibra è rara nell'orizzontale ma standard nelle dorsali verticali.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — RAME vs FIBRA ═══ -->
+<div class="slide" data-section="cablaggio">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Rame vs Fibra — UTP, STP e Categorie</h2>
+    <span class="section-num">04/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Categorie del doppino in rame</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Categoria</div>
+            <div class="proto-cell hl-blue">Velocità max</div>
+            <div class="proto-cell hl-blue">Distanza</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">Cat. 5e</div>
+            <div class="proto-cell">1 Gbps</div>
+            <div class="proto-cell">100 m</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">Cat. 6</div>
+            <div class="proto-cell">10 Gbps (55 m)</div>
+            <div class="proto-cell">limitata per 10G</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell hl">Cat. 6A</div>
+            <div class="proto-cell hl">10 Gbps</div>
+            <div class="proto-cell hl">100 m ✓</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">Cat. 8</div>
+            <div class="proto-cell">25–40 Gbps</div>
+            <div class="proto-cell">solo 30 m</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">UTP vs STP</h3>
+        <ul>
+          <li><strong>U/UTP</strong>: nessuna schermatura — economico, diffusissimo</li>
+          <li><strong>F/UTP</strong>: foglio esterno — uffici con molti apparati</li>
+          <li><strong>S/FTP</strong>: treccia + foglio su coppie — ambienti industriali</li>
+          <li>⚠️ STP funziona solo con <strong>messa a terra corretta</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Perché la fibra nelle dorsali?</h3>
+        <ul>
+          <li>🚀 <strong>Banda superiore</strong>: la dorsale aggrega traffico di tutti i piani — fino a 100 Gbps+ con fibra vs 10 Gbps rame</li>
+          <li>🔮 <strong>Scalabilità futura</strong>: il cavo non si cambia per decenni, solo gli apparati alle estremità</li>
+          <li>⚡ <strong>Isolamento galvanico</strong>: nessun rischio corrente tra edifici (fulmini, guasti)</li>
+          <li>📡 <strong>Immunità EMI</strong>: ignora motori ascensori, quadri elettrici, climatizzatori</li>
+          <li>💰 <strong>Costo d'installazione</strong>: nei cavedi si installa una volta sola</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>La scelta fibra/rame non dipende solo dalla distanza ma da <strong>capacità, sicurezza elettrica e investimento a lungo termine</strong>. La dorsale è il punto più critico e difficile da modificare.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>La fibra nel cablaggio orizzontale si usa raramente: serve PoE, la distanza è breve, i dispositivi hanno solo porte RJ-45 e il costo è elevato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — TIPOLOGIE SERVER ═══ -->
+<div class="slide" data-section="server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Tipologie di Server — Form Factor</h2>
+    <span class="section-num">05/14</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🖥️ Tower</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">es. IBM System x3100 M4</p>
+        <ul>
+          <li>Come un PC da ufficio grande, verticale</li>
+          <li>Non serve rack o sala server</li>
+          <li>Silenzioso, economico</li>
+          <li>Facile da espandere (HDD, schede)</li>
+        </ul>
+      </div>
+      <div class="callout callout-green" style="margin-top:4px;">
+        <span class="callout-icon">🏫</span>
+        <span style="font-size:0.82rem;"><strong>Usato da:</strong> piccole aziende, studi professionali, scuole</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">📦 Rack</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">es. Dell PowerEdge R710 (2U)</p>
+        <ul>
+          <li>Piatto, si inserisce in armadio 19"</li>
+          <li>Altezza in U (1U = 4,45 cm)</li>
+          <li>Standard universale, impilabili</li>
+          <li>Molto rumoroso, serve sala server</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue" style="margin-top:4px;">
+        <span class="callout-icon">🏢</span>
+        <span style="font-size:0.82rem;"><strong>Usato da:</strong> aziende medie e grandi, data center</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔪 Blade</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">es. HP BladeSystem c7000 (16 lame)</p>
+        <ul>
+          <li>Lame sottili in uno chassis comune</li>
+          <li>Alimentatori, ventole, switch condivisi</li>
+          <li>Densità elevatissima, cablaggio minimo</li>
+          <li>Chassis costoso, vendor lock-in</li>
+        </ul>
+      </div>
+      <div class="callout callout-red" style="margin-top:4px;">
+        <span class="callout-icon">🏭</span>
+        <span style="font-size:0.82rem;"><strong>Usato da:</strong> grandi aziende, cloud provider, data center</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <div class="proto-header">
+      <div class="proto-row">
+        <div class="proto-cell hl-blue w2">Aspetto</div>
+        <div class="proto-cell hl">Tower</div>
+        <div class="proto-cell hl-blue">Rack</div>
+        <div class="proto-cell hl-red">Blade</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Densità</div>
+        <div class="proto-cell">Bassa</div><div class="proto-cell">Media</div><div class="proto-cell">Altissima</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Costo iniziale</div>
+        <div class="proto-cell hl">Basso</div><div class="proto-cell">Medio</div><div class="proto-cell hl-red">Alto</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — RUOLI SERVER ═══ -->
+<div class="slide" data-section="server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Ruoli dei Server in Azienda</h2>
+    <span class="section-num">06/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">📁 File Server</h3>
+        <p>Condivide file in LAN via <strong>SMB/CIFS</strong> (Windows) o <strong>NFS</strong> (Linux). Appare come unità di rete (es. Z:\). Modifica diretta sul server, integrato con Active Directory.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">📡 FTP Server</h3>
+        <p>Trasferisce file con protocollo <strong>FTP (porta 21)</strong>. Scarichi → modifichi → ricarichi. Usato per scambio con esterni. FTP classico in chiaro → preferire <strong>SFTP o FTPS</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🌐 Web Server</h3>
+        <p>Serve contenuto <strong>statico</strong> via HTTP/HTTPS. HTML, CSS, immagini. Nessuna elaborazione dati. Software: <strong>Apache, Nginx, IIS</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">⚙️ Application Server</h3>
+        <p>Esegue <strong>logica applicativa dinamica</strong>. Si connette al database, autentica utenti, elabora transazioni. Software: <strong>Tomcat, Node.js, Django</strong>.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-left:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">✉️ Mail Server</h3>
+        <p>Gestisce posta elettronica. Deve essere raggiungibile da Internet (porta <strong>25 SMTP</strong>) → si colloca in <strong>DMZ</strong> per isolare la LAN interna da possibili compromissioni.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🏛️ Active Directory (DC)</h3>
+        <p>Gestisce centralmente utenti, computer, policy (<strong>GPO</strong>) e risorse. Autenticazione via <strong>Kerberos/LDAP</strong>. Sta sempre nella LAN interna, mai esposto.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🖥️ VNC Server</h3>
+        <p>Controllo desktop remoto via protocollo <strong>RFB (porta 5900)</strong>. Non usa Telnet. Trasmissione in chiaro → usare sempre dentro <strong>SSH tunnel o VPN</strong>. Mai esposto su Internet.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Web Server + Application Server lavorano <strong>insieme</strong>: Nginx serve i file statici, passa le richieste dinamiche a Node.js/Django che interroga il DB.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — DMZ ═══ -->
+<div class="slide" data-section="server">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">DMZ — DeMilitarized Zone</h2>
+    <span class="section-num">07/14</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Cos'è la DMZ</h3>
+        <p>Sottorete <strong>separata</strong> tra Internet e la LAN interna, protetta da due firewall. I server pubblici stanno qui: accessibili dall'esterno ma <strong>isolati dalla rete interna</strong> in caso di attacco.</p>
+      </div>
+      <pre><span class="cmt">Internet</span>
+    │
+    ▼
+<span class="kw">[ Firewall esterno ]</span>
+    │
+    ▼
+<span class="arg">   DMZ</span>          ← server pubblici
+  Mail · Web · FTP · DNS
+    │
+    ▼
+<span class="ok">[ Firewall interno ]</span>
+    │
+    ▼
+<span class="cmd">  LAN interna</span>   ← dati sensibili
+  File server · AD · PC utenti</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">🛡️</span>
+        <span>Il mail server sta in DMZ perché la porta <strong>25 SMTP</strong> deve essere aperta verso Internet. Se compromesso, l'attaccante è bloccato dal firewall interno.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Server tipicamente in DMZ</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Server</div>
+            <div class="proto-cell hl-blue w3">Motivo</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Mail Server</div>
+            <div class="proto-cell w3" style="text-align:left;padding-left:8px;">Porta 25 aperta su Internet</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Web Server</div>
+            <div class="proto-cell w3" style="text-align:left;padding-left:8px;">HTTP/HTTPS pubblici</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">FTP Server</div>
+            <div class="proto-cell w3" style="text-align:left;padding-left:8px;">Scambio file con esterni</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">DNS pubblico</div>
+            <div class="proto-cell w3" style="text-align:left;padding-left:8px;">Query da Internet</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">VPN Gateway</div>
+            <div class="proto-cell w3" style="text-align:left;padding-left:8px;">Punto d'accesso controllato</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Active Directory — mai in DMZ</h3>
+        <p>Contiene <strong>tutte le credenziali</strong> aziendali. Se compromesso, l'attaccante ha accesso a tutto. Sta sempre nella LAN interna protetta.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — CPU vs GPU ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">CPU vs GPU — Filosofie diverse</h2>
+    <span class="section-num">08/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🧠 Core CPU — pochi ma potenti</h3>
+        <p style="margin-bottom:8px;">Ogni core è un processore <strong>complesso e sofisticato</strong>. Gestisce logica condizionale, eccezioni, memoria virtuale, esecuzione fuori ordine.</p>
+        <ul>
+          <li>8–64 core in una CPU moderna</li>
+          <li>Clock: 3–5 GHz</li>
+          <li>Ideale per: lavoro <strong>sequenziale complesso</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">👨‍⚕️</span>
+        <span>La CPU è come un <strong>chirurgo specialista</strong>: fa operazioni complesse, una alla volta, con grande precisione.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">⚡ Core GPU — tanti ma semplici</h3>
+        <p style="margin-bottom:8px;">Ogni core è un'unità <strong>piccola e semplice</strong> che sa fare poche cose: principalmente moltiplicazioni e addizioni tra numeri in parallelo.</p>
+        <ul>
+          <li>10.000+ core in una GPU moderna</li>
+          <li>Clock più basso, ma in parallelo massiccio</li>
+          <li>Ideale per: <strong>stessa operazione su milioni di dati</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🏭</span>
+        <span>La GPU è come un <strong>operaio in catena di montaggio</strong>: fa un'operazione semplice, ma in migliaia contemporaneamente.</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <div class="card">
+      <h3>Perché la GPU vince per l'AI</h3>
+      <p>Il calcolo AI è essenzialmente <strong>moltiplicazione tra matrici</strong> — miliardi di operazioni identiche su dati diversi. Con 16.000 core GPU le fai tutte contemporaneamente. Con 16 core CPU le fai una alla volta.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — TIPI DI CORE GPU ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">CUDA · Tensor · RT Core — Le differenze</h2>
+    <span class="section-num">09/14</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">⚡ CUDA Core</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Compute Unified Device Architecture</p>
+        <ul>
+          <li>Core <strong>generico</strong> base della GPU</li>
+          <li>Addizioni e moltiplicazioni su singoli numeri</li>
+          <li>Qualsiasi calcolo parallelo</li>
+          <li>H100 SXM5: <strong>16.896</strong> CUDA core</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔧</span>
+        <span style="font-size:0.82rem;">Presente da sempre. Prima che esistessero i Tensor core, tutto il calcolo AI passava di qui.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🧮 Tensor Core</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Introdotti con Volta (2017)</p>
+        <ul>
+          <li>Moltiplicazione di <strong>intere matrici</strong> in un ciclo</li>
+          <li>Operazione FMA su matrici 4×4</li>
+          <li>~15× più veloci dei CUDA per AI</li>
+          <li>H100 SXM5: <strong>528</strong> Tensor core</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🤖</span>
+        <span style="font-size:0.82rem;">Fondamentali per training e inferenza AI. Supportano FP8, FP16, BF16, INT8.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🔆 RT Core</h3>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Introdotti con Turing (2018)</p>
+        <ul>
+          <li>Accelerano il <strong>ray tracing</strong> in tempo reale</li>
+          <li>BVH traversal: capisce quali oggetti colpisce un raggio</li>
+          <li>Usati solo per grafica 3D</li>
+          <li>H100 SXM5: <strong>792</strong> RT core</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">💡</span>
+        <span style="font-size:0.82rem;">Nell'H100 (GPU solo AI) gli RT core ci sono ma non vengono mai usati. Come un'auto da corsa col portabagagli.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — TFLOPS ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">TFLOPS — Misura della Potenza di Calcolo</h2>
+    <span class="section-num">10/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Cos'è un TFLOP?</h3>
+        <p><strong>FLOP</strong> = Floating Point Operation = una singola operazione matematica su numeri decimali (es. 3.14 × 2.71).</p>
+        <p style="margin-top:6px;"><strong>TFLOPS</strong> = Tera FLOPS = <strong>1.000 miliardi di operazioni al secondo</strong>.</p>
+        <div class="proto-header" style="margin-top:8px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Unità</div>
+            <div class="proto-cell hl-blue w2">Operazioni/sec</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell">GFLOPS</div><div class="proto-cell w2">1.000.000.000</div></div>
+          <div class="proto-row"><div class="proto-cell hl">TFLOPS</div><div class="proto-cell hl w2">1.000.000.000.000</div></div>
+          <div class="proto-row"><div class="proto-cell">PFLOPS</div><div class="proto-cell w2">1.000.000.000.000.000</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>TFLOPS nel tempo</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Hardware</div>
+            <div class="proto-cell hl-blue">TFLOPS FP32</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell w2">PlayStation 3 (2006)</div><div class="proto-cell">0,2</div></div>
+          <div class="proto-row"><div class="proto-cell w2">Xbox Series X (2020)</div><div class="proto-cell">12</div></div>
+          <div class="proto-row"><div class="proto-cell w2">RTX 4090 (2022)</div><div class="proto-cell">83</div></div>
+          <div class="proto-row"><div class="proto-cell hl w2">H100 SXM5 FP16</div><div class="proto-cell hl">1.979</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">⚠️ TFLOPS dipende dalla precisione!</h3>
+        <p style="margin-bottom:8px;">Lo stesso chip ha valori molto diversi a seconda dei bit usati per ogni numero:</p>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Precisione</div>
+            <div class="proto-cell hl-blue">Bit</div>
+            <div class="proto-cell hl-blue">H100 SXM5</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell">FP64 (double)</div><div class="proto-cell">64</div><div class="proto-cell">34 TFLOPS</div></div>
+          <div class="proto-row"><div class="proto-cell">FP32 (single)</div><div class="proto-cell">32</div><div class="proto-cell">67 TFLOPS</div></div>
+          <div class="proto-row"><div class="proto-cell hl">FP16 (half)</div><div class="proto-cell hl">16</div><div class="proto-cell hl">1.979 TFLOPS</div></div>
+          <div class="proto-row"><div class="proto-cell hl">FP8</div><div class="proto-cell hl">8</div><div class="proto-cell hl">3.958 TFLOPS</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Quando si usa quale precisione?</h3>
+        <ul>
+          <li><strong>FP64</strong>: calcolo scientifico (fisica, simulazioni) — massima precisione</li>
+          <li><strong>FP16/BF16</strong>: training AI — buon equilibrio velocità/precisione</li>
+          <li><strong>FP8/INT8</strong>: inferenza AI — velocità massima</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">📦</span>
+        <span>Meno bit = scatole più piccole nel camion → ci entrano di più → più "viaggi" al secondo → TFLOPS più alti.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — H100 SPECS ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">NVIDIA H100 SXM5 — Specifiche Reali</h2>
+    <span class="section-num">11/14</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Architettura Hopper (2022)</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Componente</div>
+            <div class="proto-cell hl-blue">H100 SXM5</div>
+            <div class="proto-cell hl-blue">GH100 completo</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Streaming Multiprocessor</div>
+            <div class="proto-cell hl">132 SM</div>
+            <div class="proto-cell">144 SM</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">CUDA core</div>
+            <div class="proto-cell hl">16.896</div>
+            <div class="proto-cell">18.432</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Tensor core (4a gen)</div>
+            <div class="proto-cell hl">528</div>
+            <div class="proto-cell">576</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">RT core (3a gen)</div>
+            <div class="proto-cell hl">792</div>
+            <div class="proto-cell">864</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Memoria HBM3</div>
+            <div class="proto-cell hl">80 GB</div>
+            <div class="proto-cell">—</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2">Transistor</div>
+            <div class="proto-cell hl" colspan="2">80 miliardi (TSMC 4N)</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Il <strong>GH100 completo</strong> (144 SM) non viene venduto così. L'H100 SXM5 ha 132 SM attivi. La versione PCIe ha ancora meno SM.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Transformer Engine</h3>
+        <p>Feature esclusiva dell'H100: sceglie <strong>automaticamente</strong> tra FP8 e FP16 layer per layer durante il training, ottimizzando velocità e precisione senza intervento manuale.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">NVLink — GPU a GPU</h3>
+        <p>Interconnessione proprietaria NVIDIA. Nell'H100: <strong>900 GB/s</strong> di banda GPU-to-GPU. Permette a 8 GPU in un DGX di lavorare come un'unica GPU enorme.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Costo</h3>
+        <p>Una singola H100 SXM5: circa <strong>30.000–40.000 $</strong>. Un sistema DGX H100 (8 GPU): circa <strong>300.000 $</strong>. Un cluster da 10.000 GPU: oltre <strong>300 milioni $</strong>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — TRAINING vs INFERENZA ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Training vs Inferenza — Bit e Potenza di Calcolo</h2>
+    <span class="section-num">12/15</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">🔴 Training — addestrare il modello</h3>
+        <ul>
+          <li><strong>Scopo:</strong> calcolare e aggiornare miliardi di parametri (pesi)</li>
+          <li><strong>Precisione usata:</strong> <span style="color:var(--accent3);font-family:'JetBrains Mono',monospace;">FP16 / BF16</span> (16 bit)</li>
+          <li><strong>Perché 16 bit?</strong> Serve abbastanza precisione per aggiornare i pesi correttamente, ma meno memoria e più velocità rispetto a FP32</li>
+          <li><strong>Potenza richiesta:</strong> massima — si usano migliaia di GPU per settimane o mesi</li>
+          <li><strong>Costo energetico:</strong> altissimo, non ripetibile spesso</li>
+          <li><strong>Si fa:</strong> una volta sola (o raramente, per nuove versioni)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">🟢 Inferenza — rispondere agli utenti</h3>
+        <ul>
+          <li><strong>Scopo:</strong> usare il modello già addestrato per generare risposte</li>
+          <li><strong>Precisione usata:</strong> <span style="color:var(--accent1);font-family:'JetBrains Mono',monospace;">FP8 / INT8</span> (8 bit)</li>
+          <li><strong>Perché 8 bit?</strong> Il modello è già addestrato — la precisione ridotta introduce errori trascurabili ma raddoppia la velocità e dimezza la memoria</li>
+          <li><strong>Potenza richiesta:</strong> minore del training, ma <strong>sempre attiva</strong> 24/7</li>
+          <li><strong>Si fa:</strong> continuamente, ad ogni richiesta utente</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Confronto diretto</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue w2">Aspetto</div>
+            <div class="proto-cell hl-red">Training</div>
+            <div class="proto-cell hl">Inferenza</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Precisione</div>
+            <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;">FP16 / BF16</div>
+            <div class="proto-cell" style="font-family:'JetBrains Mono',monospace;">FP8 / INT8</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Bit per numero</div>
+            <div class="proto-cell">16 bit</div>
+            <div class="proto-cell">8 bit</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">TFLOPS H100</div>
+            <div class="proto-cell">1.979 (FP16)</div>
+            <div class="proto-cell">3.958 (FP8)</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">GPU necessarie</div>
+            <div class="proto-cell hl-red">Migliaia</div>
+            <div class="proto-cell hl">Centinaia</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Durata</div>
+            <div class="proto-cell hl-red">Settimane/mesi</div>
+            <div class="proto-cell hl">Millisecondi</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Frequenza</div>
+            <div class="proto-cell">Una volta</div>
+            <div class="proto-cell hl">24/7 continua</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2" style="text-align:left;padding-left:8px;">Costo energetico</div>
+            <div class="proto-cell hl-red">Enorme</div>
+            <div class="proto-cell hl-yel">Medio (ma costante)</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">💡</span>
+        <span>Quando scrivi a Claude ora, la tua richiesta va su server di <strong>inferenza FP8</strong>. Il training di Claude è già avvenuto mesi fa con <strong>FP16</strong> su cluster enormi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — CLUSTER AI ═══ -->
+<div class="slide" data-section="gpu">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Cluster AI — L'infrastruttura reale</h2>
+    <span class="section-num">13/15</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">GPU stimate per training</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Modello</div>
+            <div class="proto-cell hl-blue">GPU stimate</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell">GPT-4 (OpenAI)</div><div class="proto-cell">~25.000 A100</div></div>
+          <div class="proto-row"><div class="proto-cell">Gemini (Google)</div><div class="proto-cell">~100.000+ TPU</div></div>
+          <div class="proto-row"><div class="proto-cell">LLaMA 3 (Meta)</div><div class="proto-cell">~100.000 H100</div></div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🌐</span>
+        <span>Anthropic usa infrastruttura <strong>AWS</strong> e chip <strong>AWS Trainium</strong> per il training di Claude.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">GPU stimate per training</h3>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Modello</div>
+            <div class="proto-cell hl-blue">GPU stimate</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell">GPT-4 (OpenAI)</div><div class="proto-cell">~25.000 A100</div></div>
+          <div class="proto-row"><div class="proto-cell">Gemini (Google)</div><div class="proto-cell">~100.000+ TPU</div></div>
+          <div class="proto-row"><div class="proto-cell">LLaMA 3 (Meta)</div><div class="proto-cell">~100.000 H100</div></div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🌐</span>
+        <span>Anthropic usa infrastruttura <strong>AWS</strong> e chip <strong>AWS Trainium</strong> per il training di Claude.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3>Schema cluster</h3>
+        <pre><span class="ok">┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐</span>
+<span class="ok">│ DGX │ │ DGX │ │ DGX │ │ DGX │</span>
+<span class="ok">│8 GPU│ │8 GPU│ │8 GPU│ │8 GPU│</span>
+<span class="ok">└──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘</span>
+   └────────┴────────┴───────┘
+   <span class="cmd">rete InfiniBand NDR (400 Gbps)</span>
+   <span class="cmt">vs 10 Gbps del cablaggio aziendale</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il data center AI</h3>
+        <ul>
+          <li>⚡ <strong>Consumo</strong>: un cluster da 100.000 GPU = una piccola città</li>
+          <li>❄️ <strong>Raffreddamento</strong>: a liquido direttamente sui chip</li>
+          <li>🏭 <strong>Spazio</strong>: capannoni industriali interi</li>
+          <li>💰 <strong>Costo</strong>: miliardi di euro per un data center AI</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Google TPU</h3>
+        <p>Google ha progettato chip propri: <strong>TPU (Tensor Processing Unit)</strong>, ottimizzati esclusivamente per AI. Non li vende, uso solo interno.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — MAPPA CONCETTUALE ═══ -->
+<div class="slide" data-section="mappa">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Mappa Concettuale</h2>
+    <span class="section-num">14/15</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:10px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent1);font-size:0.8rem;margin-bottom:6px;">CABLAGGIO STRUTTURATO</div>
+        <div style="font-size:0.75rem;color:var(--ct);">CD (2000m) → BD (500m) → FD (90m) → TO (5m)</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">Verticale VCC · Orizzontale HCC</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">Rame nell'orizzontale · Fibra nelle dorsali</div>
+      </div>
+      <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.25);border-radius:8px;padding:10px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent4);font-size:0.8rem;margin-bottom:6px;">SERVER AZIENDALI</div>
+        <div style="font-size:0.75rem;color:var(--ct);">Tower → PMI · Rack → aziende · Blade → data center</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">File · FTP · Web · App · Mail · AD · VNC</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">DMZ: Mail · Web · FTP / LAN: AD · File server</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:10px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2);font-size:0.8rem;margin-bottom:6px;">GPU & AI HARDWARE</div>
+        <div style="font-size:0.75rem;color:var(--ct);">CUDA (generico) · Tensor (AI) · RT (grafica)</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">TFLOPS dipende da precisione FP64→FP8</div>
+        <div style="font-size:0.75rem;color:var(--ct);margin-top:4px;">H100: 16.896 CUDA · 528 Tensor · 792 RT</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Concetti chiave da ricordare</h3>
+        <ul>
+          <li>Il cablaggio orizzontale usa rame perché: <strong>90m sono sufficienti, PoE, costo, compatibilità</strong></li>
+          <li>La fibra nelle dorsali per: <strong>banda, scalabilità, isolamento galvanico, EMI</strong></li>
+          <li>Mail server in DMZ: porta <strong>25 SMTP</strong> deve essere aperta su Internet</li>
+          <li>Active Directory <strong>mai in DMZ</strong>: contiene tutte le credenziali</li>
+          <li>TFLOPS è sempre riferito a una <strong>precisione specifica</strong> (FP32, FP16, FP8...)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Differenze fondamentali</h3>
+        <ul>
+          <li><strong>File server vs FTP</strong>: LAN/diretto vs Internet/esplicito</li>
+          <li><strong>Web server vs App server</strong>: statico vs logica dinamica</li>
+          <li><strong>VNC vs Telnet</strong>: desktop grafico vs riga di comando</li>
+          <li><strong>CPU core vs GPU core</strong>: complesso/pochi vs semplice/tantissimi</li>
+          <li><strong>CUDA vs Tensor</strong>: generico vs matrici per AI (15× più veloce)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Riepilogo</h2>
+    <span class="section-num">15/15</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 Cablaggio Strutturato</h3>
+        <ul>
+          <li>Gerarchia: <strong>CD → BD → FD → TO</strong> con distanze massime 2000/500/90/5 m</li>
+          <li>VCC (verticale/dorsale) usa fibra · HCC (orizzontale) usa rame Cat.6A</li>
+          <li>UTP per uffici, STP per ambienti industriali con EMI</li>
+          <li>Fibra nelle dorsali: banda, scalabilità, isolamento galvanico</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 Server Aziendali</h3>
+        <ul>
+          <li>Tower (PMI) · Rack (aziende) · Blade (data center)</li>
+          <li>File server (SMB/LAN) vs FTP (Internet/esplicito)</li>
+          <li>Web server (statico) + App server (logica) + DB = stack completo</li>
+          <li>Mail server in DMZ · Active Directory nella LAN interna</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 GPU e Hardware AI</h3>
+        <ul>
+          <li>CPU: pochi core complessi · GPU: migliaia di core semplici in parallelo</li>
+          <li>CUDA core (generico) · Tensor core (AI, 15× più veloce) · RT core (grafica)</li>
+          <li>H100 SXM5: 16.896 CUDA · 528 Tensor · 792 RT</li>
+          <li>TFLOPS dipende dalla precisione: FP64 (34T) → FP8 (3.958T)</li>
+          <li><strong>Training:</strong> FP16/BF16 — massima precisione, settimane, migliaia di GPU</li>
+          <li><strong>Inferenza:</strong> FP8/INT8 — velocità massima, millisecondi, 24/7</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 Cluster AI</h3>
+        <ul>
+          <li>Training vs Inferenza: cluster enormi vs cluster sempre attivi</li>
+          <li>InfiniBand 400 Gbps vs Ethernet 10 Gbps aziendale</li>
+          <li>Raffreddamento a liquido, consumo energetico enorme</li>
+          <li>Google TPU, AWS Trainium: chip proprietari per AI</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Prossimi argomenti:</strong> Sicurezza delle reti — Firewall, IDS/IPS, DMZ avanzata, VPN, crittografia e protocolli sicuri.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':     'Introduzione',
+    'cablaggio': 'Cablaggio Strutturato',
+    'server':    'Server Aziendali',
+    'gpu':       'GPU · AI Hardware',
+    'mappa':     'Mappa Concettuale',
+    'riepilogo': 'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', e => { _touchStartX = e.touches[0].clientX; _touchStartY = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - _touchStartX;
+    const dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1); else goTo(current - 1);
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
