@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Verifica di Sistemi e Reti – Polo Ospedaliero</title>
+<style>
+  @page {
+    size: A4;
+    margin: 1.8cm;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Cambria', 'Georgia', 'Times New Roman', serif;
+    font-size: 11pt;
+    color: #222;
+    max-width: 21cm;
+    margin: 0 auto;
+    padding: 1.5cm 1.8cm;
+    background: #fafafa;
+    line-height: 1.45;
+  }
+
+  @media print {
+    body {
+      background: white;
+      padding: 0;
+      max-width: 100%;
+    }
+    .question-block, .ex-block { page-break-inside: avoid; }
+    .answer-box { page-break-inside: avoid; }
+  }
+
+  h1.institute {
+    color: #1F4E79;
+    font-size: 14pt;
+    text-align: center;
+    margin: 0 0 0.2em 0;
+    letter-spacing: 0.5px;
+  }
+
+  h2.subtitle {
+    text-align: center;
+    font-size: 13pt;
+    margin: 0 0 1.5em 0;
+    font-weight: bold;
+    color: #1F4E79;
+  }
+
+  table.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.6em;
+  }
+
+  table.info-table td {
+    border: 1px solid #555;
+    padding: 0.55em 0.7em;
+    width: 50%;
+    font-size: 10.5pt;
+  }
+
+  .scenario-header,
+  .question-header,
+  .ex-header {
+    background-color: #DEEBF7;
+    color: #1F4E79;
+    font-weight: bold;
+    padding: 0.45em 0.9em;
+    margin-top: 1.4em;
+    margin-bottom: 0.4em;
+    font-size: 11pt;
+    border-left: 4px solid #1F4E79;
+  }
+
+  .scenario-body {
+    padding: 0 0.6em;
+    text-align: justify;
+    margin-bottom: 0.8em;
+  }
+
+  .meta-bar {
+    display: flex;
+    justify-content: space-between;
+    background-color: #FFF2CC;
+    border: 1px solid #FFC000;
+    padding: 0.55em 0.9em;
+    margin: 1em 0 1.6em 0;
+    font-size: 10.5pt;
+    font-weight: bold;
+    color: #7F6000;
+  }
+
+  .question-points,
+  .ex-points {
+    color: #6e6e6e;
+    font-weight: normal;
+    font-size: 10pt;
+    float: right;
+  }
+
+  .question-body,
+  .ex-body {
+    padding: 0 0.6em;
+    margin-bottom: 0.6em;
+    text-align: justify;
+  }
+
+  /* Spazio per la risposta a righe */
+  .answer-box {
+    width: 100%;
+    border: 1px solid #B4C7E7;
+    border-collapse: collapse;
+    margin: 0.4em 0 1.2em 0;
+  }
+
+  .answer-box tr {
+    height: 1.7em;
+  }
+
+  .answer-box td {
+    border-bottom: 1px solid #DEEBF7;
+    padding: 0;
+  }
+
+  .answer-box tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Tabelle degli esercizi */
+  table.ex-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5em 0 1.4em 0;
+    font-size: 10pt;
+  }
+
+  table.ex-table th {
+    background-color: #2E75B6;
+    color: white;
+    padding: 0.55em 0.4em;
+    border: 1px solid #1F4E79;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  table.ex-table td {
+    border: 1px solid #BFBFBF;
+    padding: 0.5em 0.4em;
+    text-align: center;
+    height: 2em;
+  }
+
+  table.ex-table td.label {
+    background-color: #DEEBF7;
+    font-weight: bold;
+    color: #1F4E79;
+  }
+
+  table.ex-table td.given {
+    background-color: #F2F2F2;
+    font-weight: bold;
+  }
+
+  table.ex-table td.empty {
+    background-color: #FFFBEA;
+  }
+
+  /* Blocco CLI Cisco IOS */
+  .cli-block {
+    margin: 0.6em 0 1em 0;
+    border: 1px solid #2D2D2D;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  .cli-header {
+    background: linear-gradient(to bottom, #3A3A3A, #2D2D2D);
+    color: #F8F8F2;
+    padding: 0.45em 0.9em;
+    font-size: 10pt;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+  }
+
+  .cli-body {
+    margin: 0;
+    padding: 0.9em 1em;
+    background: #1E1E1E;
+    color: #F8F8F2;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 10.5pt;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+  }
+
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #F2F2F2;
+    color: #1F4E79;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10pt;
+  }
+
+  @media print {
+    .cli-body {
+      background: #F8F8F8;
+      color: #1A1A1A;
+      border: 1px solid #999;
+    }
+    .cli-header {
+      background: #DDDDDD;
+      color: #1A1A1A;
+    }
+  }
+
+  /* Diagramma topologia (immagine) */
+  .topology-img {
+    text-align: center;
+    margin: 1em 0 1.4em 0;
+  }
+
+  .topology-img img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #B4C7E7;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .note {
+    font-size: 9.5pt;
+    color: #555;
+    font-style: italic;
+    margin-top: -0.5em;
+    margin-bottom: 0.8em;
+    padding-left: 0.6em;
+  }
+
+  ul.compact {
+    margin: 0.3em 0 0.5em 1.4em;
+    padding: 0;
+  }
+
+  ul.compact li {
+    margin-bottom: 0.15em;
+  }
+
+  .footer {
+    margin-top: 2em;
+    padding-top: 0.8em;
+    border-top: 1px solid #B4C7E7;
+    font-size: 9.5pt;
+    color: #6e6e6e;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="institute">I.T.T. &ldquo;U. MIDOSSI&rdquo; &ndash; INDIRIZZO INFORMATICA E TELECOMUNICAZIONI</h1>
+<h2 class="subtitle">Verifica di Sistemi e Reti</h2>
+
+<div class="scenario-header">SCENARIO DI RIFERIMENTO</div>
+<div class="scenario-body">
+  <p>Il <strong>Polo Ospedaliero Universitario &ldquo;Santa Maria della Salute&rdquo;</strong> intende realizzare la nuova infrastruttura di rete della propria sede centrale e di quattro presidi sanitari territoriali. La sede centrale ospita sei reparti (<em>Direzione Sanitaria, Pronto Soccorso, Reparti di Degenza, Diagnostica per Immagini, Laboratorio Analisi e Amministrazione</em>) con complessivamente oltre <strong>540 postazioni</strong> di lavoro fra PC, workstation diagnostiche e dispositivi clinici. Ogni presidio territoriale dispone di circa 12 postazioni per medici e personale infermieristico, oltre a tablet e dispositivi mobili usati per consultare le cartelle cliniche elettroniche.</p>
+  <p>Il <strong>portale CUP online</strong> per la prenotazione delle visite e il <strong>servizio di telemedicina</strong> devono essere accessibili da Internet in modo sicuro, collocati in una zona di rete separata dai sistemi clinici interni. I medici reperibili e gli specialisti esterni devono poter accedere alle risorse interne tramite connessione cifrata da sedi remote. Il personale sanitario utilizza una <strong>rete Wi-Fi dedicata</strong> per la gestione delle attività cliniche, mentre i pazienti dispongono di una <strong>rete Wi-Fi guest</strong> separata. Le ambulanze e le unità mobili sul territorio si collegano al sistema informativo ospedaliero tramite reti cellulari 4G/5G.</p>
+  <p>Le domande e gli esercizi seguenti fanno riferimento a questa realtà. Dove necessario, è possibile formulare ipotesi aggiuntive purché dichiarate esplicitamente.</p>
+</div>
+
+<div class="meta-bar">
+  <span>Durata della prova: 2 ore</span>
+  <span>Punteggio totale: 10 punti</span>
+</div>
+
+<!-- ===================== DOMANDA 1 ===================== -->
+<div class="question-block">
+  <div class="question-header">DOMANDA 1 &ndash; ROUTING STATICO E DINAMICO <span class="question-points">/ 1,5 punti</span></div>
+  <div class="question-body">
+    <p>Spiega la differenza tra <strong>routing statico</strong> e <strong>routing dinamico</strong>. Descrivi almeno due protocolli di routing dinamico (ad es. <em>RIP</em> e <em>OSPF</em>), indicandone le principali caratteristiche (metrica, tipo di algoritmo, scalabilità). Motiva poi la scelta tra routing statico e dinamico nel contesto della rete ospedaliera: quale utilizzeresti per collegare i quattro presidi territoriali alla sede centrale e perché?</p>
+  </div>
+</div>
+
+<!-- ===================== DOMANDA 2 ===================== -->
+<div class="question-block">
+  <div class="question-header">DOMANDA 2 &ndash; DMZ E FIREWALL <span class="question-points">/ 1 punto</span></div>
+  <div class="question-body">
+    <p>Spiega il concetto di <strong>DMZ (Zona Demilitarizzata)</strong> e il ruolo del <strong>firewall</strong> nella protezione della rete ospedaliera. Perché il portale CUP online e il servizio di telemedicina devono essere collocati in una DMZ separata dai sistemi clinici interni? Descrivi la topologia tipica con due firewall (oppure un firewall a tre interfacce: outside / DMZ / inside), specificando quali tipologie di traffico vengono consentite o bloccate tra le diverse zone.</p>
+  </div>
+</div>
+
+<!-- ===================== DOMANDA 3 ===================== -->
+<div class="question-block">
+  <div class="question-header">DOMANDA 3 &ndash; VIRTUAL PRIVATE NETWORK (VPN) <span class="question-points">/ 1,5 punti</span></div>
+  <div class="question-body">
+    <p>Spiega cos&rsquo;è una <strong>VPN (Virtual Private Network)</strong> e i suoi vantaggi in termini di sicurezza ed economicità rispetto ad una linea dedicata. Descrivi poi la differenza tra <strong>VPN site-to-site</strong> e <strong>VPN remote access (host-to-LAN)</strong>, indicando per ciascuna un caso d&rsquo;uso coerente con il Polo Ospedaliero (ad esempio: quale soluzione adotteresti per collegare i presidi alla sede centrale e quale per i medici reperibili che si connettono dall&rsquo;esterno).</p>
+  </div>
+</div>
+
+<!-- ===================== ESERCIZIO 1 ===================== -->
+<div class="ex-block">
+  <div class="ex-header">ESERCIZIO 1 &ndash; SUBNETTING PER UN PRESIDIO TIPO <span class="ex-points">/ 2 punti</span></div>
+  <div class="ex-body">
+    <p>All&rsquo;Ufficio Sistemi Informativi del Polo Ospedaliero viene assegnato lo spazio <strong>172.16.0.0/22</strong> per indirizzare la rete di un <em>presidio territoriale tipo</em>.</p>
+    <p>Suddividi l&rsquo;indirizzo in subnet distinte in modo da soddisfare i requisiti riportati nella tabella seguente, considerando che ogni segmento è collegato fisicamente ad un router e che la quantità di indirizzi assegnata a ciascuna subnet deve essere il più possibile aderente al numero di host effettivamente necessari (evitare sprechi di indirizzi).</p>
+  </div>
+
+  <table class="ex-table">
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:22%">Segmento di rete</th>
+        <th style="width:9%">Host necessari</th>
+        <th style="width:16%">Indirizzo di rete</th>
+        <th style="width:16%">Subnet mask</th>
+        <th style="width:16%">Indirizzo broadcast</th>
+        <th style="width:17%">Range host utilizzabili</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="label">1</td>
+        <td class="label">Wi-Fi tablet medici</td>
+        <td>400</td>
+        <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+      </tr>
+      <tr>
+        <td class="label">2</td>
+        <td class="label">Personale ambulatoriale</td>
+        <td>14</td>
+        <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+      </tr>
+      <tr>
+        <td class="label">3</td>
+        <td class="label">Apparecchiature diagnostiche</td>
+        <td>7</td>
+        <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+      </tr>
+      <tr>
+        <td class="label">4</td>
+        <td class="label">Gestione locale</td>
+        <td>2</td>
+        <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+      </tr>
+      <tr>
+        <td class="label">5</td>
+        <td class="label">Collegamento WAN (punto-punto)</td>
+        <td>2</td>
+        <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== ESERCIZIO 2 ===================== -->
+<div class="ex-block">
+  <div class="ex-header">ESERCIZIO 2 &ndash; TABELLE DI ROUTING <span class="ex-points">/ 2 punti</span></div>
+  <div class="ex-body">
+    <p>La figura seguente rappresenta la topologia semplificata della rete del Polo Ospedaliero, composta da tre router: <strong>R_Sede</strong>, <strong>R_Presidio1</strong> e <strong>R_Presidio2</strong>, collegati tramite link punto-punto.</p>
+  </div>
+
+  <div class="topology-img">
+    <img src="topologia_esercizio2.png" alt="Topologia di rete del Polo Ospedaliero – tre router collegati in triangolo">
+  </div>
+
+  <p><strong>A)</strong> Completa la tabella di routing statica di <strong>R_Sede</strong> (le reti direttamente connesse sono già indicate; inserisci le rotte statiche mancanti):</p>
+
+  <table class="ex-table">
+    <thead>
+      <tr>
+        <th>Rete destinazione</th>
+        <th>Subnet mask</th>
+        <th>Next-hop (gateway)</th>
+        <th>Interfaccia uscita</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="given">172.16.8.0</td>
+        <td class="given">255.255.252.0</td>
+        <td class="given">&mdash;</td>
+        <td class="given">fa0/0</td>
+      </tr>
+      <tr>
+        <td class="given">10.1.1.0</td>
+        <td class="given">255.255.255.252</td>
+        <td class="given">&mdash;</td>
+        <td class="given">fa0/1</td>
+      </tr>
+      <tr>
+        <td class="given">10.1.3.0</td>
+        <td class="given">255.255.255.252</td>
+        <td class="given">&mdash;</td>
+        <td class="given">fa1/0</td>
+      </tr>
+      <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+      <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+      <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+      <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>B)</strong> Configura il <strong>routing dinamico OSPF</strong> su <strong>R_Presidio1</strong> utilizzando la sintassi della <strong>CLI di Cisco IOS</strong>. Scrivi tutti i comandi necessari per:</p>
+  <ul class="compact">
+    <li>entrare in modalità di configurazione globale;</li>
+    <li>attivare il processo OSPF (process-id 10);</li>
+    <li>annunciare tutte le reti direttamente connesse in <em>area 0</em> usando la wildcard mask corretta.</li>
+  </ul>
+
+  <div class="cli-block">
+    <div class="cli-header">CLI Cisco IOS &mdash; R_Presidio1</div>
+    <pre class="cli-body">R_Presidio1&gt; enable
+R_Presidio1# ____________________________________________________
+R_Presidio1(config)# ____________________________________________
+R_Presidio1(config-router)# _____________________________________
+R_Presidio1(config-router)# _____________________________________
+R_Presidio1(config-router)# _____________________________________
+R_Presidio1(config-router)# exit
+R_Presidio1(config)# exit
+R_Presidio1#</pre>
+  </div>
+
+</div>
+
+<!-- ===================== ESERCIZIO 3 ===================== -->
+<div class="ex-block">
+  <div class="ex-header">ESERCIZIO 3 &ndash; CONFIGURAZIONE ACL ESTESA SU CISCO IOS <span class="ex-points">/ 2 punti</span></div>
+  <div class="ex-body">
+    <p>Sul router <strong>R_Sede</strong>, configura una <strong>ACL estesa</strong> utilizzando la sintassi della <strong>CLI di Cisco IOS</strong> per implementare la seguente politica di sicurezza:</p>
+    <ul class="compact">
+      <li>consentire al <strong>Pronto Soccorso</strong> (<code>172.16.8.0/24</code>) di accedere al <strong>server delle cartelle cliniche</strong> (<code>172.16.11.10</code>) sulla porta TCP 443 (HTTPS);</li>
+      <li>negare esplicitamente al Pronto Soccorso l&rsquo;accesso SSH (porta TCP 22) verso lo stesso server;</li>
+      <li>consentire tutto il resto del traffico.</li>
+    </ul>
+    <p>Scrivi anche il comando di applicazione dell&rsquo;ACL sull&rsquo;interfaccia, indicandone la direzione (<em>in</em> / <em>out</em>) e motivando brevemente la scelta.</p>
+  </div>
+
+  <div class="cli-block">
+    <div class="cli-header">CLI Cisco IOS &mdash; R_Sede</div>
+    <pre class="cli-body">R_Sede&gt; enable
+R_Sede# configure terminal
+R_Sede(config)# _________________________________________________
+R_Sede(config)# _________________________________________________
+R_Sede(config)# _________________________________________________
+R_Sede(config)# interface _______________________________________
+R_Sede(config-if)# ______________________________________________</pre>
+  </div>
+</div>
+
+<div class="footer">
+  Verifica di Sistemi e Reti &ndash; Classe 5&deg; ITT Informatica e Telecomunicazioni &ndash; A.S. 2025/2026
+</div>
+
+</body>
+</html>
