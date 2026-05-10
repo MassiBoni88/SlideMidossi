@@ -304,8 +304,13 @@
 
 <span class="kw">int</span> <span class="fn">sommaDiag</span>(<span class="kw">int</span> m[][N], <span class="kw">bool</span> principale) {
   <span class="kw">int</span> s <span class="op">=</span> <span class="num">0</span>;
-  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> N; i<span class="op">++</span>)
-    s <span class="op">+=</span> principale <span class="op">?</span> m[i][i] : m[i][N<span class="op">-</span><span class="num">1</span><span class="op">-</span>i];
+  <span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> N; i<span class="op">++</span>) {
+    <span class="kw">if</span> (principale <span class="op">==</span> <span class="kw">true</span>) {
+      s <span class="op">+=</span> m[i][i];
+    } <span class="kw">else</span> {
+      s <span class="op">+=</span> m[i][N<span class="op">-</span><span class="num">1</span><span class="op">-</span>i];
+    }
+  }
   <span class="kw">return</span> s;
 }
 
@@ -325,7 +330,8 @@
   <span class="kw">if</span> (<span class="fn">sommaDiag</span>(m, <span class="kw">true</span>)  <span class="op">!=</span> riferimento) magica <span class="op">=</span> <span class="kw">false</span>;
   <span class="kw">if</span> (<span class="fn">sommaDiag</span>(m, <span class="kw">false</span>) <span class="op">!=</span> riferimento) magica <span class="op">=</span> <span class="kw">false</span>;
 
-  cout <span class="op">&lt;&lt;</span> (magica <span class="op">?</span> <span class="str">"Magica"</span> : <span class="str">"Non magica"</span>);
+  <span class="kw">if</span> (magica <span class="op">==</span> <span class="kw">true</span>) cout <span class="op">&lt;&lt;</span> <span class="str">"Magica"</span>;
+  <span class="kw">else</span> cout <span class="op">&lt;&lt;</span> <span class="str">"Non magica"</span>;
   <span class="kw">return</span> <span class="num">0</span>;
 }</pre>
     </div>
