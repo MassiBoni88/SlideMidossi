@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Gestione Biblioteca</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>GESTIONE BIBLIOTECA</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array,<br>funzioni, stringhe, cicli</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Una biblioteca comunale vuole informatizzare la gestione del proprio catalogo libri.
+    Il tuo compito è realizzare un programma C++ che permetta di <strong>registrare i libri
+    in catalogo</strong>, consultare le schede dei volumi, cercare un libro per nome dell'autore
+    e analizzare l'andamento dei <strong>prestiti negli ultimi 6 mesi</strong>.
+    Ogni libro è associato a un autore, rappresentato tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Autore</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome e cognome dell'autore</td></tr>
+      <tr><td><code>nazionalita</code></td><td>es. "italiano", "inglese", "russo"</td></tr>
+      <tr><td><code>anno_nascita</code></td><td>anno di nascita dell'autore</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Libro</strong>, che contiene <strong>Autore</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>titolo</code></td><td>titolo del libro</td></tr>
+      <tr><td><code>genere</code></td><td>es. "romanzo", "saggistica", "fantasy", "storico"</td></tr>
+      <tr><td><code>copie_disponibili</code></td><td>numero di copie attualmente disponibili in biblioteca</td></tr>
+      <tr><td><code>prestiti</code></td><td>numero di prestiti per ciascuno degli ultimi 6 mesi</td></tr>
+      <tr><td><code>autore</code></td><td>Dati dell'autore</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni:</strong></p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>calcolaMediaPrestiti(Libro l)</code></td>
+        <td>Calcola e restituisce la media aritmetica dei 6 valori mensili di prestito (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>meseMaggioreAffluenza(Libro l)</code></td>
+        <td>Restituisce il <strong>numero del mese</strong> (da 1 a 6) in cui si sono registrati più prestiti</td>
+      </tr>
+      <tr>
+        <td><code>stampaLibro(Libro l)</code></td>
+        <td>Stampa tutti i campi del libro, inclusi quelli dell'autore annidato</td>
+      </tr>
+      <tr>
+        <td><code>inserisciLibro()</code></td>
+        <td>Legge da tastiera tutti i campi di Libro e di Autore, restituisce il Libro compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaPerAutore(Libro lib[], int n, string autore)</code></td>
+        <td>Restituisce l'indice del <strong>primo libro</strong> il cui campo <code>autore.nome</code> corrisponde alla stringa cercata; restituisce <code>-1</code> se non trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>20 libri</strong> e implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi libro</td>
+        <td>chiama <code>inserisciLibro</code>, salva il risultato nell'array e incrementa il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Visualizza catalogo</td>
+        <td>stampa tutti i libri presenti con <code>stampaLibro</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cerca per autore</td>
+        <td>chiede il nome dell'autore, usa <code>cercaPerAutore</code> e, se trovato, mostra la scheda completa del libro con <code>stampaLibro</code> e visualizza anche la media dei prestiti e il mese di maggiore affluenza</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTO ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> Per leggere una stringa con spazi usa <code>getline(cin, variabile)</code>.
+    Ricorda <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>.
+    Vale anche per i campi di Autore dentro <code>inserisciLibro</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Prestiti</td>
+        <td>Sempre 6 valori per libro, tutti &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Copie disponibili</td>
+        <td>Valore intero non negativo</td>
+      </tr>
+      <tr>
+        <td>Anno di nascita</td>
+        <td>Valore intero positivo (es. 1950)</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Autore deve essere dichiarata <em>prima</em> di Libro</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 20 libri; usa una variabile per contare quanti sono inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> la funzione <code>meseMaggioreAffluenza</code> deve restituire
+    un numero da <strong>1 a 6</strong> (non l'indice 0–5 dell'array).
+    Nella voce di menu 3, dopo aver trovato il libro, mostra entrambi i risultati:
+    media dei prestiti (con 2 decimali) <em>e</em> il mese con più prestiti.
+  </div>
+
+</body>
+</html>
