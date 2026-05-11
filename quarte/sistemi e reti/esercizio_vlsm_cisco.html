@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercizio VLSM e Routing Statico – Cisco</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      padding: 30px 20px;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white;
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.85; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px;
+      margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      color: #4a5568;
+      margin: 16px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── TOPOLOGY ── */
+    .topology {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: #58a6ff;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .topology .label  { color: #ffa657; }
+    .topology .device { color: #7ee787; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+
+    /* ── TABLES ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+    th {
+      background: #2b6cb0;
+      color: white;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+
+    .fill { background: #fffbeb !important; color: #975a16; font-style: italic; }
+    .fill-empty {
+      background: #fffbeb !important;
+      min-width: 160px;
+      border-bottom: 2px dashed #d69e2e;
+      height: 22px;
+      display: inline-block;
+    }
+
+    /* ── TASKS ── */
+    .task-list { counter-reset: task; list-style: none; }
+    .task-list li {
+      counter-increment: task;
+      padding: 10px 0 10px 48px;
+      border-bottom: 1px solid #edf2f7;
+      position: relative;
+      line-height: 1.6;
+    }
+    .task-list li:last-child { border-bottom: none; }
+    .task-list li::before {
+      content: counter(task);
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #2b6cb0;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .task-list li strong { color: #2b6cb0; }
+
+    /* ── CODE ── */
+    pre {
+      background: #1a202c;
+      color: #a0aec0;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin-top: 10px;
+      line-height: 1.7;
+    }
+    pre .cmd  { color: #68d391; }
+    pre .arg  { color: #faf089; }
+    pre .cmt  { color: #718096; font-style: italic; }
+    pre .blank {
+      display: inline-block;
+      border-bottom: 1px solid #718096;
+      min-width: 120px;
+      color: transparent;
+    }
+
+    /* ── MISC ── */
+    .info-box {
+      background: #ebf8ff;
+      border-left: 4px solid #3182ce;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .warn-box {
+      background: #fffff0;
+      border-left: 4px solid #d69e2e;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .tag {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag-r1 { background: #c6f6d5; color: #276749; }
+    .tag-r2 { background: #fed7d7; color: #9b2c2c; }
+    .tag-wan { background: #e9d8fd; color: #553c9a; }
+
+    .section-sep {
+      border: none;
+      border-top: 2px dashed #cbd5e0;
+      margin: 26px 0;
+    }
+
+    .points {
+      float: right;
+      background: #edf2f7;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      color: #718096;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #a0aec0;
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <h1>Esercizio: VLSM e Routing Statico</h1>
+    <p>Subnetting con Variable Length Subnet Mask su rete Classe A &mdash; configurazione Cisco IOS</p>
+    <span class="badge">Cisco Packet Tracer / GNS3</span>
+    <span class="badge">Livello: Intermedio</span>
+    <span class="badge">Tempo stimato: 60 min</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p style="line-height:1.7; margin-bottom:12px;">
+      Un'azienda dispone di due sedi collegate tramite un link seriale punto-punto.
+      Ogni sede possiede <strong>tre reti locali</strong> (LAN) con requisiti di host differenti.
+      Il reparto IT ha assegnato lo spazio di indirizzamento <strong>10.0.0.0/8</strong> (Classe A) da
+      suddividere interamente con tecnica <strong>VLSM</strong>, ottimizzando il consumo degli indirizzi.
+    </p>
+    <div class="warn-box">
+      <strong>Vincolo VLSM:</strong> Ordina sempre le sottoreti dal numero di host
+      <em>maggiore al minore</em> prima di assegnare i blocchi, per evitare sprechi e sovrapposizioni.
+    </div>
+  </div>
+
+  <!-- TOPOLOGIA -->
+  <div class="card">
+    <h2>Topologia di rete</h2>
+    <div class="topology">
+<span class="label">         SEDE 1 (R1)                               SEDE 2 (R2)</span>
+<span class="label">  ┌────────────────────┐                   ┌────────────────────┐</span>
+  │                    │                   │                    │
+  │  <span class="net">LAN_A</span> [<span class="label">50 host</span>]  │                   │  <span class="net">LAN_D</span> [<span class="label">100 host</span>] │
+  │  <span class="net">LAN_B</span> [<span class="label">25 host</span>]  │                   │  <span class="net">LAN_E</span> [<span class="label"> 30 host</span>] │
+  │  <span class="net">LAN_C</span> [<span class="label">10 host</span>]  │                   │  <span class="net">LAN_F</span> [<span class="label"> 14 host</span>] │
+  │                    │                   │                    │
+  │   <span class="device">[R1]</span>             │                   │            <span class="device">[R2]</span>   │
+  │  Gi0/0 Gi0/1 Gi0/2 │                   │ Gi0/0 Gi0/1 Gi0/2  │
+  <span class="label">└──────────┬─────────┘                   └──────────┬─────────┘</span>
+             │  <span class="device">Se0/0/0</span>                             <span class="device">Se0/0/0</span>  │
+             │<span class="link"> ──────────────── Link WAN /30 ──────────────── </span>│
+             <span class="link">└─────────────────────────────────────────────────┘</span>
+    </div>
+
+    <h3>Interfacce</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Router</th><th>Interfaccia</th><th>Collegamento</th><th>Indirizzo IP</th><th>Subnet Mask</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-r1">R1</span></td><td>GigabitEthernet0/0</td><td>LAN_A (50 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r1">R1</span></td><td>GigabitEthernet0/1</td><td>LAN_B (25 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r1">R1</span></td><td>GigabitEthernet0/2</td><td>LAN_C (10 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r1">R1</span></td><td>Serial0/0/0</td><td>Link WAN → R2</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r2">R2</span></td><td>GigabitEthernet0/0</td><td>LAN_D (100 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r2">R2</span></td><td>GigabitEthernet0/1</td><td>LAN_E (30 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r2">R2</span></td><td>GigabitEthernet0/2</td><td>LAN_F (14 host)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-r2">R2</span></td><td>Serial0/0/0</td><td>Link WAN → R1</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TASK 1: VLSM -->
+  <div class="card">
+    <h2>Parte 1 &mdash; Subnetting VLSM <span class="points">30 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Spazio di indirizzamento:</strong> <code>10.0.0.0/8</code> (Classe A)<br>
+      Suddividi l'intero spazio con VLSM per soddisfare i requisiti sotto indicati.
+      Ricorda di includere anche il <strong>link seriale R1&ndash;R2</strong> (necessita di soli 2 indirizzi host).
+    </div>
+
+    <h3>Requisiti di host (ordine VLSM)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Rete</th>
+          <th>Router</th>
+          <th>Host richiesti</th>
+          <th>Prefisso (/)</th>
+          <th>Host utilizzabili</th>
+          <th>Spreco</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>LAN_D</td><td><span class="tag tag-r2">R2</span></td><td>100</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>2</td><td>LAN_A</td><td><span class="tag tag-r1">R1</span></td><td>50</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>3</td><td>LAN_E</td><td><span class="tag tag-r2">R2</span></td><td>30</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>4</td><td>LAN_B</td><td><span class="tag tag-r1">R1</span></td><td>25</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>5</td><td>LAN_F</td><td><span class="tag tag-r2">R2</span></td><td>14</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>6</td><td>LAN_C</td><td><span class="tag tag-r1">R1</span></td><td>10</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>7</td><td>Link WAN</td><td><span class="tag tag-wan">R1–R2</span></td><td>2</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <hr class="section-sep">
+
+    <h3>Tabella di indirizzamento VLSM completa</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Rete</th>
+          <th>Indirizzo di rete</th>
+          <th>Subnet Mask</th>
+          <th>Prefisso</th>
+          <th>Primo host</th>
+          <th>Ultimo host</th>
+          <th>Broadcast</th>
+          <th>Gateway (interfaccia router)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>LAN_D</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>LAN_A</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>LAN_E</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>LAN_B</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>LAN_F</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>LAN_C</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Link WAN</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TASK 2: CONFIGURAZIONE INTERFACCE -->
+  <div class="card">
+    <h2>Parte 2 &mdash; Configurazione interfacce <span class="points">25 punti</span></h2>
+
+    <div class="info-box">
+      Completa i comandi Cisco IOS sostituendo ogni <code>___________</code> con il valore corretto
+      ricavato dalla tabella VLSM. Usa come <strong>indirizzo del gateway</strong> il <em>primo host disponibile</em>
+      di ogni sottorete.
+    </div>
+
+    <h3>Router R1</h3>
+<pre>
+<span class="cmd">R1</span>(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/0</span>       <span class="cmt">! LAN_A – 50 host</span>
+R1(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+
+R1(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/1</span>       <span class="cmt">! LAN_B – 25 host</span>
+R1(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+
+R1(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/2</span>       <span class="cmt">! LAN_C – 10 host</span>
+R1(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+
+R1(config)# <span class="cmd">interface</span> <span class="arg">Serial0/0/0</span>              <span class="cmt">! Link WAN verso R2</span>
+R1(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config-if)# <span class="cmd">clock rate</span> <span class="arg">64000</span>                 <span class="cmt">! DCE – solo sul lato che fornisce il clock</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+</pre>
+
+    <h3 style="margin-top:20px;">Router R2</h3>
+<pre>
+<span class="cmd">R2</span>(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/0</span>       <span class="cmt">! LAN_D – 100 host</span>
+R2(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config-if)# <span class="cmd">no shutdown</span>
+
+R2(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/1</span>       <span class="cmt">! LAN_E – 30 host</span>
+R2(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config-if)# <span class="cmd">no shutdown</span>
+
+R2(config)# <span class="cmd">interface</span> <span class="arg">GigabitEthernet0/2</span>       <span class="cmt">! LAN_F – 14 host</span>
+R2(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config-if)# <span class="cmd">no shutdown</span>
+
+R2(config)# <span class="cmd">interface</span> <span class="arg">Serial0/0/0</span>              <span class="cmt">! Link WAN verso R1</span>
+R2(config-if)# <span class="cmd">ip address</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config-if)# <span class="cmd">no shutdown</span>
+</pre>
+  </div>
+
+  <!-- TASK 3: ROUTING STATICO -->
+  <div class="card">
+    <h2>Parte 3 &mdash; Routing Statico <span class="points">30 punti</span></h2>
+
+    <div class="info-box">
+      Configura rotte statiche su entrambi i router in modo che <em>ogni host di qualsiasi LAN</em>
+      possa comunicare con gli host di tutte le altre LAN. Non utilizzare rotte di default.<br>
+      Sintassi: <code>ip route &lt;rete-destinazione&gt; &lt;subnet-mask&gt; &lt;next-hop&gt;</code>
+    </div>
+
+    <h3>Tabella rotte statiche &mdash; Router R1</h3>
+    <p style="font-size:0.85rem; color:#718096; margin-bottom:8px;">
+      R1 conosce già le reti direttamente connesse. Deve aggiungere rotte verso le reti di R2.
+    </p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Rete destinazione</th><th>Subnet Mask</th><th>Next-Hop (indirizzo di R2 su WAN)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>2</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>3</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+<pre style="margin-top:14px;">
+<span class="cmd">R1</span>(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R1(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+</pre>
+
+    <h3 style="margin-top:20px;">Tabella rotte statiche &mdash; Router R2</h3>
+    <p style="font-size:0.85rem; color:#718096; margin-bottom:8px;">
+      R2 conosce già le reti direttamente connesse. Deve aggiungere rotte verso le reti di R1.
+    </p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Rete destinazione</th><th>Subnet Mask</th><th>Next-Hop (indirizzo di R1 su WAN)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>2</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>3</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+<pre style="margin-top:14px;">
+<span class="cmd">R2</span>(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+R2(config)# <span class="cmd">ip route</span> <span class="blank">___________</span> <span class="blank">___________</span> <span class="blank">___________</span>
+</pre>
+  </div>
+
+  <!-- TASK 4: VERIFICA -->
+  <div class="card">
+    <h2>Parte 4 &mdash; Verifica e test <span class="points">15 punti</span></h2>
+
+    <ul class="task-list">
+      <li>
+        <strong>show ip interface brief</strong> &mdash; Verifica che tutte le interfacce configurate
+        siano nello stato <em>up/up</em>. Quante interfacce risultano <em>administratively down</em>?
+        Perché? Scrivi la risposta: ___________________________________________
+      </li>
+      <li>
+        <strong>show ip route</strong> &mdash; Esegui il comando su R1 e su R2. Quante righe con la
+        lettera <code>S</code> (static) compaiono sulla routing table di ciascun router?
+        <br>R1: _____ &nbsp;&nbsp; R2: _____
+      </li>
+      <li>
+        <strong>ping end-to-end</strong> &mdash; Da un PC della LAN_A esegui un ping verso un PC della
+        LAN_D. Il ping ha successo? &nbsp; ☐ Sì &nbsp; ☐ No
+        <br>Se No, qual è il probabile punto di guasto? ___________________________________________
+      </li>
+      <li>
+        <strong>traceroute</strong> &mdash; Esegui <code>traceroute</code> da LAN_C a LAN_F e scrivi
+        gli hop intermedi attesi: ___________________________________________
+      </li>
+      <li>
+        <strong>show running-config</strong> &mdash; Verifica la configurazione corrente e salva con
+        <code>copy running-config startup-config</code>. Qual è il messaggio di conferma del router?
+        ___________________________________________
+      </li>
+    </ul>
+  </div>
+
+  <!-- DOMANDE TEORICHE -->
+  <div class="card">
+    <h2>Domande teoriche</h2>
+    <ul class="task-list">
+      <li>
+        Perché nel link seriale punto-punto si utilizza una maschera <strong>/30</strong> e non una
+        /29 o /31? Quali sono i vantaggi e i limiti della maschera /31 secondo la RFC 3021?
+      </li>
+      <li>
+        Quanti indirizzi IP totali vengono <strong>sprecati</strong> con la tua allocazione VLSM
+        rispetto a un subnetting classful /24? Calcola la differenza.
+      </li>
+      <li>
+        Se si aggiungesse una quarta LAN a R1 con <strong>200 host</strong>, come cambierebbe il piano
+        di indirizzamento? Sarebbe ancora possibile usare lo stesso spazio 10.0.0.0/8 senza conflitti?
+      </li>
+      <li>
+        Qual è la differenza tra una rotta statica con <em>next-hop IP</em> e una con
+        <em>interfaccia di uscita</em>? In quale scenario è preferibile usare l'una o l'altra?
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    Esercizio di reti &mdash; VLSM su Classe A &amp; Routing Statico Cisco IOS &mdash; 2026
+  </footer>
+
+</div>
+</body>
+</html>
