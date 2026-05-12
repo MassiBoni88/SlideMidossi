@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Gestione Palestra</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── ESEMPIO MATRICE ── */
+    .matrix-example {
+      background: #f7fafd;
+      border: 1px solid #d4dfe8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>GESTIONE PALESTRA</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, matrici,<br>funzioni, stringhe, cicli</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Una palestra cittadina vuole informatizzare la gestione dei propri <strong>corsi fitness</strong>.
+    Devi sviluppare un programma C++ che permetta di <strong>catalogare i corsi attivi</strong>,
+    consultare le schede tecniche, ricercare un corso in base al nome dell'istruttore e analizzare
+    l'andamento delle <strong>presenze nelle ultime 4 settimane</strong>, distinte per ciascuno dei
+    <strong>5 giorni feriali</strong> (lunedì–venerdì).
+    Le presenze vengono registrate tramite una <strong>matrice 4×5</strong> (settimane × giorni).
+    Ogni corso è associato a un istruttore, descritto tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci dapprima la struct <strong>Istruttore</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome e cognome dell'istruttore</td></tr>
+      <tr><td><code>specializzazione</code></td><td>es. "yoga", "spinning", "crossfit"</td></tr>
+      <tr><td><code>anni_esperienza</code></td><td>numero intero di anni di esperienza</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci quindi la struct <strong>Corso</strong>, che include <strong>Istruttore</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome_corso</code></td><td>nome del corso (es. "Pilates serale")</td></tr>
+      <tr><td><code>livello</code></td><td>es. "principiante", "intermedio", "avanzato"</td></tr>
+      <tr><td><code>capienza_max</code></td><td>numero massimo di iscritti accettati per lezione</td></tr>
+      <tr><td><code>presenze</code></td><td><strong>Matrice 4×5</strong>: righe = settimane (1–4), colonne = giorni (lun–ven). Ogni cella indica il numero di partecipanti</td></tr>
+      <tr><td><code>istruttore</code></td><td>Dati dell'istruttore</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio della matrice <code>presenze</code>:</h3>
+<div class="matrix-example">             Lun   Mar   Mer   Gio   Ven
+Settimana 1   12    15    14    10    18
+Settimana 2   13    14    16    11    19
+Settimana 3   10    12    13     9    17
+Settimana 4   14    16    15    13    20</div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni:</strong></p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>mediaPresenze(Corso c)</code></td>
+        <td>Calcola la <strong>media aritmetica</strong> di tutti i 20 valori della matrice <code>presenze</code> (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>giornoPiuFrequentato(Corso c)</code></td>
+        <td>Restituisce il <strong>numero del giorno</strong> (da 1 = lunedì a 5 = venerdì) che ha totalizzato il maggior numero di presenze sommate sulle 4 settimane</td>
+      </tr>
+      <tr>
+        <td><code>settimanaPiuFrequentata(Corso c)</code></td>
+        <td>Restituisce il <strong>numero della settimana</strong> (da 1 a 4) con il totale di presenze più alto sui 5 giorni</td>
+      </tr>
+      <tr>
+        <td><code>stampaCorso(Corso c)</code></td>
+        <td>Stampa tutti i campi del corso, compresi quelli dell'istruttore annidato, e <strong>visualizza la matrice <code>presenze</code> in formato tabellare</strong> (con intestazioni di riga e colonna)</td>
+      </tr>
+      <tr>
+        <td><code>inserisciCorso()</code></td>
+        <td>Legge da tastiera tutti i campi di Corso e di Istruttore, inclusa la matrice <code>presenze</code> (4×5), e restituisce il Corso compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaPerIstruttore(Corso cat[], int n, string istruttore)</code></td>
+        <td>Restituisce l'indice del <strong>primo corso</strong> il cui campo <code>istruttore.nome</code> coincide con la stringa cercata; restituisce <code>-1</code> se non trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>10 corsi</strong> e realizza un menu a ciclo con le opzioni:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi corso</td>
+        <td>richiama <code>inserisciCorso</code>, salva il risultato nell'array e aggiorna il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra catalogo corsi</td>
+        <td>stampa tutti i corsi presenti tramite <code>stampaCorso</code> (matrice compresa)</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cerca per istruttore</td>
+        <td>chiede il nome dell'istruttore, usa <code>cercaPerIstruttore</code> e, se il corso è trovato, ne mostra la scheda con <code>stampaCorso</code> e visualizza anche la media delle presenze, il giorno più frequentato e la settimana più frequentata</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTO ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento 1 (stringhe):</strong> Per leggere stringhe contenenti spazi (nome del corso,
+    nome dell'istruttore) utilizza <code>getline(cin, variabile)</code>. Ricorda di inserire
+    <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>,
+    anche dentro <code>inserisciCorso</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento 2 (matrici):</strong> Per scorrere la matrice <code>presenze</code> usa due
+    cicli <code>for</code> annidati: l'esterno sulle righe (settimane), l'interno sulle colonne (giorni).
+    Per trovare il giorno più frequentato, calcola prima la <strong>somma per colonna</strong>; per la settimana
+    più frequentata, calcola la <strong>somma per riga</strong>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento 3 (organizzazione):</strong> Suddividi la verifica in 3 file separati
+    (vedi sezione Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Matrice presenze</td>
+        <td>Dimensione fissa 4×5; tutti i valori interi &gt;= 0 e &lt;= <code>capienza_max</code></td>
+      </tr>
+      <tr>
+        <td>Capienza massima</td>
+        <td>Valore intero positivo</td>
+      </tr>
+      <tr>
+        <td>Anni di esperienza</td>
+        <td>Valore intero non negativo</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Istruttore deve essere dichiarata <em>prima</em> di Corso</td>
+      </tr>
+      <tr>
+        <td>Array di corsi</td>
+        <td>Massimo 10 corsi; utilizza una variabile contatore per i corsi inseriti</td>
+      </tr>
+      <tr>
+        <td>Costanti</td>
+        <td>Utilizza <code>const int</code> o <code>#define</code> per le dimensioni della matrice (4 e 5)</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le funzioni <code>giornoPiuFrequentato</code> e
+    <code>settimanaPiuFrequentata</code> devono restituire numeri "umani" (1–5 e 1–4),
+    <em>non</em> gli indici 0-based dell'array. Nella voce di menu 3, dopo aver trovato il corso,
+    mostra <strong>tutti e tre</strong> i risultati: media delle presenze (con 2 decimali),
+    giorno più frequentato e settimana più frequentata.
+  </div>
+
+</body>
+</html>
