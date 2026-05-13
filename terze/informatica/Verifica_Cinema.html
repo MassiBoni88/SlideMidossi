@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Gestione Cinema Multisala</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>GESTIONE CINEMA MULTISALA</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array,<br>funzioni, stringhe, cicli</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Un cinema multisala vuole gestire in modo digitale la propria <strong>programmazione</strong>.
+    Devi sviluppare un programma C++ che consenta di <strong>archiviare i film in cartellone</strong>,
+    visualizzare le schede tecniche, ricercare una pellicola in base al nome del regista e
+    analizzare l'andamento degli <strong>incassi delle ultime 4 settimane</strong>.
+    Ogni film è collegato a un regista, descritto tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci dapprima la struct <strong>Regista</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome e cognome del regista</td></tr>
+      <tr><td><code>paese</code></td><td>es. "Stati Uniti", "Italia", "Giappone"</td></tr>
+      <tr><td><code>anno_esordio</code></td><td>anno del primo film diretto</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci quindi la struct <strong>Film</strong>, che include <strong>Regista</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>titolo</code></td><td>titolo del film</td></tr>
+      <tr><td><code>genere</code></td><td>es. "azione", "commedia", "thriller", "animazione"</td></tr>
+      <tr><td><code>durata_minuti</code></td><td>durata complessiva del film in minuti</td></tr>
+      <tr><td><code>incassi</code></td><td>incasso settimanale (in euro) per ciascuna delle ultime 4 settimane</td></tr>
+      <tr><td><code>regista</code></td><td>Dati del regista</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni:</strong></p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>incassoTotale(Film f)</code></td>
+        <td>Restituisce la <strong>somma</strong> dei 4 incassi settimanali (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>settimanaMigliore(Film f)</code></td>
+        <td>Restituisce il <strong>numero della settimana</strong> (da 1 a 4) con l'incasso più alto</td>
+      </tr>
+      <tr>
+        <td><code>stampaFilm(Film f)</code></td>
+        <td>Stampa tutti i campi del film, compresi quelli del regista annidato</td>
+      </tr>
+      <tr>
+        <td><code>inserisciFilm()</code></td>
+        <td>Legge da tastiera tutti i campi di Film e di Regista e restituisce il Film compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaPerRegista(Film cat[], int n, string regista)</code></td>
+        <td>Restituisce l'indice del <strong>primo film</strong> il cui campo <code>regista.nome</code> coincide con la stringa cercata; restituisce <code>-1</code> se non viene trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>15 film</strong> e realizza un menu a ciclo con le opzioni:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi film</td>
+        <td>richiama <code>inserisciFilm</code>, salva il risultato nell'array e aggiorna il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra cartellone</td>
+        <td>stampa tutti i film presenti tramite <code>stampaFilm</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cerca per regista</td>
+        <td>chiede il nome del regista, usa <code>cercaPerRegista</code> e, se il film è trovato, ne mostra la scheda con <code>stampaFilm</code> e visualizza anche l'incasso totale e la settimana migliore</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTO ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> Per leggere stringhe contenenti spazi (titolo, nome del regista, paese)
+    utilizza <code>getline(cin, variabile)</code>. Ricorda di inserire <code>cin.ignore()</code> prima
+    di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>, anche dentro <code>inserisciFilm</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Suddividi la verifica in 3 file separati (vedi sezione Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Incassi</td>
+        <td>Sempre 4 valori per film, tutti &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Durata film</td>
+        <td>Numero intero positivo (in minuti)</td>
+      </tr>
+      <tr>
+        <td>Anno di esordio</td>
+        <td>Valore intero positivo (es. 1995)</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Regista deve essere dichiarata <em>prima</em> di Film</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 15 film; utilizza una variabile contatore per i film inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> la funzione <code>settimanaMigliore</code> deve restituire
+    un numero da <strong>1 a 4</strong> (non l'indice 0–3 dell'array).
+    Nella voce di menu 3, dopo aver trovato il film, mostra entrambi i risultati:
+    incasso totale (con 2 decimali) <em>e</em> la settimana con l'incasso più alto.
+  </div>
+
+</body>
+</html>
