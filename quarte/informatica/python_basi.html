@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python — Dalle Basi ai Cicli</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f8fafc; --border: #e2e8f0;
+    --accent1: #059669; --accent2: #dc2626; --accent3: #d97706; --accent4: #2563eb;
+    --text: #1e293b; --muted: #64748b; --ct: #475569; --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14; --panel: #13161f; --border: #1e2330;
+    --accent1: #34d399; --accent2: #f87171; --accent3: #fbbf24; --accent4: #60a5fa;
+    --text: #e8eaf0; --muted: #6b7280; --ct: #6b7280; --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 13px; border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none; overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+  .slide-title { align-items: center; text-align: center; justify-content: center; }
+  .slide-title .big { font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+  .tag { padding: 6px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-shrink: 0; }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  .kw { color: var(--accent4); font-weight: 700; }
+  .cm { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); }
+  .callout { border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-green  { background: rgba(5,150,105,0.07); border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07); border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center; border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl      { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel  { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red  { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+  #nav {
+    display: flex; align-items: center; gap: 12px; padding: 11px 24px;
+    border-top: 1px solid var(--border); background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1; color: var(--text);
+    padding: 7px 18px; border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 220px; text-align: right; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Programmazione · Python</div>
+    <div class="title-bar">Dalle Basi ai Cicli</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 13</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- SLIDE 1 — TITOLO -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Python</div>
+  <div class="big" style="color:var(--accent1);">Le Basi del Linguaggio</div>
+  <div class="sub">Variabili · Input/Output · Selezione · Iterazione</div>
+  <div class="tag-row">
+    <span class="tag tag-green">variabili &amp; tipi</span>
+    <span class="tag tag-blue">input · print</span>
+    <span class="tag tag-yellow">if / elif / else</span>
+    <span class="tag tag-red">while · for</span>
+  </div>
+</div>
+
+<!-- SLIDE 2 — PANORAMICA -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent1)">01</div>
+      <div class="ov-content"><h4>Variabili e tipi di dato</h4><p>int, float, str, bool · assegnazione e tipizzazione dinamica</p></div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content"><h4>Input/Output e operatori</h4><p>print(), input(), cast · operatori aritmetici, di confronto e logici</p></div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content"><h4>Stringhe e selezione</h4><p>f-string · if / elif / else · if annidati · operatore ternario</p></div>
+    </div>
+    <div class="ov-item">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content"><h4>Cicli e salti</h4><p>while · for con range() · for su collezioni · break · continue</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 — PRIMO PROGRAMMA -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il primo programma in Python</h2>
+    <span class="section-num">SEZIONE 00</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent1)">Caratteristiche di Python</h3><p>Linguaggio <strong>interpretato</strong>, ad <strong>alto livello</strong>, con sintassi pulita. Non servono parentesi graffe: i blocchi si definiscono con l'<strong>indentazione</strong> (di solito 4 spazi).</p></div>
+      <div class="card"><h3 style="color:var(--accent4)">Stampare a video</h3><p>La funzione <code>print()</code> visualizza un messaggio sullo schermo. Va a capo automaticamente al termine.</p></div>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9432;</span><span>I commenti iniziano con <code>#</code> e arrivano fino a fine riga. Servono a spiegare il codice, non vengono eseguiti.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="cm"># Il classico "Hello, world!"</span>
+<span class="fn">print</span>(<span class="str">"Ciao, mondo!"</span>)
+
+<span class="cm"># Più valori separati da virgola</span>
+<span class="fn">print</span>(<span class="str">"Somma:"</span>, <span class="num">3</span> <span class="op">+</span> <span class="num">4</span>)
+<span class="cm"># Output: Somma: 7</span>
+
+<span class="cm"># Cambiare il separatore</span>
+<span class="fn">print</span>(<span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>, sep<span class="op">=</span><span class="str">"-"</span>)
+<span class="cm"># Output: A-B-C</span>
+
+<span class="cm"># Evitare di andare a capo</span>
+<span class="fn">print</span>(<span class="str">"Ciao "</span>, end<span class="op">=</span><span class="str">""</span>)
+<span class="fn">print</span>(<span class="str">"mondo"</span>)
+<span class="cm"># Output: Ciao mondo</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 — VARIABILI E TIPI -->
+<div class="slide" data-section="variabili">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Variabili e tipi di dato</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent1)">Tipizzazione dinamica</h3><p>Una variabile si crea semplicemente assegnando un valore con <code>=</code>. Python ne deduce il tipo da solo e può cambiarlo a runtime.</p></div>
+      <pre><span class="cm"># Assegnazione semplice</span>
+nome <span class="op">=</span> <span class="str">"Marco"</span>      <span class="cm"># str (stringa)</span>
+eta <span class="op">=</span> <span class="num">17</span>             <span class="cm"># int (intero)</span>
+altezza <span class="op">=</span> <span class="num">1.78</span>      <span class="cm"># float (decimale)</span>
+maggiorenne <span class="op">=</span> <span class="kw">False</span>  <span class="cm"># bool (True/False)</span>
+
+<span class="cm"># Assegnazione multipla</span>
+x, y, z <span class="op">=</span> <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>
+
+<span class="cm"># Conoscere il tipo</span>
+<span class="fn">print</span>(<span class="fn">type</span>(eta))      <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="fn">print</span>(<span class="fn">type</span>(altezza))  <span class="cm"># &lt;class 'float'&gt;</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent4)">Regole per i nomi</h3>
+        <ul>
+          <li>iniziano con lettera o <code>_</code></li>
+          <li>solo lettere, cifre, underscore</li>
+          <li>case-sensitive: <code>Eta</code> ≠ <code>eta</code></li>
+          <li>nomi parlanti: <code>media_voti</code> e non <code>x</code></li>
+          <li>evita parole chiave (<code>if</code>, <code>for</code>, …)</li>
+        </ul>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Tipo</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;">Esempio</div>
+        </div>
+        <div class="proto-row"><div class="proto-cell">int</div><div class="proto-cell"><code>42</code></div></div>
+        <div class="proto-row"><div class="proto-cell">float</div><div class="proto-cell"><code>3.14</code></div></div>
+        <div class="proto-row"><div class="proto-cell">str</div><div class="proto-cell"><code>"ciao"</code></div></div>
+        <div class="proto-row"><div class="proto-cell">bool</div><div class="proto-cell"><code>True / False</code></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5 — INPUT E CAST -->
+<div class="slide" data-section="io">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Input dall'utente e conversioni</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent4)">La funzione <code>input()</code></h3><p>Legge dalla tastiera e restituisce <strong>sempre una stringa</strong>. Per usarla come numero serve la conversione (<em>cast</em>) con <code>int()</code> o <code>float()</code>.</p></div>
+      <pre><span class="cm"># input() restituisce SEMPRE str</span>
+nome <span class="op">=</span> <span class="fn">input</span>(<span class="str">"Come ti chiami? "</span>)
+<span class="fn">print</span>(<span class="str">"Ciao"</span>, nome)
+
+<span class="cm"># Per i numeri serve il cast</span>
+eta <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Età: "</span>))
+prezzo <span class="op">=</span> <span class="fn">float</span>(<span class="fn">input</span>(<span class="str">"Prezzo: "</span>))
+
+<span class="fn">print</span>(<span class="str">"Tra 10 anni avrai"</span>, eta <span class="op">+</span> <span class="num">10</span>)</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span><strong>Errore tipico:</strong> dimenticare <code>int()</code>. Se <code>eta = input(...)</code> e poi <code>eta + 10</code>, Python prova a concatenare stringa e numero e va in errore.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent3)">Funzioni di conversione</h3></div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-yel" style="font-weight:700;">Funzione</div>
+          <div class="proto-cell hl-yel" style="font-weight:700;flex:2">Converte in…</div>
+        </div>
+        <div class="proto-row"><div class="proto-cell"><code>int(x)</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">intero (tronca i decimali)</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>float(x)</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">decimale</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>str(x)</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">stringa</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>bool(x)</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">True se diverso da 0/"")</div></div>
+      </div>
+      <pre><span class="cm"># Esempi di cast</span>
+<span class="fn">int</span>(<span class="str">"42"</span>)      <span class="cm"># 42</span>
+<span class="fn">float</span>(<span class="str">"3.14"</span>)  <span class="cm"># 3.14</span>
+<span class="fn">int</span>(<span class="num">3.9</span>)        <span class="cm"># 3 (tronca!)</span>
+<span class="fn">str</span>(<span class="num">100</span>)        <span class="cm"># "100"</span>
+<span class="fn">int</span>(<span class="str">"ciao"</span>)    <span class="cm"># ERRORE</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6 — OPERATORI -->
+<div class="slide" data-section="operatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Operatori aritmetici, di confronto e logici</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card"><h3 style="color:var(--accent3)">Aritmetici</h3></div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-yel" style="font-weight:700;">Op.</div><div class="proto-cell hl-yel" style="font-weight:700;flex:2">Significato</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>+</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">somma</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>-</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">sottrazione</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>*</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">moltiplicazione</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>/</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">divisione (float)</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>//</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">divisione intera</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>%</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">resto (modulo)</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>**</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">elevamento a potenza</div></div>
+      </div>
+      <pre><span class="num">7</span> <span class="op">/</span> <span class="num">2</span>   <span class="cm"># 3.5</span>
+<span class="num">7</span> <span class="op">//</span> <span class="num">2</span>  <span class="cm"># 3</span>
+<span class="num">7</span> <span class="op">%</span> <span class="num">2</span>   <span class="cm"># 1</span>
+<span class="num">2</span> <span class="op">**</span> <span class="num">10</span> <span class="cm"># 1024</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card"><h3 style="color:var(--accent1)">Confronto</h3><p>Restituiscono sempre un <code>bool</code>.</p></div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl" style="font-weight:700;">Op.</div><div class="proto-cell hl" style="font-weight:700;flex:2">Significato</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>==</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">uguale a</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>!=</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">diverso da</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>&gt;</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">maggiore</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>&lt;</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">minore</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>&gt;=</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">maggiore o uguale</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>&lt;=</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">minore o uguale</div></div>
+      </div>
+      <div class="callout callout-red" style="font-size:0.82rem;"><span class="callout-icon">&#9888;</span><span>Non confondere <code>=</code> (assegnazione) con <code>==</code> (confronto).</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card"><h3 style="color:var(--accent2)">Logici</h3><p>Combinano condizioni booleane.</p></div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-red" style="font-weight:700;">Op.</div><div class="proto-cell hl-red" style="font-weight:700;flex:2">Significato</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>and</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">vero se entrambe</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>or</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">vero se almeno una</div></div>
+        <div class="proto-row"><div class="proto-cell"><code>not</code></div><div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">inverte il valore</div></div>
+      </div>
+      <pre>eta <span class="op">=</span> <span class="num">17</span>
+voto <span class="op">=</span> <span class="num">8</span>
+
+eta <span class="op">&gt;=</span> <span class="num">18</span> <span class="kw">and</span> voto <span class="op">&gt;=</span> <span class="num">6</span>
+<span class="cm"># False</span>
+
+eta <span class="op">&gt;=</span> <span class="num">18</span> <span class="kw">or</span> voto <span class="op">&gt;=</span> <span class="num">6</span>
+<span class="cm"># True</span>
+
+<span class="kw">not</span> (eta <span class="op">&gt;=</span> <span class="num">18</span>)
+<span class="cm"># True</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7 — STRINGHE E F-STRING -->
+<div class="slide" data-section="stringhe">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Stringhe e f-string</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent3)">Creare e combinare stringhe</h3><p>Le stringhe si scrivono tra apici singoli o doppi. Si possono unire con <code>+</code> e ripetere con <code>*</code>.</p></div>
+      <pre><span class="cm"># Apici singoli o doppi: equivalenti</span>
+s1 <span class="op">=</span> <span class="str">'Ciao'</span>
+s2 <span class="op">=</span> <span class="str">"mondo"</span>
+
+<span class="cm"># Concatenazione</span>
+saluto <span class="op">=</span> s1 <span class="op">+</span> <span class="str">" "</span> <span class="op">+</span> s2
+<span class="fn">print</span>(saluto)        <span class="cm"># Ciao mondo</span>
+
+<span class="cm"># Ripetizione</span>
+<span class="fn">print</span>(<span class="str">"-"</span> <span class="op">*</span> <span class="num">10</span>)     <span class="cm"># ----------</span>
+
+<span class="cm"># Lunghezza</span>
+<span class="fn">print</span>(<span class="fn">len</span>(saluto))   <span class="cm"># 10</span>
+
+<span class="cm"># Indicizzazione (da 0)</span>
+<span class="fn">print</span>(saluto[<span class="num">0</span>])      <span class="cm"># C</span>
+<span class="fn">print</span>(saluto[<span class="op">-</span><span class="num">1</span>])     <span class="cm"># o (ultimo)</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent1)">f-string: inserire variabili nel testo</h3><p>Prefissando una stringa con <code>f</code> si possono inserire variabili ed espressioni tra <code>{ }</code>. È il modo moderno e leggibile.</p></div>
+      <pre>nome <span class="op">=</span> <span class="str">"Anna"</span>
+eta <span class="op">=</span> <span class="num">16</span>
+
+<span class="cm"># Classica (con +): scomodo, serve str()</span>
+<span class="fn">print</span>(<span class="str">"Ciao "</span> <span class="op">+</span> nome <span class="op">+</span> <span class="str">", "</span> <span class="op">+</span> <span class="fn">str</span>(eta))
+
+<span class="cm"># Con f-string: pulita</span>
+<span class="fn">print</span>(<span class="str">f"Ciao {nome}, hai {eta} anni"</span>)
+
+<span class="cm"># Espressioni dentro {}</span>
+<span class="fn">print</span>(<span class="str">f"Tra 5 anni: {eta + 5}"</span>)
+
+<span class="cm"># Formattazione decimali</span>
+pi <span class="op">=</span> <span class="num">3.14159</span>
+<span class="fn">print</span>(<span class="str">f"Pi greco: {pi:.2f}"</span>)
+<span class="cm"># Pi greco: 3.14</span></pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Le f-string sono il metodo consigliato: scrivi il testo come lo vedrai e metti tra graffe le parti variabili.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8 — IF / ELIF / ELSE -->
+<div class="slide" data-section="if">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">L'istruzione <code style="font-size:inherit">if / elif / else</code></h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent3)">Come funziona</h3><p>Il blocco indentato sotto <code>if</code> viene eseguito <strong>solo se</strong> la condizione è <code>True</code>. Con <code>elif</code> si gestiscono più casi a cascata, con <code>else</code> il caso rimanente.</p></div>
+      <pre><span class="cm"># Sintassi base</span>
+<span class="kw">if</span> condizione:
+    <span class="cm"># eseguito se True</span>
+
+<span class="cm"># if ... else</span>
+<span class="kw">if</span> condizione:
+    <span class="cm"># ramo vero</span>
+<span class="kw">else</span>:
+    <span class="cm"># ramo falso</span>
+
+<span class="cm"># if ... elif ... else</span>
+<span class="kw">if</span> voto <span class="op">&gt;=</span> <span class="num">9</span>:
+    <span class="fn">print</span>(<span class="str">"Ottimo"</span>)
+<span class="kw">elif</span> voto <span class="op">&gt;=</span> <span class="num">6</span>:
+    <span class="fn">print</span>(<span class="str">"Sufficiente"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Insufficiente"</span>)</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="cm"># Programma completo</span>
+eta <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Età: "</span>))
+
+<span class="kw">if</span> eta <span class="op">&gt;=</span> <span class="num">18</span>:
+    <span class="fn">print</span>(<span class="str">"Maggiorenne"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Minorenne"</span>)
+
+voto <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Voto: "</span>))
+
+<span class="kw">if</span> voto <span class="op">&gt;=</span> <span class="num">9</span>:
+    <span class="fn">print</span>(<span class="str">"Ottimo"</span>)
+<span class="kw">elif</span> voto <span class="op">&gt;=</span> <span class="num">7</span>:
+    <span class="fn">print</span>(<span class="str">"Buono"</span>)
+<span class="kw">elif</span> voto <span class="op">&gt;=</span> <span class="num">6</span>:
+    <span class="fn">print</span>(<span class="str">"Sufficiente"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Insufficiente"</span>)</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span><strong>Non dimenticare i due punti</strong> <code>:</code> alla fine della riga <code>if</code>, <code>elif</code>, <code>else</code>. E indenta il corpo (4 spazi).</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9 — IF ANNIDATI + TERNARIO -->
+<div class="slide" data-section="if">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">if annidati e operatore ternario</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent3)">if annidati</h3><p>Un <code>if</code> può contenerne un altro al suo interno. Ogni livello aggiunge una indentazione.</p></div>
+      <pre>x <span class="op">=</span> <span class="num">15</span>
+
+<span class="kw">if</span> x <span class="op">&gt;</span> <span class="num">0</span>:
+    <span class="fn">print</span>(<span class="str">"Positivo"</span>)
+
+    <span class="kw">if</span> x <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>:
+        <span class="fn">print</span>(<span class="str">"e pari"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"e dispari"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Non positivo"</span>)
+
+<span class="cm"># Output: Positivo  e dispari</span></pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9432;</span><span>Spesso un <code>if</code> annidato si può riscrivere combinando le condizioni con <code>and</code> per migliorare la leggibilità.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent4)">Operatore ternario</h3><p>Forma compatta di <code>if-else</code> su una riga. Restituisce uno dei due valori in base alla condizione.</p></div>
+      <pre><span class="cm"># Sintassi</span>
+variabile <span class="op">=</span> val_vero <span class="kw">if</span> condizione <span class="kw">else</span> val_falso
+
+<span class="cm"># Esempio</span>
+a, b <span class="op">=</span> <span class="num">10</span>, <span class="num">20</span>
+
+<span class="cm"># Con if-else classico</span>
+<span class="kw">if</span> a <span class="op">&gt;</span> b:
+    massimo <span class="op">=</span> a
+<span class="kw">else</span>:
+    massimo <span class="op">=</span> b
+
+<span class="cm"># Con ternario (equivalente)</span>
+massimo2 <span class="op">=</span> a <span class="kw">if</span> a <span class="op">&gt;</span> b <span class="kw">else</span> b
+
+<span class="fn">print</span>(massimo2)   <span class="cm"># 20</span>
+
+<span class="cm"># Anche dentro un print</span>
+n <span class="op">=</span> <span class="num">7</span>
+<span class="fn">print</span>(<span class="str">"pari"</span> <span class="kw">if</span> n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="kw">else</span> <span class="str">"dispari"</span>)</pre>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Usa il ternario solo per espressioni semplici. Per logica complessa preferisci <code>if-else</code>.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10 — WHILE -->
+<div class="slide" data-section="while">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il ciclo <code style="font-size:inherit">while</code></h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent2)">Ripeti finché la condizione è vera</h3><p>Il ciclo <code>while</code> valuta la condizione <strong>prima</strong> di eseguire il corpo. Se è subito <code>False</code>, il corpo non viene mai eseguito.</p></div>
+      <pre><span class="cm"># Sintassi</span>
+<span class="kw">while</span> condizione:
+    <span class="cm"># corpo</span>
+    <span class="cm"># aggiorna la variabile!</span>
+
+<span class="cm"># Conta da 1 a 5</span>
+i <span class="op">=</span> <span class="num">1</span>
+<span class="kw">while</span> i <span class="op">&lt;=</span> <span class="num">5</span>:
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+    i <span class="op">+=</span> <span class="num">1</span>
+<span class="cm"># Output: 1 2 3 4 5</span></pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span><strong>Loop infinito:</strong> se dimentichi di aggiornare la variabile di controllo, la condizione rimane sempre <code>True</code> e il programma si blocca. Interrompi con <code>Ctrl+C</code>.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="cm"># Somma numeri finché input != 0</span>
+somma <span class="op">=</span> <span class="num">0</span>
+n <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Numero (0 per uscire): "</span>))
+
+<span class="kw">while</span> n <span class="op">!=</span> <span class="num">0</span>:
+    somma <span class="op">+=</span> n
+    n <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Numero (0 per uscire): "</span>))
+
+<span class="fn">print</span>(<span class="str">f"Somma: {somma}"</span>)
+
+
+<span class="cm"># Validazione input</span>
+voto <span class="op">=</span> <span class="op">-</span><span class="num">1</span>
+<span class="kw">while</span> voto <span class="op">&lt;</span> <span class="num">0</span> <span class="kw">or</span> voto <span class="op">&gt;</span> <span class="num">10</span>:
+    voto <span class="op">=</span> <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Voto (0-10): "</span>))
+    <span class="kw">if</span> voto <span class="op">&lt;</span> <span class="num">0</span> <span class="kw">or</span> voto <span class="op">&gt;</span> <span class="num">10</span>:
+        <span class="fn">print</span>(<span class="str">"Non valido!"</span>)
+
+<span class="fn">print</span>(<span class="str">f"Accettato: {voto}"</span>)</pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Usa <code>while</code> quando il numero di iterazioni <strong>non è noto a priori</strong>: dipende da un input o da un evento.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11 — FOR + RANGE -->
+<div class="slide" data-section="for">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il ciclo <code style="font-size:inherit">for</code> con <code style="font-size:inherit">range()</code></h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent2)">Iterare un numero noto di volte</h3><p>In Python il <code>for</code> non è un ciclo a contatore puro: itera su una <strong>sequenza</strong>. Con <code>range()</code> generiamo la sequenza di numeri voluta.</p></div>
+      <pre><span class="cm"># range(stop): da 0 a stop-1</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 0 1 2 3 4</span>
+
+<span class="cm"># range(start, stop): da start a stop-1</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">6</span>):
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 1 2 3 4 5</span>
+
+<span class="cm"># range(start, stop, step)</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">10</span>, <span class="num">2</span>):
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 0 2 4 6 8</span>
+
+<span class="cm"># Conto alla rovescia</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>, <span class="num">0</span>, <span class="op">-</span><span class="num">1</span>):
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 5 4 3 2 1</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <pre><span class="cm"># Tavola del 7</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>):
+    <span class="fn">print</span>(<span class="str">f"7 x {i} = {7*i}"</span>)
+
+
+<span class="cm"># For annidati: matrice 3x3</span>
+<span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">4</span>):
+    <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">4</span>):
+        <span class="fn">print</span>(r<span class="op">*</span>c, end<span class="op">=</span><span class="str">"\t"</span>)
+    <span class="fn">print</span>()
+
+
+<span class="cm"># Somma dei primi 100 numeri</span>
+somma <span class="op">=</span> <span class="num">0</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">101</span>):
+    somma <span class="op">+=</span> i
+<span class="fn">print</span>(<span class="str">f"Totale: {somma}"</span>)
+<span class="cm"># Totale: 5050</span></pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9432;</span><span><strong>Ricorda:</strong> <code>range(n)</code> arriva fino a <code>n-1</code>, <strong>escluso</strong>. Per contare da 1 a 10 serve <code>range(1, 11)</code>.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12 — FOR SU COLLEZIONI -->
+<div class="slide" data-section="for">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">for su stringhe e liste · confronto cicli</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent2)">Iterare direttamente sugli elementi</h3><p>Il <code>for</code> di Python scorre <strong>gli elementi</strong> di una sequenza, non i suoi indici. Niente <code>i = 0; i++</code>.</p></div>
+      <pre><span class="cm"># Iterare una stringa</span>
+parola <span class="op">=</span> <span class="str">"Ciao"</span>
+<span class="kw">for</span> c <span class="kw">in</span> parola:
+    <span class="fn">print</span>(c, end<span class="op">=</span><span class="str">"-"</span>)
+<span class="cm"># Output: C-i-a-o-</span>
+
+<span class="cm"># Iterare una lista</span>
+numeri <span class="op">=</span> [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>]
+<span class="kw">for</span> n <span class="kw">in</span> numeri:
+    <span class="fn">print</span>(n, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 10 20 30 40</span>
+
+<span class="cm"># Con indice + valore: enumerate()</span>
+<span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(numeri):
+    <span class="fn">print</span>(<span class="str">f"pos {i}: {n}"</span>)</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent4)">Quando usare quale ciclo?</h3></div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue" style="font-weight:700;">Ciclo</div>
+          <div class="proto-cell hl-blue" style="font-weight:700;flex:3">Usalo quando…</div>
+        </div>
+        <div class="proto-row"><div class="proto-cell" style="font-weight:700;">for + range</div><div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">conosci il numero esatto di iterazioni</div></div>
+        <div class="proto-row"><div class="proto-cell" style="font-weight:700;">for in seq</div><div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">devi scorrere tutti gli elementi di una sequenza</div></div>
+        <div class="proto-row"><div class="proto-cell" style="font-weight:700;">while</div><div class="proto-cell" style="flex:3;text-align:left;padding-left:8px;">il numero di iterazioni non è noto a priori</div></div>
+      </div>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Il <code>for in</code> su collezioni è più <strong>pythonico</strong> e leggibile rispetto al ciclo con indice manuale.</span></div>
+      <pre><span class="cm"># Esempio: parole più lunghe di 4 lettere</span>
+parole <span class="op">=</span> [<span class="str">"sole"</span>, <span class="str">"mare"</span>, <span class="str">"montagna"</span>, <span class="str">"cielo"</span>]
+<span class="kw">for</span> p <span class="kw">in</span> parole:
+    <span class="kw">if</span> <span class="fn">len</span>(p) <span class="op">&gt;</span> <span class="num">4</span>:
+        <span class="fn">print</span>(p)
+<span class="cm"># Output: montagna  cielo</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13 — BREAK / CONTINUE -->
+<div class="slide" data-section="break-continue">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)"><code style="font-size:inherit">break</code> e <code style="font-size:inherit">continue</code></h2>
+    <span class="section-num">SEZIONE 07</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent2)">break — interrompe il ciclo</h3><p><code>break</code> termina immediatamente il ciclo più interno e passa all'istruzione successiva.</p></div>
+      <pre><span class="cm"># Esce quando trova 5</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>):
+    <span class="kw">if</span> i <span class="op">==</span> <span class="num">5</span>:
+        <span class="kw">break</span>
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 1 2 3 4</span>
+
+
+<span class="cm"># Cerca il primo pari maggiore di 7</span>
+n <span class="op">=</span> <span class="num">8</span>
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="kw">if</span> n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="kw">and</span> n <span class="op">&gt;</span> <span class="num">7</span>:
+        <span class="kw">break</span>
+    n <span class="op">+=</span> <span class="num">1</span>
+<span class="fn">print</span>(<span class="str">f"Trovato: {n}"</span>)
+<span class="cm"># Output: Trovato: 8</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><h3 style="color:var(--accent3)">continue — salta l'iterazione</h3><p><code>continue</code> salta il resto del corpo per l'iterazione corrente e passa direttamente alla successiva.</p></div>
+      <pre><span class="cm"># Stampa solo i dispari</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>):
+    <span class="kw">if</span> i <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>:
+        <span class="kw">continue</span>
+    <span class="fn">print</span>(i, end<span class="op">=</span><span class="str">" "</span>)
+<span class="cm"># Output: 1 3 5 7 9</span></pre>
+      <div class="proto-header" style="margin-top:4px;">
+        <div class="proto-row">
+          <div class="proto-cell hl" style="font-weight:700;">Comando</div>
+          <div class="proto-cell hl" style="font-weight:700;flex:2">Effetto</div>
+          <div class="proto-cell hl" style="font-weight:700;">Funziona con</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;color:var(--accent2)">break</div>
+          <div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">Termina il ciclo</div>
+          <div class="proto-cell">for, while</div>
+        </div>
+        <div class="proto-row">
+          <div class="proto-cell" style="font-weight:700;color:var(--accent3)">continue</div>
+          <div class="proto-cell" style="flex:2;text-align:left;padding-left:8px;">Salta alla prossima iterazione</div>
+          <div class="proto-cell">for, while</div>
+        </div>
+      </div>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Usali con moderazione: spesso una condizione ben scritta nel <code>while</code> o un <code>if</code> nel corpo del ciclo rendono il codice più chiaro.</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:8%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: Introduzione</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+  const labels = {
+    'intro':'Panoramica',
+    'variabili':'Variabili e tipi',
+    'io':'Input/Output',
+    'operatori':'Operatori',
+    'stringhe':'Stringhe e f-string',
+    'if':'Selezione — if / elif / else',
+    'while':'Ciclo — while',
+    'for':'Ciclo — for',
+    'break-continue':'Salti — break / continue'
+  };
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total-1;
+    document.getElementById('progress-fill').style.width = ((current+1)/total*100)+'%';
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = 'Sezione: '+(labels[sec]||sec);
+  }
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown') changeSlide(1);
+    if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   changeSlide(-1);
+  });
+  updateUI();
+
+  // Touch swipe support
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) changeSlide(1);
+      else        changeSlide(-1);
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
