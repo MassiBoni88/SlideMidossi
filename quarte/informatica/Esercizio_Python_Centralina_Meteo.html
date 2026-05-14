@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Esercitazione Python – Cicli, Variabili, I/O</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      color: #222;
+      background: #fff;
+      padding: 30px 40px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* --- HEADER BANNER --- */
+    .header {
+      display: flex;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+    .header-title {
+      background: #3b1f6e;
+      color: #fff;
+      font-size: 14pt;
+      font-weight: bold;
+      padding: 12px 18px;
+      flex: 1;
+    }
+    .header-info {
+      background: #6a3db8;
+      color: #fff;
+      font-size: 9pt;
+      padding: 8px 14px;
+      min-width: 190px;
+      text-align: left;
+    }
+    .header-info .school { font-weight: bold; margin-bottom: 4px; }
+    .header-info .topics { font-style: italic; line-height: 1.5; }
+
+    /* --- INTRO --- */
+    .intro {
+      background: #f5f0ff;
+      border: 1px solid #c9b6e6;
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin-bottom: 22px;
+    }
+    .intro p { margin-bottom: 8px; }
+    .intro p:last-child { margin-bottom: 0; }
+
+    /* --- TOC --- */
+    .toc {
+      background: #fff;
+      border: 1px solid #c9b6e6;
+      border-left: 5px solid #3b1f6e;
+      padding: 14px 18px 14px 22px;
+      margin-bottom: 30px;
+    }
+    .toc .toc-title {
+      color: #3b1f6e;
+      font-weight: bold;
+      font-size: 11.5pt;
+      margin-bottom: 8px;
+    }
+    .toc ol { margin-left: 22px; }
+    .toc ol li { margin-bottom: 4px; line-height: 1.5; }
+    .toc a {
+      color: #3b1f6e;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .toc a:hover { text-decoration: underline; }
+    .toc .tags {
+      font-style: italic;
+      color: #6a3db8;
+      font-weight: normal;
+      font-size: 9.5pt;
+    }
+
+    /* --- ESERCIZIO --- */
+    .esercizio {
+      margin-bottom: 36px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #3b1f6e;
+    }
+    .esercizio:last-of-type { border-bottom: none; }
+
+    /* --- SECTION TITLES --- */
+    h2 {
+      color: #3b1f6e;
+      font-size: 13pt;
+      background: #f5f0ff;
+      border-left: 5px solid #3b1f6e;
+      padding: 8px 14px;
+      margin: 24px 0 12px 0;
+    }
+    h3 {
+      color: #4a2d8a;
+      font-size: 11pt;
+      margin: 16px 0 6px 0;
+      border-bottom: 1px dotted #c9b6e6;
+      padding-bottom: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #6a3db8;
+      color: #fff;
+      font-family: "Courier New", monospace;
+      font-size: 8.5pt;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      vertical-align: middle;
+      font-weight: normal;
+    }
+
+    /* --- TEXT --- */
+    p { margin-bottom: 10px; line-height: 1.6; }
+    ul { margin: 6px 0 10px 26px; }
+    ul li { margin-bottom: 5px; line-height: 1.6; }
+    ol { margin: 6px 0 10px 26px; }
+    ol li { margin-bottom: 5px; line-height: 1.6; }
+
+    /* --- CODICE INLINE --- */
+    code {
+      font-family: "Courier New", monospace;
+      font-size: 10pt;
+      background: #f0ebff;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    /* --- TABLE --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 10.5pt;
+    }
+    thead tr {
+      background: #3b1f6e;
+      color: #fff;
+    }
+    thead th {
+      padding: 7px 12px;
+      text-align: left;
+    }
+    tbody tr:nth-child(even) { background: #f5f0ff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #ccc;
+      vertical-align: top;
+    }
+
+    /* --- VINCOLI TABLE --- */
+    .vincoli-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 10pt;
+    }
+    .vincoli-table td {
+      padding: 6px 12px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: top;
+    }
+    .vincoli-table td:first-child {
+      font-weight: bold;
+      width: 30%;
+      color: #3b1f6e;
+    }
+
+    /* --- BOX --- */
+    .box-warn {
+      border: 1px solid #d08020;
+      border-left: 5px solid #d08020;
+      padding: 10px 14px;
+      margin: 12px 0;
+      background: #fffbf0;
+      font-size: 10pt;
+    }
+    .box-warn strong { color: #8a5000; }
+
+    /* --- SEPARATORE --- */
+    .sep {
+      border: none;
+      border-top: 1px dashed #bbb;
+      margin: 16px 0;
+    }
+
+    @media print {
+      body { padding: 15px 20px; }
+      .esercizio { page-break-inside: avoid; }
+      .toc { page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="https://massiboni88.github.io/SlideMidossi/index.html" title="Torna alla homepage" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(59,31,110,0.9);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(255,255,255,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(255,255,255,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-title">ESERCITAZIONE PYTHON – CICLI, VARIABILI E I/O</div>
+    <div class="header-info">
+      <div class="school">ITT Midossi – Classe 3F</div>
+      <div class="topics">
+        10 esercizi su:<br>
+        variabili · input/output<br>
+        cicli ed elaborazione dati
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <p>Questa esercitazione contiene <strong>10 tracce</strong> da svolgere in Python.
+    Ogni esercizio richiede l'uso combinato di <strong>variabili, input/output ed
+    elaborazione iterativa dei dati</strong>.</p>
+    <p>Per ogni traccia spetta a te <strong>scegliere il costrutto più adatto</strong>
+    a leggere i dati, validare gli input, calcolare statistiche e gestire i menu.
+    Ragiona sul "quando" e "quante volte" devi ripetere un'operazione: la risposta
+    ti suggerirà il tipo di ciclo da usare.</p>
+    <p>Salva ogni esercizio in un file Python separato, con un nome chiaro (es.
+    <code>es1_centralina_meteo.py</code>).</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Indice degli esercizi</div>
+    <ol>
+      <li><a href="#es1">Centralina Meteorologica</a>
+          <span class="tags">— lista di temperature, statistiche, menu</span></li>
+      <li><a href="#es2">Distributore Automatico di Bevande</a>
+          <span class="tags">— inserimento monete, acquisto, resto</span></li>
+      <li><a href="#es3">Gioco "Indovina il Numero"</a>
+          <span class="tags">— tentativi, suggerimenti, statistiche partite</span></li>
+      <li><a href="#es4">Registro Voti della Classe</a>
+          <span class="tags">— media, promossi, bocciati</span></li>
+      <li><a href="#es5">Sportello Bancomat (ATM)</a>
+          <span class="tags">— PIN, prelievi, versamenti, storico</span></li>
+      <li><a href="#es6">Tabella Pitagorica</a>
+          <span class="tags">— tabelline e tabelle a doppia entrata</span></li>
+      <li><a href="#es7">Cassa Self-Service Supermercato</a>
+          <span class="tags">— scansione articoli, sconto, scontrino</span></li>
+      <li><a href="#es8">Cronometro Allenamento in Palestra</a>
+          <span class="tags">— esercizi, serie, tempi totali</span></li>
+      <li><a href="#es9">Sondaggio Generi Musicali</a>
+          <span class="tags">— conteggi, percentuali, classifica</span></li>
+      <li><a href="#es10">Gestione Visitatori del Museo</a>
+          <span class="tags">— ingressi, uscite, capienza, incassi</span></li>
+    </ol>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 1 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es1">
+    <h2>Esercizio 1 – Centralina Meteorologica</h2>
+
+    <h3>Scenario</h3>
+    <p>Sul tetto della scuola è installata una piccola centralina meteorologica che
+    registra ogni giorno la temperatura massima rilevata. Scrivi un programma che
+    permetta all'operatore di inserire le temperature di una settimana (7 giorni, da
+    lunedì a domenica) e poi di consultare un menu interattivo per visualizzarle
+    e analizzarle.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>GIORNI</code> = 7 — numero di giorni della settimana.</li>
+      <li><code>TEMP_MIN</code> = -50 e <code>TEMP_MAX</code> = 60 — intervallo di
+          validità delle temperature in gradi Celsius.</li>
+      <li><code>nomi_giorni</code> — lista con i nomi dei giorni della settimana.</li>
+      <li><code>temperature</code> — lista (inizialmente vuota) che conterrà le 7
+          temperature lette.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Leggi le 7 temperature, una al giorno, mostrando il nome del giorno corrente.
+          Ogni temperatura va aggiunta alla lista.</li>
+      <li>Prima di accettare una temperatura, controlla che sia compresa nell'intervallo
+          <code>[TEMP_MIN, TEMP_MAX]</code>. Se il valore è fuori intervallo, stampa
+          un messaggio di errore e richiedilo finché non è valido.</li>
+      <li>Calcola: somma, media, temperatura massima, temperatura minima, giorno con
+          il massimo, giorno con il minimo. <strong>Non</strong> usare le funzioni
+          predefinite <code>sum()</code>, <code>min()</code>, <code>max()</code>.</li>
+      <li>Mostra un menu che si ripete finché l'utente non sceglie 0.</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Visualizza tutte le temperature, una per giorno.</td></tr>
+        <tr><td><strong>2</strong></td><td>Visualizza statistiche: media, massima (con giorno), minima (con giorno).</td></tr>
+        <tr><td><strong>3</strong></td><td>Chiedi una soglia e stampa tutti i giorni con temperatura strettamente maggiore della soglia.</td></tr>
+        <tr><td><strong>4</strong></td><td>Conta e stampa il numero di giorni con temperatura ≥ 25 °C ("giorni caldi").</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Tipo temperature</td><td>Numeri con virgola (<code>float</code>).</td></tr>
+      <tr><td>Stampa media</td><td>Arrotondata a 1 cifra decimale.</td></tr>
+      <tr><td>Validazione menu</td><td>Anche la scelta del menu va rifiutata se non corrisponde a una voce esistente.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Aggiungi una voce "Escursione termica massima": la differenza più grande fra
+          due giorni consecutivi, indicando fra quali due giorni si è verificata.</li>
+      <li>Permetti di ricominciare con una nuova settimana: al termine chiedi se rifare
+          tutto da capo o se chiudere il programma.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 2 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es2">
+    <h2>Esercizio 2 – Distributore Automatico di Bevande</h2>
+
+    <h3>Scenario</h3>
+    <p>Devi programmare il software di un distributore automatico installato nei
+    corridoi della scuola. Il distributore vende 5 bevande a prezzi diversi.
+    L'utente sceglie la bevanda, inserisce le monete una alla volta e riceve la
+    bevanda più l'eventuale resto.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>bevande</code> — lista con i nomi delle 5 bevande (es. Acqua, Cola,
+          Aranciata, Tè, Caffè).</li>
+      <li><code>prezzi</code> — lista parallela con i prezzi in euro
+          (numeri con virgola).</li>
+      <li><code>MONETE_VALIDE</code> — lista delle monete accettate:
+          0.05, 0.10, 0.20, 0.50, 1.00, 2.00.</li>
+      <li><code>incasso_totale</code> — accumulatore degli incassi della giornata.</li>
+      <li><code>vendite</code> — lista con il numero di pezzi venduti per ogni bevanda
+          (inizializzata a zero).</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Stampa il menu delle bevande mostrando per ciascuna numero, nome e prezzo.</li>
+      <li>Chiedi all'utente la bevanda da acquistare (numero da 1 a 5). Rifiuta e
+          richiedi i valori non validi finché non viene fornita una scelta corretta.</li>
+      <li>Chiedi monete una alla volta finché la somma inserita non raggiunge il prezzo
+          della bevanda. Se la moneta inserita non è valida, rifiutala senza sommarla.</li>
+      <li>Calcola e stampa il resto. Aggiorna <code>incasso_totale</code> e
+          <code>vendite</code>.</li>
+      <li>Tutto il programma deve essere inserito in un menu principale che permetta
+          di acquistare più volte o spegnere il distributore.</li>
+    </ol>
+
+    <h3>Menu principale</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Mostra le bevande disponibili e i prezzi.</td></tr>
+        <tr><td><strong>2</strong></td><td>Acquista una bevanda (lancia la sequenza descritta sopra).</td></tr>
+        <tr><td><strong>3</strong></td><td>Statistiche di giornata: pezzi venduti per bevanda e incasso totale.</td></tr>
+        <tr><td><strong>0</strong></td><td>Spegni il distributore.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Monete</td><td>Solo i valori in <code>MONETE_VALIDE</code> sono accettati.</td></tr>
+      <tr><td>Resto</td><td>Va calcolato come differenza fra inserito e prezzo. Stampato con 2 decimali.</td></tr>
+      <tr><td>Annullamento</td><td>Inserendo 0 al posto di una moneta, l'acquisto si annulla e tutto il denaro viene restituito.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Visualizza il resto suddiviso in monete del taglio più grande possibile.</li>
+      <li>Aggiungi una scorta limitata per ogni bevanda: se è esaurita non è più
+          selezionabile.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 3 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es3">
+    <h2>Esercizio 3 – Gioco "Indovina il Numero"</h2>
+
+    <h3>Scenario</h3>
+    <p>Il computer pensa un numero intero casuale tra 1 e 100. L'utente deve
+    indovinarlo nel minor numero di tentativi possibile. A ogni tentativo il
+    computer suggerisce se il numero da indovinare è <em>più alto</em> o
+    <em>più basso</em>. Alla fine della partita il giocatore può scegliere se
+    giocare di nuovo.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>MIN</code> = 1 e <code>MAX</code> = 100 — intervallo del numero segreto.</li>
+      <li><code>MAX_TENTATIVI</code> = 10 — tentativi massimi per partita.</li>
+      <li><code>numero_segreto</code> — il numero generato in modo casuale
+          (usa <code>random.randint</code>).</li>
+      <li><code>tentativi</code> — contatore dei tentativi della partita corrente.</li>
+      <li><code>partite_giocate</code>, <code>partite_vinte</code>,
+          <code>somma_tentativi</code> — accumulatori per le statistiche globali.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Il programma deve permettere di giocare più partite di seguito, finché
+          l'utente vuole.</li>
+      <li>All'inizio di ogni partita genera <code>numero_segreto</code> e azzera
+          <code>tentativi</code>.</li>
+      <li>Durante una partita chiedi all'utente un numero e fornisci il suggerimento
+          ("più alto" / "più basso"). Continua a chiedere finché non indovina o
+          finché non esaurisce i tentativi.</li>
+      <li>Ogni input numerico deve essere validato: il valore deve essere compreso
+          fra <code>MIN</code> e <code>MAX</code>. Rifiuta e richiedi i valori
+          fuori intervallo.</li>
+      <li>Al termine di ogni partita stampa il risultato (vittoria/sconfitta) e
+          aggiorna i contatori globali.</li>
+      <li>Quando l'utente decide di smettere, stampa: partite giocate, partite vinte,
+          percentuale di vittorie, media tentativi nelle partite vinte.</li>
+    </ol>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Modulo da importare</td><td><code>import random</code> in cima al file.</td></tr>
+      <tr><td>Numero segreto</td><td>Mai mostrato all'utente prima della fine partita.</td></tr>
+      <tr><td>Tentativi esauriti</td><td>Stampa il numero segreto e dichiara sconfitta.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Offri 3 livelli di difficoltà (Facile = 1–50 / 15 tentativi, Medio = 1–100
+          / 10 tentativi, Difficile = 1–500 / 12 tentativi).</li>
+      <li>Tieni traccia del miglior risultato (minor numero di tentativi per vincere)
+          fra tutte le partite giocate.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 4 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es4">
+    <h2>Esercizio 4 – Registro Voti della Classe</h2>
+
+    <h3>Scenario</h3>
+    <p>Un docente vuole un programma per inserire i voti di una verifica e ottenere
+    al volo le statistiche: media, voto massimo, voto minimo, elenco dei promossi
+    e dei bocciati.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>VOTO_MIN</code> = 1 e <code>VOTO_MAX</code> = 10 — intervallo valido.</li>
+      <li><code>SUFFICIENZA</code> = 6 — voto minimo per essere promossi.</li>
+      <li><code>n</code> — numero di studenti, letto da input.</li>
+      <li><code>nomi</code> — lista dei nomi degli studenti.</li>
+      <li><code>voti</code> — lista parallela dei voti.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Chiedi all'utente il numero di studenti <code>n</code> (deve essere maggiore
+          di 0; rifiuta e richiedi se inserisce 0 o un numero negativo).</li>
+      <li>Leggi nome e voto di ogni studente. Ogni voto va validato rispetto
+          all'intervallo consentito: rifiuta e richiedi se è fuori dall'intervallo
+          <code>[VOTO_MIN, VOTO_MAX]</code>.</li>
+      <li>Calcola: media della classe, voto massimo (e relativo studente), voto minimo
+          (e relativo studente), numero di promossi, numero di bocciati.</li>
+      <li>Mostra un menu che si ripete finché l'utente non sceglie 0.</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Stampa tabella nome → voto di tutti gli studenti.</td></tr>
+        <tr><td><strong>2</strong></td><td>Statistiche: media, max (con nome), min (con nome).</td></tr>
+        <tr><td><strong>3</strong></td><td>Elenco dei promossi (voto ≥ 6).</td></tr>
+        <tr><td><strong>4</strong></td><td>Elenco dei bocciati (voto &lt; 6).</td></tr>
+        <tr><td><strong>5</strong></td><td>Chiedi un voto X e stampa gli studenti che hanno preso esattamente X.</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Voti</td><td>Numeri interi (<code>int</code>) da 1 a 10.</td></tr>
+      <tr><td>Media</td><td>Arrotondata a 2 cifre decimali.</td></tr>
+      <tr><td>Nome studente</td><td>Stringa non vuota.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Accetta voti con mezzo punto (es. 6.5, 7.5) usando i <code>float</code>.</li>
+      <li>Calcola la percentuale di promossi rispetto al totale.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 5 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es5">
+    <h2>Esercizio 5 – Sportello Bancomat (ATM)</h2>
+
+    <h3>Scenario</h3>
+    <p>Simula il funzionamento di uno sportello bancomat. L'utente inserisce la
+    propria tessera, viene autenticato tramite PIN (con un numero massimo di tentativi)
+    e poi accede a un menu per consultare il saldo, prelevare, versare e visualizzare
+    lo storico dei movimenti.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>PIN_CORRETTO</code> = 1234 — PIN dell'utente.</li>
+      <li><code>MAX_TENTATIVI_PIN</code> = 3 — tentativi massimi per l'autenticazione.</li>
+      <li><code>LIMITE_PRELIEVO</code> = 250.0 — importo massimo per singolo prelievo.</li>
+      <li><code>saldo</code> — saldo iniziale del conto (es. 1000.0).</li>
+      <li><code>movimenti</code> — lista delle operazioni effettuate (stringhe del
+          tipo "Prelievo 50.0").</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Chiedi il PIN all'utente. Se sbagliato, decrementa i tentativi rimasti e
+          segnalalo. Se i tentativi finiscono, la tessera viene bloccata e il programma
+          termina.</li>
+      <li>Dopo l'autenticazione, mostra un menu che si ripete finché l'utente non sceglie
+          di uscire.</li>
+      <li>Ogni importo inserito (prelievo o versamento) deve essere validato: maggiore
+          di 0, multiplo di 10 e, per il prelievo, ≤ <code>LIMITE_PRELIEVO</code>.
+          Rifiuta e richiedi i valori non validi.</li>
+      <li>Per il prelievo verifica anche che il saldo sia sufficiente, altrimenti
+          rifiuta l'operazione e richiedi un importo valido.</li>
+      <li>Ogni operazione va registrata in <code>movimenti</code>.</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Visualizza saldo.</td></tr>
+        <tr><td><strong>2</strong></td><td>Prelievo (con validazione).</td></tr>
+        <tr><td><strong>3</strong></td><td>Versamento.</td></tr>
+        <tr><td><strong>4</strong></td><td>Storico movimenti: stampa l'elenco di tutte le operazioni effettuate dalla connessione.</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci (espelli la tessera).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Tipi numerici</td><td>Saldo e importi sono <code>float</code>, stampati con 2 decimali.</td></tr>
+      <tr><td>Importi</td><td>Multipli di 10, maggiori di 0.</td></tr>
+      <tr><td>Sicurezza PIN</td><td>Il PIN non va stampato a video.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Aggiungi una voce "Cambia PIN" che richieda il vecchio PIN e poi due volte
+          il nuovo.</li>
+      <li>Limita il prelievo giornaliero totale a 500 €.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 6 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es6">
+    <h2>Esercizio 6 – Tabella Pitagorica</h2>
+
+    <h3>Scenario</h3>
+    <p>Scrivi un programma che permetta di stampare a video le tabelline e la tabella
+    pitagorica di dimensione variabile, scelta dall'utente. L'esercizio serve per
+    esercitarsi sulle <strong>tabelle a doppia entrata</strong> e sulla stampa
+    formattata in colonne.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>DIM_MIN</code> = 2 e <code>DIM_MAX</code> = 15 — intervallo valido
+          per la dimensione della tabella pitagorica.</li>
+      <li><code>n</code> — numero scelto dall'utente per le tabelline o per la
+          dimensione della pitagorica.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Mostra un menu che si ripete finché l'utente non sceglie 0.</li>
+      <li>Ogni input numerico va validato nel proprio intervallo (es. tabellina da
+          1 a 10, dimensione da <code>DIM_MIN</code> a <code>DIM_MAX</code>):
+          rifiuta e richiedi i valori fuori intervallo.</li>
+      <li>La tabellina di un numero N stampa tutti i prodotti
+          <code>N × 1, N × 2, ..., N × 10</code>.</li>
+      <li>La tabella pitagorica N×N stampa, per ogni coppia di interi
+          <code>i, j</code> con <code>i, j</code> da 1 a N, il prodotto
+          <code>i × j</code>. L'output deve essere allineato in colonne (es. larghezza
+          fissa di 5 caratteri per ogni numero).</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Stampa la tabellina di un numero N inserito dall'utente (da 1 a 10).</td></tr>
+        <tr><td><strong>2</strong></td><td>Stampa la tabella pitagorica completa 10×10.</td></tr>
+        <tr><td><strong>3</strong></td><td>Stampa la tabella pitagorica di dimensione N×N (N letto da input, validato).</td></tr>
+        <tr><td><strong>4</strong></td><td>Stampa solo i prodotti pari della tabella pitagorica N×N.</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Allineamento</td><td>Larghezza di 5 caratteri per numero (usa la formattazione delle stringhe).</td></tr>
+      <tr><td>Intestazioni</td><td>La tabella pitagorica deve avere la riga e la colonna dei moltiplicatori (da 1 a N).</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Stampa solo la diagonale della tabella pitagorica (i quadrati).</li>
+      <li>Permetti di esportare la tabella in un file di testo
+          <code>tabella.txt</code>.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 7 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es7">
+    <h2>Esercizio 7 – Cassa Self-Service Supermercato</h2>
+
+    <h3>Scenario</h3>
+    <p>Simula una cassa self-service. Il cliente scansiona uno alla volta i prodotti
+    del carrello fino a quando preme "Fine". Al termine il programma calcola il
+    totale, applica eventuali sconti e stampa lo scontrino.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>codici</code> — lista dei codici prodotto disponibili (interi da
+          100 a 110).</li>
+      <li><code>nomi</code> — lista parallela dei nomi prodotto.</li>
+      <li><code>prezzi</code> — lista parallela dei prezzi unitari.</li>
+      <li><code>SOGLIA_SCONTO</code> = 50.0 — soglia oltre la quale parte lo sconto.</li>
+      <li><code>SCONTO_PERC</code> = 10 — percentuale di sconto.</li>
+      <li><code>carrello_nomi</code> e <code>carrello_prezzi</code> — liste degli
+          articoli effettivamente acquistati.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Chiedi un codice prodotto alla volta, finché l'utente non inserisce 0
+          ("Fine spesa").</li>
+      <li>Ogni codice inserito deve essere validato: dev'essere 0 oppure un codice
+          presente nella lista <code>codici</code>. Rifiuta e richiedi i codici
+          inesistenti.</li>
+      <li>Per ogni prodotto valido chiedi la quantità (intero ≥ 1), rifiutando e
+          richiedendo i valori non validi.</li>
+      <li>Aggiorna le liste del carrello e accumula il totale.</li>
+      <li>Al termine, se il totale supera <code>SOGLIA_SCONTO</code>, applica lo
+          sconto e mostra anche il prezzo scontato.</li>
+      <li>Stampa lo scontrino con una riga per ogni articolo del carrello: nome,
+          quantità e prezzo totale per articolo.</li>
+    </ol>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Prezzi</td><td><code>float</code>, stampati con 2 decimali.</td></tr>
+      <tr><td>Quantità</td><td>Intero ≥ 1.</td></tr>
+      <tr><td>Scontrino</td><td>Deve mostrare numero articoli, totale, sconto applicato e totale finale.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Aggiungi un menu principale con "Nuova spesa", "Statistiche di giornata"
+          (numero scontrini, incasso totale, scontrino più costoso) e "Chiudi cassa".</li>
+      <li>Permetti di annullare l'ultimo articolo aggiunto con il codice -1.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 8 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es8">
+    <h2>Esercizio 8 – Cronometro Allenamento in Palestra</h2>
+
+    <h3>Scenario</h3>
+    <p>Vuoi tenere traccia di una scheda di allenamento in palestra. Per ogni esercizio
+    inserisci il nome, il numero di serie e la durata media in secondi di ciascuna
+    serie. Al termine il programma calcola le statistiche dell'allenamento.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>NUM_MAX_ESERCIZI</code> = 10 — limite di esercizi gestibili.</li>
+      <li><code>SERIE_MIN</code> = 1 e <code>SERIE_MAX</code> = 10.</li>
+      <li><code>DURATA_MIN</code> = 5 e <code>DURATA_MAX</code> = 600 — durata in
+          secondi di una serie.</li>
+      <li><code>n</code> — numero di esercizi previsti (letto da input).</li>
+      <li>Liste parallele: <code>nomi</code>, <code>serie</code>, <code>durate</code>.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Chiedi <code>n</code> all'utente (deve essere compreso fra 1 e
+          <code>NUM_MAX_ESERCIZI</code>; rifiuta e richiedi se fuori intervallo).</li>
+      <li>Leggi nome, numero serie e durata media di ogni esercizio. Tutti i valori
+          numerici vanno validati nei rispettivi intervalli: rifiuta e richiedi i
+          valori fuori dai limiti.</li>
+      <li>Calcola: tempo totale dell'allenamento (somma di serie × durata), esercizio
+          più lungo, esercizio più corto, numero totale di serie eseguite.</li>
+      <li>Mostra un menu che si ripete finché l'utente non sceglie 0.</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Visualizza la scheda completa (un esercizio per riga).</td></tr>
+        <tr><td><strong>2</strong></td><td>Visualizza tempo totale (in minuti e secondi), numero serie totali, durata media per serie.</td></tr>
+        <tr><td><strong>3</strong></td><td>Trova l'esercizio più lungo e quello più corto.</td></tr>
+        <tr><td><strong>4</strong></td><td>Chiedi una soglia di durata e mostra solo gli esercizi con tempo totale superiore.</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Tempo totale</td><td>Va convertito in formato "X min Y s".</td></tr>
+      <tr><td>Nomi</td><td>Stringhe non vuote.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Per ogni esercizio chiedi anche le pause fra una serie e l'altra e includile
+          nel tempo totale.</li>
+      <li>Permetti di confrontare due allenamenti consecutivi (oggi vs ieri):
+          al termine del primo, chiedi se inserire un secondo allenamento da
+          confrontare con il precedente.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 9 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es9">
+    <h2>Esercizio 9 – Sondaggio Generi Musicali</h2>
+
+    <h3>Scenario</h3>
+    <p>Stai conducendo un sondaggio fra gli studenti della scuola sul loro genere
+    musicale preferito. Devi raccogliere le risposte di un certo numero di persone
+    e poi mostrare i risultati con conteggi, percentuali e classifica.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>NUM_GENERI</code> = 5.</li>
+      <li><code>generi</code> = ["Rock", "Pop", "Hip-Hop", "Classica", "Elettronica"].</li>
+      <li><code>conteggi</code> — lista di 5 zeri: il conteggio dei voti per ogni
+          genere.</li>
+      <li><code>n</code> — numero di persone intervistate (letto da input,
+          maggiore di 0).</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Chiedi <code>n</code> all'utente (deve essere &gt; 0; rifiuta e richiedi
+          i valori non validi).</li>
+      <li>Intervista <code>n</code> persone. Per ognuna mostra il menu dei generi
+          (numero + nome) e chiedi una scelta da 1 a <code>NUM_GENERI</code>.</li>
+      <li>Ogni scelta deve essere validata: rifiuta e richiedi i numeri fuori
+          dall'intervallo consentito.</li>
+      <li>In base alla scelta incrementa il valore corrispondente nella lista
+          <code>conteggi</code>.</li>
+      <li>Al termine stampa: per ogni genere il numero di voti e la percentuale
+          sul totale; il genere più votato; il genere meno votato.</li>
+    </ol>
+
+    <h3>Menu finale (opzionale)</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Mostra la classifica completa (dal più al meno votato).</td></tr>
+        <tr><td><strong>2</strong></td><td>Mostra le percentuali con un grafico a "istogramma" di asterischi (un <code>*</code> ogni 5%, ad esempio).</td></tr>
+        <tr><td><strong>3</strong></td><td>Aggiungi nuove risposte al sondaggio.</td></tr>
+        <tr><td><strong>0</strong></td><td>Esci.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Percentuali</td><td>Arrotondate a 1 decimale.</td></tr>
+      <tr><td>Parità</td><td>Se due generi hanno lo stesso conteggio massimo, stampali entrambi.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Permetti all'utente di aggiungere un nuovo genere alla lista all'inizio
+          del programma.</li>
+      <li>Salva i risultati in un file di testo.</li>
+    </ul>
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- ESERCIZIO 10 -->
+  <!-- ===================================================== -->
+  <div class="esercizio" id="es10">
+    <h2>Esercizio 10 – Gestione Visitatori del Museo</h2>
+
+    <h3>Scenario</h3>
+    <p>Sei alla biglietteria di un museo. Il software deve tenere traccia in tempo
+    reale dei visitatori presenti, controllare la capienza massima, gestire ingressi
+    e uscite in gruppi e calcolare l'incasso giornaliero.</p>
+
+    <h3>Variabili e costanti</h3>
+    <ul>
+      <li><code>CAPIENZA_MAX</code> = 200 — visitatori massimi
+          contemporaneamente all'interno del museo.</li>
+      <li><code>COSTO_INTERO</code> = 10.0 — biglietto intero in euro.</li>
+      <li><code>COSTO_RIDOTTO</code> = 5.0 — biglietto ridotto in euro.</li>
+      <li><code>visitatori_attuali</code> — quanti sono dentro adesso.</li>
+      <li><code>visitatori_totali</code> — quanti sono entrati in tutta la giornata.</li>
+      <li><code>incasso</code> — accumulatore dell'incasso giornaliero.</li>
+    </ul>
+
+    <h3>Operazioni richieste</h3>
+    <ol>
+      <li>Mostra un menu che si ripete finché non viene scelta la chiusura del museo.</li>
+      <li>Tutti gli input numerici (numero di persone in un gruppo, numero di biglietti
+          interi e ridotti, scelta del menu) vanno validati: rifiuta e richiedi i
+          valori non coerenti con la traccia.</li>
+      <li>Per un ingresso in gruppo: chiedi quante persone (intero &gt; 0), poi
+          quanti biglietti interi e quanti ridotti (la somma deve coincidere con
+          il numero di persone). Verifica che il museo possa accoglierli senza
+          superare <code>CAPIENZA_MAX</code>; in caso contrario rifiuta il gruppo.</li>
+      <li>Per un'uscita di gruppo: chiedi quante persone escono e verifica che
+          non sia un valore superiore a <code>visitatori_attuali</code>.</li>
+      <li>Aggiorna i contatori e l'incasso a ogni operazione.</li>
+    </ol>
+
+    <h3>Menu interattivo</h3>
+    <table>
+      <thead><tr><th>Scelta</th><th>Azione</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Ingresso di un gruppo (con validazione capienza e tipi di biglietto).</td></tr>
+        <tr><td><strong>2</strong></td><td>Uscita di un gruppo.</td></tr>
+        <tr><td><strong>3</strong></td><td>Visualizza stato attuale: visitatori dentro, posti liberi.</td></tr>
+        <tr><td><strong>4</strong></td><td>Statistiche di giornata: visitatori totali, incasso, riempimento massimo raggiunto.</td></tr>
+        <tr><td><strong>0</strong></td><td>Chiudi il museo (mostra il riepilogo finale).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vincoli</h3>
+    <table class="vincoli-table">
+      <tr><td>Capienza</td><td>Non deve mai essere superata: rifiuta il gruppo se non c'è spazio per tutti.</td></tr>
+      <tr><td>Coerenza biglietti</td><td>Interi + ridotti = persone del gruppo.</td></tr>
+      <tr><td>Stampa incasso</td><td>Sempre con 2 decimali.</td></tr>
+    </table>
+
+    <h3>Punto bonus (facoltativo)</h3>
+    <ul>
+      <li>Aggiungi un terzo tipo di biglietto "Gratuito" (per bambini sotto i 6 anni e
+          accompagnatori scolastici).</li>
+      <li>Tieni traccia dell'ora di ogni operazione (usa il modulo
+          <code>datetime</code>) e mostra l'andamento orario dei visitatori.</li>
+    </ul>
+  </div>
+
+  <div class="box-warn">
+    <strong>Consegna.</strong> Salva ogni esercizio in un file Python separato
+    (es. <code>es1_centralina_meteo.py</code>, <code>es2_distributore.py</code>, ecc.)
+    e raccoglili tutti in un'unica cartella compressa con il tuo cognome.
+  </div>
+
+</body>
+</html>
