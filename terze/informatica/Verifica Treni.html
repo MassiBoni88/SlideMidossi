@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Gestione Ritardi Ferroviari</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #6b1717;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #9c2a2a;
+      color: #fbe6e6;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #f3c9c9;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #b32a2a;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #b32a2a;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #6b1717;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #fbeded; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #e8d0d0;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #f7e0e0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #6b1717;
+    }
+    .star { color: #b32a2a; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #6b1717; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #6b1717; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #fdecec;
+      border-left: 5px solid #b32a2a;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #3a0808;
+    }
+    .hint strong { color: #6b1717; }
+    .hint code {
+      background: #f4d3d3;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #5a1212;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #6b1717;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA MATRICE (esempio visivo) ── */
+    .matrice-box {
+      background: #fdf3f3;
+      border: 1px solid #e8c7c7;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #6b1717;
+      overflow-x: auto;
+    }
+    .matrice-box .titolo-griglia {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #6b1717;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>GESTIONE RITARDI FERROVIARI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, matrici,<br>funzioni, cicli, stringhe</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    La direzione di una compagnia ferroviaria vuole <strong>monitorare la puntualità</strong> dei
+    propri treni. Per ogni treno in servizio vengono registrati i <strong>ritardi in minuti</strong>
+    rilevati su <strong>5 fermate principali della tratta</strong> per <strong>6 giorni feriali</strong>
+    (da lunedì a sabato). Devi sviluppare un programma C++ che archivi i treni, mostri il quadro
+    settimanale dei ritardi sotto forma di tabella, calcoli statistiche di puntualità e individui
+    i convogli più problematici. Ogni treno è affidato a un macchinista, descritto tramite una
+    <strong>struct annidata</strong>.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata e matrice</h2>
+
+  <h3>1a. Definisci dapprima la struct <strong>Macchinista</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>matricola</code></td><td>codice identificativo del macchinista (es. "MC1042")</td></tr>
+      <tr><td><code>nome</code></td><td>nome e cognome del macchinista</td></tr>
+      <tr><td><code>anni_servizio</code></td><td>anni di esperienza in compagnia (intero)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci quindi la struct <strong>Treno</strong>, che include <strong>Macchinista</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>codice</code></td><td>codice del treno (es. "FR9612", "IC724", "R3045")</td></tr>
+      <tr><td><code>categoria</code></td><td>categoria di servizio: "Frecciarossa", "Intercity", "Regionale"...</td></tr>
+      <tr><td><code>tratta</code></td><td>tratta percorsa (es. "Roma – Milano")</td></tr>
+      <tr><td><code>conducente</code></td><td>Dati del Macchinista</td></tr>
+      <tr>
+        <td><code>ritardi[5][6]</code></td>
+        <td><strong>Matrice 5×6</strong> di numeri interi: 5 fermate × 6 giorni feriali (0=lun, 1=mar, 2=mer, 3=gio, 4=ven, 5=sab). Valore in minuti, sempre &gt;= 0; uno <code>0</code> significa treno puntuale</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di come visualizzare la matrice di un treno:</h3>
+  <div class="matrice-box">
+    <div class="titolo-griglia">Treno: FR9612 &nbsp;|&nbsp; Tratta: Roma – Milano</div>
+                Lun   Mar   Mer   Gio   Ven   Sab<br>
+    Fermata 1    0     2     0     1     0     0<br>
+    Fermata 2    3     5     2     4     1     0<br>
+    Fermata 3    7    12     5     9     3     2<br>
+    Fermata 4    4     8     6     7     2     1<br>
+    Fermata 5    2     6     4     5     1     0
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni:</strong></p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>ritardoMedio(Treno t)</code></td>
+        <td>Restituisce la <strong>media aritmetica</strong> di tutti i 30 ritardi della matrice (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>fermataPiuCritica(Treno t)</code></td>
+        <td>Restituisce il <strong>numero della fermata</strong> (da 1 a 5) la cui <em>somma dei ritardi sui 6 giorni</em> è la più alta</td>
+      </tr>
+      <tr>
+        <td><code>giornoPeggiore(Treno t)</code></td>
+        <td>Restituisce il <strong>numero del giorno</strong> (da 1 a 6) la cui <em>somma dei ritardi sulle 5 fermate</em> è la più alta. Ricorda: lun=1, mar=2, ..., sab=6</td>
+      </tr>
+      <tr>
+        <td><code>corsePuntuali(Treno t)</code></td>
+        <td>Restituisce il <strong>numero di celle</strong> della matrice in cui il ritardo è esattamente <code>0</code> (treno puntuale in quella fermata e in quel giorno)</td>
+      </tr>
+      <tr>
+        <td><code>stampaTabella(Treno t)</code></td>
+        <td>Stampa codice, categoria, tratta, dati del macchinista annidato e la <strong>matrice 5×6</strong> formattata come nello schema sopra (intestazioni di riga e colonna comprese)</td>
+      </tr>
+      <tr>
+        <td><code>inserisciTreno()</code></td>
+        <td>Legge da tastiera tutti i campi del Treno, compresi quelli del Macchinista annidato e i 30 valori della matrice, e restituisce il Treno compilato</td>
+      </tr>
+      <tr>
+        <td><code>trovaPeggiorRitardoMedio(Treno arr[], int n)</code></td>
+        <td>Restituisce l'<strong>indice del treno</strong> dell'array con il <code>ritardoMedio</code> più alto; restituisce <code>-1</code> se l'array è vuoto</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>12 treni</strong> e realizza un menu a ciclo con le opzioni:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi treno</td>
+        <td>richiama <code>inserisciTreno</code>, salva il risultato nell'array e aggiorna il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra tabellone</td>
+        <td>stampa la tabella completa di ciascun treno tramite <code>stampaTabella</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Analisi singolo treno</td>
+        <td>chiede l'<strong>indice</strong> di un treno (compreso fra 0 e <em>n−1</em>) e mostra: ritardo medio (2 decimali), fermata più critica, giorno peggiore e numero di corse puntuali</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Treno meno puntuale</td>
+        <td>usa <code>trovaPeggiorRitardoMedio</code> e, se l'array non è vuoto, stampa la tabella del treno trovato evidenziando il suo ritardo medio</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> per leggere stringhe contenenti spazi (nome del macchinista, tratta,
+    categoria) utilizza <code>getline(cin, variabile)</code>. Ricorda di inserire
+    <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>,
+    anche dentro <code>inserisciTreno</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per leggere e scorrere la matrice usa <strong>due cicli annidati</strong>
+    (uno sulle 5 fermate, uno sui 6 giorni).
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> suddividi la verifica in 3 file separati (vedi sezione Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Matrice</td>
+        <td>Sempre 5 righe × 6 colonne per treno; valori interi in minuti, tutti &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Anni di servizio</td>
+        <td>Numero intero &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Codice treno</td>
+        <td>Stringa breve senza spazi (es. "FR9612"); leggibile con <code>cin &gt;&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Macchinista deve essere dichiarata <em>prima</em> di Treno</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 12 treni; utilizza una variabile contatore per i treni inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le funzioni <code>fermataPiuCritica</code> e <code>giornoPeggiore</code>
+    devono restituire un numero che parte da <strong>1</strong> (non l'indice 0 dell'array).
+    La fermata più critica si calcola sommando lungo le <em>righe</em> della matrice, mentre il giorno
+    peggiore si calcola sommando lungo le <em>colonne</em>: non confondere le due dimensioni.
+    La funzione <code>corsePuntuali</code> conta soltanto le celle con valore esattamente uguale a
+    <code>0</code>, non quelle con ritardo minimo.
+  </div>
+
+</body>
+</html>
