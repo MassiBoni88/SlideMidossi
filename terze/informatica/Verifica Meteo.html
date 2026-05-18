@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Osservatorio Meteorologico Alpino</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1c4d3f;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2f7a64;
+      color: #e8f4ef;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c9e3d8;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e8a6f;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e8a6f;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1c4d3f;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #eef6f2; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4e5dd;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e6f1ec;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1c4d3f;
+    }
+    .star { color: #1e8a6f; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1c4d3f; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1c4d3f; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #e6f4ee;
+      border-left: 5px solid #1e8a6f;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #112a22;
+    }
+    .hint strong { color: #1c4d3f; }
+    .hint code {
+      background: #cfe8dd;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3a2e;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1c4d3f;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA MATRICE (esempio visivo) ── */
+    .matrice-box {
+      background: #f3f9f6;
+      border: 1px solid #cfe2d9;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #1c4d3f;
+      overflow-x: auto;
+    }
+    .matrice-box .titolo-griglia {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #1c4d3f;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>OSSERVATORIO METEO ALPINO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, matrici,<br>funzioni, cicli, stringhe</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Un <strong>osservatorio meteorologico</strong> raccoglie dati da diverse stazioni dislocate
+    sulle Alpi. Ogni stazione registra le <strong>temperature in °C</strong> di una intera settimana,
+    suddividendo ogni giornata in <strong>4 fasce orarie</strong> (notte, mattino, pomeriggio, sera).
+    Devi sviluppare un programma C++ che permetta di archiviare le stazioni, mostrare i rilevamenti
+    in forma di griglia, calcolare statistiche settimanali e individuare le stazioni d'alta quota.
+    Ogni stazione è caratterizzata da coordinate geografiche, descritte tramite una <strong>struct annidata</strong>.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata e matrice</h2>
+
+  <h3>1a. Definisci dapprima la struct <strong>Coordinate</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>latitudine</code></td><td>valore decimale in gradi (es. 45.97)</td></tr>
+      <tr><td><code>longitudine</code></td><td>valore decimale in gradi (es. 7.66)</td></tr>
+      <tr><td><code>altitudine_m</code></td><td>quota della stazione in metri sul livello del mare</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci quindi la struct <strong>Stazione</strong>, che include <strong>Coordinate</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome della stazione (es. "Cervinia", "Plan de Corones")</td></tr>
+      <tr><td><code>regione</code></td><td>regione italiana di appartenenza (es. "Trentino-Alto Adige")</td></tr>
+      <tr><td><code>posizione</code></td><td>Coordinate geografiche della stazione</td></tr>
+      <tr>
+        <td><code>temperature[7][4]</code></td>
+        <td><strong>Matrice 7×4</strong> di numeri decimali: 7 giorni della settimana × 4 fasce orarie (0=notte, 1=mattino, 2=pomeriggio, 3=sera)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di come visualizzare la matrice di una stazione:</h3>
+  <div class="matrice-box">
+    <div class="titolo-griglia">Stazione: Cervinia &nbsp;|&nbsp; Quota: 2050 m</div>
+              Notte   Matt.   Pom.   Sera<br>
+    Lun       -4.2    -1.0     2.1    0.3<br>
+    Mar       -3.8    -0.5     3.0    1.1<br>
+    Mer       -5.1    -2.2     1.4   -0.2<br>
+    Gio       -2.0     0.8     4.5    2.7<br>
+    Ven       -1.5     1.2     5.0    3.0<br>
+    Sab       -3.0    -0.8     2.6    0.9<br>
+    Dom       -4.0    -1.5     1.8    0.0
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni:</strong></p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>mediaSettimanale(Stazione s)</code></td>
+        <td>Restituisce la <strong>media aritmetica</strong> di tutte le 28 temperature della matrice (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>stampaGriglia(Stazione s)</code></td>
+        <td>Stampa nome, regione, coordinate annidate e la <strong>matrice 7×4</strong> formattata come nello schema sopra (intestazioni di riga e colonna comprese)</td>
+      </tr>
+      <tr>
+        <td><code>inserisciStazione()</code></td>
+        <td>Legge da tastiera tutti i campi della Stazione, comprese le coordinate annidate e le 28 temperature della matrice, e restituisce la Stazione compilata</td>
+      </tr>
+      <tr>
+        <td><code>contaStazioniSopraQuota(Stazione arr[], int n, int quotaLimite)</code></td>
+        <td>Restituisce <strong>quante stazioni</strong> dell'array hanno <code>posizione.altitudine_m</code> strettamente maggiore di <code>quotaLimite</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>10 stazioni</strong> e realizza un menu a ciclo con le opzioni:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi stazione</td>
+        <td>richiama <code>inserisciStazione</code>, salva il risultato nell'array e aggiorna il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra tutte le stazioni</td>
+        <td>stampa la griglia completa di ciascuna stazione tramite <code>stampaGriglia</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Analisi statistica</td>
+        <td>chiede l'<strong>indice</strong> di una stazione (compreso fra 0 e <em>n−1</em>) e mostra: media settimanale (2 decimali)</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Conta stazioni d'alta quota</td>
+        <td>chiede una quota limite in metri e stampa il numero di stazioni che la superano, usando <code>contaStazioniSopraQuota</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> per leggere stringhe contenenti spazi (nome stazione, regione)
+    utilizza <code>getline(cin, variabile)</code>. Ricorda di inserire <code>cin.ignore()</code>
+    prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>, anche dentro
+    <code>inserisciStazione</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per leggere e scorrere la matrice usa <strong>due cicli annidati</strong>
+    (uno sui 7 giorni, uno sulle 4 fasce orarie).
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> suddividi la verifica in 3 file separati (vedi sezione Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Matrice</td>
+        <td>Sempre 7 righe × 4 colonne per stazione; valori in °C anche negativi</td>
+      </tr>
+      <tr>
+        <td>Altitudine</td>
+        <td>Numero intero positivo in metri (es. 1850)</td>
+      </tr>
+      <tr>
+        <td>Latitudine / Longitudine</td>
+        <td>Valori decimali (<code>double</code>); la latitudine in Italia è positiva</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Coordinate deve essere dichiarata <em>prima</em> di Stazione</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 10 stazioni; utilizza una variabile contatore per le stazioni inserite</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+
+</body>
+</html>
