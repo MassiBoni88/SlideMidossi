@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifica Sistemi e Reti – Progettazione VLAN Edificio Aziendale</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #3a2a6b;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #5a47a0;
+      color: #ece8fa;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #d4ccf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #5a47a0;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #5a47a0;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #3a2a6b;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f1eefa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #ddd5ee;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8e2f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #3a2a6b;
+    }
+    .star { color: #5a47a0; font-size: 14px; }
+
+    /* ── TABELLA MENU / PUNTI ── */
+    .menu-table thead tr { background: #3a2a6b; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #3a2a6b; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #f0ecfb;
+      border-left: 5px solid #5a47a0;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1f1738;
+    }
+    .hint strong { color: #3a2a6b; }
+    .hint code {
+      background: #ddd2f4;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #2a1c55;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #3a2a6b;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA TOPOLOGIA ── */
+    .topologia-box {
+      background: #f6f3fc;
+      border: 1px solid #d6ccef;
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #3a2a6b;
+      overflow-x: auto;
+    }
+    .topologia-box .titolo-schema {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #3a2a6b;
+      margin-bottom: 8px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <a href="https://massiboni88.github.io/SlideMidossi/index.html" target="_blank" title="Torna alla home" style="
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #3a2a6b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(58,42,107,0.35);
+    text-decoration: none;
+    transition: background 0.2s;
+    z-index: 999;
+  " onmouseover="this.style.background='#5a47a0'" onmouseout="this.style.background='#3a2a6b'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <polyline points="9 21 9 12 15 12 15 21"/>
+    </svg>
+  </a>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>VERIFICA SISTEMI E RETI –<br>PROGETTAZIONE VLAN EDIFICIO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 5°</span>
+      <span class="topics">Argomenti: VLAN, trunk 802.1Q, subnetting,<br>inter-VLAN routing, Packet Tracer</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    L'azienda <strong>NovaTech S.r.l.</strong> occupa un edificio su <strong>tre piani</strong>
+    e vuole riorganizzare la propria rete LAN. I dipendenti appartengono a tre dipartimenti
+    (<strong>Amministrazione</strong>, <strong>Didattica/Formazione</strong>,
+    <strong>Laboratori R&amp;S</strong>), ma per esigenze di spazio fisico le postazioni di uno
+    stesso dipartimento si trovano <em>sparse</em> su piani diversi. Devi progettare e configurare
+    una rete che, tramite l'uso di <strong>VLAN</strong>, raggruppi logicamente gli utenti in base
+    al dipartimento — indipendentemente dalla loro posizione fisica — e che permetta la comunicazione
+    tra dipartimenti tramite un router. Il progetto va realizzato in <strong>Cisco Packet Tracer</strong>.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Topologia fisica</h2>
+
+  <p>Realizza in Packet Tracer la seguente topologia, rispettando la dislocazione fisica degli host:</p>
+
+  <table>
+    <thead>
+      <tr><th>Apparato</th><th>Modello</th><th>Posizione fisica</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>SW-Piano1</code></td><td>Switch 2960</td><td>Piano terra</td><td>Switch aggregatore</td></tr>
+      <tr><td><code>SW-Piano2</code></td><td>Switch 2960</td><td>Primo piano</td><td>—</td></tr>
+      <tr><td><code>SW-Piano3</code></td><td>Switch 2960</td><td>Secondo piano</td><td>—</td></tr>
+      <tr><td><code>R-Core</code></td><td>Router 2811 + modulo NM-4E</td><td>Locale tecnico (piano terra)</td><td>4 porte Ethernet aggiuntive tramite modulo; una porta fisica dedicata per ogni VLAN</td></tr>
+      <tr><td>9 PC client</td><td>PC-PT</td><td>3 per piano</td><td>—</td></tr>
+      <tr><td>1 Server</td><td>Server-PT</td><td>Locale tecnico (piano terra)</td><td>vedi Parte 4</td></tr>
+    </tbody>
+  </table>
+
+
+
+  <h3>Schema della topologia:</h3>
+  <div class="topologia-box">
+    <div class="titolo-schema">Edificio NovaTech – topologia a stella, inter-VLAN con porte fisiche dedicate</div>
+    PIANO 3  →  PC-AMM-3   PC-DID-5   PC-LAB-7<br>
+                  │access     │access     │access<br>
+                  │VLAN10     │VLAN20     │VLAN30<br>
+                [SW-Piano3]<br>
+                  │<br>
+                  │ trunk (VLAN 10+20+30+99)<br>
+                  │<br>
+    PIANO 2  →  PC-DID-2   PC-LAB-4   PC-AMM-6<br>
+                  │access     │access     │access<br>
+                  │VLAN20     │VLAN30     │VLAN10<br>
+                [SW-Piano2]<br>
+                  │<br>
+                  │ trunk (VLAN 10+20+30+99)<br>
+                  │<br>
+    PIANO 1  →  PC-AMM-1   PC-LAB-8   PC-DID-9<br>
+                  │access     │access     │access<br>
+                  │VLAN10     │VLAN30     │VLAN20<br>
+                [SW-Piano1]──────────────────────[R-Core 2811+NM-4E]<br>
+                               4 cavi separati          │   │   │   │<br>
+                               (una porta per VLAN)  Fa0  Fa1  Fa2  Fa3<br>
+                                                    V10  V20  V30  V40<br>
+                                                                    │<br>
+                                                               [Server-PT]<br>
+    <br>
+    Legenda:<br>
+    ── access ──   porta PC→switch (una sola VLAN, non taggerata)<br>
+    ── trunk ───   porta switch→switch (tutte le VLAN, taggerate 802.1Q)<br>
+    ── accesso ─   porta switch→router (una sola VLAN per cavo, non taggerata)
+  </div>
+
+  <p>
+    I PC dello stesso dipartimento si trovano su piani diversi e switch diversi — il trunk
+    tra gli switch garantisce che la stessa VLAN attraversi tutta la rete.
+  </p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Piano di indirizzamento e VLAN</h2>
+
+  <p>
+    L'azienda ha a disposizione la rete <code>192.168.50.0/24</code>. Devi suddividerla in
+    <strong>sottoreti con maschera /26</strong>, una per ciascun dipartimento. Compila la
+    tabella di assegnazione:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>VLAN</th><th>Nome</th><th>Sottorete /26</th><th>Default Gateway</th><th>Range host validi</th><th>Broadcast</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>10</code></td>
+        <td>AMM</td>
+        <td>192.168.50.0/26</td>
+        <td>192.168.50.1</td>
+        <td><em>da calcolare</em></td>
+        <td><em>da calcolare</em></td>
+      </tr>
+      <tr>
+        <td><code>20</code></td>
+        <td>DIDATTICA</td>
+        <td>192.168.50.64/26</td>
+        <td>192.168.50.65</td>
+        <td><em>da calcolare</em></td>
+        <td><em>da calcolare</em></td>
+      </tr>
+      <tr>
+        <td><code>30</code></td>
+        <td>LABORATORI</td>
+        <td>192.168.50.128/26</td>
+        <td>192.168.50.129</td>
+        <td><em>da calcolare</em></td>
+        <td><em>da calcolare</em></td>
+      </tr>
+      <tr>
+        <td><code>99</code></td>
+        <td>NATIVE</td>
+        <td colspan="4"><em>VLAN nativa per i trunk: nessun host vi sarà assegnato</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Compila la tabella sopra</strong> calcolando per ogni VLAN il <em>range di host validi</em> e l'<em>indirizzo di broadcast</em>. Poi assegna gli IP statici ai 9 PC seguendo le regole:</p>
+
+  <ul>
+    <li>I PC del dipartimento <strong>AMM</strong> (VLAN 10) prendono i primi 3 IP utili della loro sottorete dopo il gateway.</li>
+    <li>Stessa regola per <strong>DIDATTICA</strong> (VLAN 20) e <strong>LABORATORI</strong> (VLAN 30).</li>
+    <li>Imposta correttamente <em>indirizzo IP</em>, <em>subnet mask</em> e <em>default gateway</em> su ciascun PC.</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Configurazione switch e router</h2>
+
+  <p>
+    Configura tutti gli apparati tramite l'<strong>interfaccia grafica</strong> di Packet Tracer
+    (scheda <strong>Config</strong>). Non è richiesta la CLI.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Operazione</th><th>Dettagli</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Creare le VLAN</td>
+        <td>Su <em>tutti e tre</em> gli switch: VLAN <code>10</code> (AMM), <code>20</code> (DIDATTICA), <code>30</code> (LABORATORI), <code>40</code> (SERVER), <code>99</code> (NATIVE)</td>
+      </tr>
+      <tr>
+        <td>Porte access verso i PC</td>
+        <td>Su ogni switch, assegna ciascuna porta collegata a un PC alla VLAN del dipartimento corrispondente, secondo la distribuzione della Parte 1</td>
+      </tr>
+      <tr>
+        <td>Porte trunk</td>
+        <td>Configura come trunk le porte switch–switch (SW-Piano1↔SW-Piano2 e SW-Piano1↔SW-Piano3). Le porte verso il router sono access, non trunk</td>
+      </tr>
+      <tr>
+        <td>Porte access verso il router</td>
+        <td>Su <code>SW-Piano1</code>: configura 4 porte access, una per ciascuna VLAN (10, 20, 30, 40), ognuna collegata alla porta fisica corrispondente di <code>R-Core</code></td>
+      </tr>
+      <tr>
+        <td>Interfacce di R-Core</td>
+        <td>Su <code>R-Core</code> (scheda Config → interfaccia): assegna a ciascuna porta fisica l'IP del default gateway della VLAN corrispondente e la subnet mask corretta</td>
+      </tr>
+      <tr>
+        <td>Verifica</td>
+        <td>Esegui un <code>ping</code> tra due PC della <em>stessa</em> VLAN su switch diversi, e tra due PC di <em>VLAN diverse</em>. Entrambi devono avere esito positivo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Server condiviso (extra)</h2>
+
+  <p>
+    Nel locale tecnico è presente un <code>Server-PT</code> raggiungibile da tutti i dipartimenti.
+    Collegalo direttamente alla quarta porta di <code>R-Core</code> (quella assegnata alla VLAN 40)
+    e configuralo secondo queste specifiche:
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Specifica</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>VLAN di appartenenza</td><td><code>40</code> – nome <code>SERVER</code></td></tr>
+      <tr><td>Sottorete dedicata</td><td><code>192.168.50.192/26</code></td></tr>
+      <tr><td>Default gateway</td><td>192.168.50.193 (porta fisica di R-Core sulla VLAN 40)</td></tr>
+      <tr><td>IP del server</td><td>Primo IP utile della sottorete dopo il gateway</td></tr>
+      <tr><td>Servizio attivo</td><td>HTTP (lascia abilitato il servizio web di default)</td></tr>
+      <tr><td>Verifica finale</td><td>Da un PC di <em>ogni</em> VLAN (10, 20, 30) apri il browser e raggiungi il server tramite IP: deve caricarsi la pagina di default</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+
+
+  <!-- ══════════════ VINCOLI ══════════════ -->
+  <h2>Vincoli e consegna</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Software</td>
+        <td>Cisco Packet Tracer, file finale in formato <code>.pkt</code></td>
+      </tr>
+      <tr>
+        <td>Subnetting</td>
+        <td>Maschera <code>/26</code> per <em>tutte</em> le sottoreti VLAN — non usare /24 o /27</td>
+      </tr>
+
+      <tr>
+        <td>Hostname</td>
+        <td>Assegna un hostname significativo a switch e router (es. <code>SW-Piano1</code>, <code>R-Core</code>)</td>
+      </tr>
+
+
+      <tr>
+        <td>Consegna</td>
+        <td><code>cognome_nome_VLAN.pkt</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> due PC della stessa VLAN comunicano <em>senza passare dal router</em>
+    — il trunk tra switch è sufficiente. Due PC di VLAN diverse comunicano <em>solo</em> passando
+    per il router, che instrada il traffico tra le sue porte fisiche. Se i ping intra-VLAN falliscono,
+    il problema è sulle porte access o sul trunk; se falliscono quelli inter-VLAN, verifica l'IP
+    e la subnet mask delle interfacce del router e il default gateway impostato sui PC.
+  </div>
+
+</body>
+</html>
