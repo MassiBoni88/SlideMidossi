@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercizio VLAN e Inter-VLAN Routing – Cisco</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      padding: 30px 20px;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white;
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.85; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px;
+      margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      color: #4a5568;
+      margin: 16px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── TOPOLOGY ── */
+    .topology {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: #58a6ff;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .topology .label  { color: #ffa657; }
+    .topology .device { color: #7ee787; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+
+    /* ── TABLES ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+    th {
+      background: #2b6cb0;
+      color: white;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+
+    .fill { background: #fffbeb !important; color: #975a16; font-style: italic; }
+    .fill-empty {
+      background: #fffbeb !important;
+      min-width: 160px;
+      border-bottom: 2px dashed #d69e2e;
+      height: 22px;
+      display: inline-block;
+    }
+
+    /* ── TASKS ── */
+    .task-list { counter-reset: task; list-style: none; }
+    .task-list li {
+      counter-increment: task;
+      padding: 10px 0 10px 48px;
+      border-bottom: 1px solid #edf2f7;
+      position: relative;
+      line-height: 1.6;
+    }
+    .task-list li:last-child { border-bottom: none; }
+    .task-list li::before {
+      content: counter(task);
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #2b6cb0;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .task-list li strong { color: #2b6cb0; }
+
+    /* ── CODE ── */
+    pre {
+      background: #1a202c;
+      color: #a0aec0;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin-top: 10px;
+      line-height: 1.7;
+    }
+    pre .cmd  { color: #68d391; }
+    pre .arg  { color: #faf089; }
+    pre .cmt  { color: #718096; font-style: italic; }
+    pre .blank {
+      display: inline-block;
+      border-bottom: 1px solid #718096;
+      min-width: 120px;
+      color: transparent;
+    }
+
+    /* ── MISC ── */
+    .info-box {
+      background: #ebf8ff;
+      border-left: 4px solid #3182ce;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .warn-box {
+      background: #fffff0;
+      border-left: 4px solid #d69e2e;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .step-box {
+      background: #f0fff4;
+      border-left: 4px solid #38a169;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .tag {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag-v10 { background: #c6f6d5; color: #276749; }
+    .tag-v20 { background: #bee3f8; color: #2a4365; }
+    .tag-v30 { background: #fed7d7; color: #9b2c2c; }
+    .tag-trk { background: #e9d8fd; color: #553c9a; }
+
+    .section-sep {
+      border: none;
+      border-top: 2px dashed #cbd5e0;
+      margin: 26px 0;
+    }
+
+    .points {
+      float: right;
+      background: #edf2f7;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      color: #718096;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #a0aec0;
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <h1>Esercizio: VLAN e Inter-VLAN Routing</h1>
+    <p>Configurazione VLAN su switch (interfaccia grafica), trunk 802.1Q e Router-on-a-Stick &mdash; con subnetting VLSM su rete privata Classe C</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">Livello: Intermedio</span>
+    <span class="badge">Tempo stimato: 75 min</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p style="line-height:1.7; margin-bottom:12px;">
+      Un edificio scolastico è organizzato su <strong>3 piani</strong>. Su ogni piano è presente
+      uno switch di piano (<strong>SW1</strong>, <strong>SW2</strong>, <strong>SW3</strong>) e
+      <strong>3 postazioni</strong> appartenenti a reparti diversi. I reparti non sono divisi per
+      piano: su <em>ogni piano</em> trovi un host di ciascun reparto, quindi le tre VLAN si estendono
+      su tutto l'edificio.
+    </p>
+    <table>
+      <thead>
+        <tr><th>VLAN</th><th>Nome</th><th>Reparto</th><th>Host richiesti</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-v10">VLAN 10</span></td><td>AMMIN</td><td>Amministrazione / Segreteria</td><td>20 host</td></tr>
+        <tr><td><span class="tag tag-v20">VLAN 20</span></td><td>DOCENTI</td><td>Aule e sala docenti</td><td>50 host</td></tr>
+        <tr><td><span class="tag tag-v30">VLAN 30</span></td><td>STUDENTI</td><td>Laboratori e Wi-Fi studenti</td><td>100 host</td></tr>
+      </tbody>
+    </table>
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>Obiettivo:</strong> due host della <em>stessa</em> VLAN devono comunicare anche se sono
+      su piani diversi; due host di VLAN <em>diverse</em> devono potersi raggiungere <strong>solo
+      passando dal router</strong> (Router-on-a-Stick). Le VLAN sugli switch vanno create e assegnate
+      <strong>esclusivamente dall'interfaccia grafica</strong> (scheda <em>Config</em> / <em>VLAN
+      Database</em>), <u>senza usare la CLI</u>. La CLI è ammessa solo sul router.
+    </div>
+  </div>
+
+  <!-- TOPOLOGIA -->
+  <div class="card">
+    <h2>Topologia di rete</h2>
+    <div class="topology">
+<span class="device">                          ┌─────────┐</span>
+<span class="device">                          │   R1    │</span>  <span class="label">Router-on-a-Stick</span>
+<span class="device">                          │  Gi0/0  │</span>  <span class="net">Gi0/0.10 · Gi0/0.20 · Gi0/0.30</span>
+<span class="device">                          └────┬────┘</span>
+<span class="link">                               │  TRUNK 802.1Q</span>
+<span class="device">                          ┌────┴────┐</span>
+<span class="label">  PIANO 1 ────────────────┤   SW1   ├──────────────────</span>
+<span class="device">                          └──┬───┬───┬──┘</span>
+<span class="net">           PC-A</span> <span class="tag-v10">V10</span>      <span class="net">PC-B</span> <span class="tag-v20">V20</span>      <span class="net">PC-C</span> <span class="tag-v30">V30</span>
+<span class="link">                               │  TRUNK 802.1Q</span>
+<span class="device">                          ┌────┴────┐</span>
+<span class="label">  PIANO 2 ────────────────┤   SW2   ├──────────────────</span>
+<span class="device">                          └──┬───┬───┬──┘</span>
+<span class="net">           PC-D</span> <span class="tag-v10">V10</span>      <span class="net">PC-E</span> <span class="tag-v20">V20</span>      <span class="net">PC-F</span> <span class="tag-v30">V30</span>
+<span class="link">                               │  TRUNK 802.1Q</span>
+<span class="device">                          ┌────┴────┐</span>
+<span class="label">  PIANO 3 ────────────────┤   SW3   ├──────────────────</span>
+<span class="device">                          └──┬───┬───┬──┘</span>
+<span class="net">           PC-G</span> <span class="tag-v10">V10</span>      <span class="net">PC-H</span> <span class="tag-v20">V20</span>      <span class="net">PC-I</span> <span class="tag-v30">V30</span>
+    </div>
+
+    <h3>Assegnazione porte switch</h3>
+    <table>
+      <thead>
+        <tr><th>Switch</th><th>Porta</th><th>Collegato a</th><th>Modalità</th><th>VLAN</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SW1</td><td>Fa0/1</td><td>PC-A</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW1</td><td>Fa0/2</td><td>PC-B</td><td>Access</td><td><span class="tag tag-v20">VLAN 20</span></td></tr>
+        <tr><td>SW1</td><td>Fa0/3</td><td>PC-C</td><td>Access</td><td><span class="tag tag-v30">VLAN 30</span></td></tr>
+        <tr><td>SW1</td><td>Gi0/1</td><td>R1 Gi0/0</td><td><span class="tag tag-trk">Trunk</span></td><td>10, 20, 30</td></tr>
+        <tr><td>SW1</td><td>Gi0/2</td><td>SW2 Gi0/1</td><td><span class="tag tag-trk">Trunk</span></td><td>10, 20, 30</td></tr>
+        <tr><td>SW2</td><td>Fa0/1</td><td>PC-D</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW2</td><td>Fa0/2</td><td>PC-E</td><td>Access</td><td><span class="tag tag-v20">VLAN 20</span></td></tr>
+        <tr><td>SW2</td><td>Fa0/3</td><td>PC-F</td><td>Access</td><td><span class="tag tag-v30">VLAN 30</span></td></tr>
+        <tr><td>SW2</td><td>Gi0/1</td><td>SW1 Gi0/2</td><td><span class="tag tag-trk">Trunk</span></td><td>10, 20, 30</td></tr>
+        <tr><td>SW2</td><td>Gi0/2</td><td>SW3 Gi0/1</td><td><span class="tag tag-trk">Trunk</span></td><td>10, 20, 30</td></tr>
+        <tr><td>SW3</td><td>Fa0/1</td><td>PC-G</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW3</td><td>Fa0/2</td><td>PC-H</td><td>Access</td><td><span class="tag tag-v20">VLAN 20</span></td></tr>
+        <tr><td>SW3</td><td>Fa0/3</td><td>PC-I</td><td>Access</td><td><span class="tag tag-v30">VLAN 30</span></td></tr>
+        <tr><td>SW3</td><td>Gi0/1</td><td>SW2 Gi0/2</td><td><span class="tag tag-trk">Trunk</span></td><td>10, 20, 30</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PARTE 1: VLSM -->
+  <div class="card">
+    <h2>Parte 1 &mdash; Piano di indirizzamento VLSM <span class="points">25 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Spazio di indirizzamento:</strong> <code>192.168.10.0/24</code> (rete privata Classe C)<br>
+      Suddividi lo spazio con tecnica <strong>VLSM</strong> in tre sottoreti, una per VLAN, partendo
+      dalla VLAN con più host. Ogni sottorete sarà la rete IP della rispettiva VLAN.
+    </div>
+
+    <div class="warn-box">
+      <strong>Vincolo VLSM:</strong> ordina sempre le sottoreti dal numero di host
+      <em>maggiore al minore</em> prima di assegnare i blocchi, così da non lasciare buchi né
+      sovrapposizioni.
+    </div>
+
+    <h3>Requisiti di host (ordine VLSM)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>VLAN</th><th>Host richiesti</th><th>Prefisso (/)</th>
+          <th>Host utilizzabili</th><th>Spreco</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><span class="tag tag-v30">VLAN 30</span> STUDENTI</td><td>100</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>2</td><td><span class="tag tag-v20">VLAN 20</span> DOCENTI</td><td>50</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>3</td><td><span class="tag tag-v10">VLAN 10</span> AMMIN</td><td>20</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <hr class="section-sep">
+
+    <h3>Tabella di indirizzamento VLSM</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>VLAN</th><th>Indirizzo di rete</th><th>Subnet Mask</th><th>Prefisso</th>
+          <th>Primo host</th><th>Ultimo host</th><th>Broadcast</th><th>Gateway (subif. router)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-v30">VLAN 30</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <hr class="section-sep">
+
+    <h3>Indirizzi IP degli host</h3>
+    <p style="font-size:0.85rem; color:#718096; margin-bottom:8px;">
+      Assegna a ogni PC il <em>primo indirizzo host libero</em> della sua VLAN (il primo host è
+      riservato al gateway, cioè alla sottointerfaccia del router). Compila la tabella.
+    </p>
+    <table>
+      <thead>
+        <tr><th>PC</th><th>Piano</th><th>VLAN</th><th>Indirizzo IP</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>PC-A</td><td>1</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-B</td><td>1</td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-C</td><td>1</td><td><span class="tag tag-v30">VLAN 30</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-D</td><td>2</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-E</td><td>2</td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-F</td><td>2</td><td><span class="tag tag-v30">VLAN 30</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-G</td><td>3</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-H</td><td>3</td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-I</td><td>3</td><td><span class="tag tag-v30">VLAN 30</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PARTE 2: VLAN SUGLI SWITCH (GUI) -->
+  <div class="card">
+    <h2>Parte 2 &mdash; Creazione VLAN sugli switch (solo GUI) <span class="points">30 punti</span></h2>
+
+    <div class="warn-box">
+      In questa parte <strong>non è ammesso l'uso della CLI</strong>. Lavora solo nella scheda
+      <strong>Config</strong> dello switch (sezione <em>VLAN Database</em> e impostazioni delle
+      singole interfacce). Ripeti la procedura per <strong>SW1, SW2 e SW3</strong>.
+    </div>
+
+    <div class="step-box">
+      <strong>Passo 1 &mdash; Creare le VLAN.</strong> Apri lo switch &rarr; scheda
+      <em>Config</em> &rarr; <em>VLAN Database</em>. Aggiungi le tre VLAN inserendo
+      <em>VLAN Number</em> e <em>VLAN Name</em>, poi premi <em>Add</em>:
+      <ul style="margin:8px 0 0 22px; line-height:1.7;">
+        <li>VLAN <strong>10</strong> &rarr; nome <code>AMMIN</code></li>
+        <li>VLAN <strong>20</strong> &rarr; nome <code>DOCENTI</code></li>
+        <li>VLAN <strong>30</strong> &rarr; nome <code>STUDENTI</code></li>
+      </ul>
+    </div>
+
+    <div class="step-box">
+      <strong>Passo 2 &mdash; Porte Access.</strong> Sempre nella scheda <em>Config</em>, seleziona
+      ciascuna interfaccia <em>FastEthernet</em> collegata a un PC. Imposta:
+      <ul style="margin:8px 0 0 22px; line-height:1.7;">
+        <li><em>Switchport Mode</em> = <strong>Access</strong></li>
+        <li><em>VLAN</em> = la VLAN del PC collegato (vedi tabella «Assegnazione porte switch»)</li>
+      </ul>
+    </div>
+
+    <div class="step-box">
+      <strong>Passo 3 &mdash; Porte Trunk.</strong> Seleziona le interfacce <em>GigabitEthernet</em>
+      che collegano switch&ndash;switch e switch&ndash;router. Imposta
+      <em>Switchport Mode</em> = <strong>Trunk</strong> e verifica che le VLAN 10, 20 e 30 siano
+      consentite sul trunk.
+    </div>
+
+    <h3>Verbale di configurazione (da compilare durante l'esecuzione)</h3>
+    <p style="font-size:0.85rem; color:#718096; margin-bottom:8px;">
+      Per ogni switch annota cosa hai impostato, così da documentare il lavoro svolto in GUI.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Switch</th><th>VLAN create (n. e nome)</th><th>Porte Access &rarr; VLAN</th><th>Porte Trunk</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SW1</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>SW2</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>SW3</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Esercizio di reti &mdash; VLAN, Trunk 802.1Q e Router-on-a-Stick con VLSM su Classe C privata &mdash; 2026
+  </footer>
+
+</div>
+</body>
+</html>
