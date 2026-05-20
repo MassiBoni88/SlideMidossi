@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Registro dei Voti</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #134e5e;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2a8ba0;
+      color: #e6f4f7;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c5e6ec;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1a7fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1a7fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #134e5e;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #eaf5f7; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #cfe6ea;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e2f1f4;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #134e5e;
+    }
+    .star { color: #1a7fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #134e5e; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #134e5e; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #e6f4f7;
+      border-left: 5px solid #1a7fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #0c2f38;
+    }
+    .hint strong { color: #134e5e; }
+    .hint code {
+      background: #c9e6ec;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0a2a33;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #134e5e;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA MATRICE (esempio visivo) ── */
+    .matrice-box {
+      background: #eef7f9;
+      border: 1px solid #c9e2e7;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #134e5e;
+      overflow-x: auto;
+    }
+    .matrice-box .titolo-griglia {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #134e5e;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>REGISTRO DEI VOTI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, matrici,<br>funzioni, cicli, stringhe</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Un insegnante vuole gestire il <strong>registro dei voti</strong> della sua classe.
+    Per ogni <strong>studente</strong> si conoscono nome, cognome, la sua <strong>data di
+    nascita</strong> e i voti presi in <strong>3 materie</strong> (Italiano, Matematica,
+    Inglese), con <strong>4 verifiche</strong> per ciascuna materia.
+    I voti NON vengono digitati dall'utente: sono numeri interi
+    <strong>generati casualmente da 2 a 10</strong> dal programma.
+  </p>
+  <p class="scenario">
+    Devi scrivere un programma C++ che permetta di inserire gli studenti, stampare la loro
+    scheda con i voti, calcolare la <strong>media</strong> di uno studente e contare quanti
+    studenti sono <strong>promossi</strong> (media sufficiente).
+  </p>
+
+  <div class="nota">
+    <strong>Idea chiave:</strong> i voti di uno studente sono una <strong>tabella</strong>:
+    una riga per ogni materia, una colonna per ogni verifica. In C++ una tabella si rappresenta
+    con una <strong>matrice</strong> <code>voti[3][4]</code>.
+  </div>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Le struct e la matrice</h2>
+
+  <h3>1a. Definisci PRIMA la struct <strong>Data</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>giorno</code></td><td>numero intero da 1 a 31 (es. 14)</td></tr>
+      <tr><td><code>mese</code></td><td>numero intero da 1 a 12 (es. 3)</td></tr>
+      <tr><td><code>anno</code></td><td>numero intero (es. 2009)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci POI la struct <strong>Studente</strong>, che contiene <strong>Data</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dello studente (es. "Luca")</td></tr>
+      <tr><td><code>cognome</code></td><td>cognome dello studente (es. "Rossi")</td></tr>
+      <tr><td><code>dataNascita</code></td><td>la data di nascita (struct <strong>Data</strong> annidata)</td></tr>
+      <tr>
+        <td><code>voti[3][4]</code></td>
+        <td><strong>Matrice 3×4</strong> di interi: 3 righe (0=Italiano, 1=Matematica, 2=Inglese) × 4 colonne (le 4 verifiche). Ogni voto è un intero casuale da 2 a 10</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di scheda di uno studente:</h3>
+  <div class="matrice-box">
+    <div class="titolo-griglia">Studente: Luca Rossi &nbsp;|&nbsp; Nato il: 14/3/2009</div>
+                 V1   V2   V3   V4<br>
+    Italiano      7    6    8    7<br>
+    Matematica    5    6    4    7<br>
+    Inglese       8    7    9    8
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Le funzioni da scrivere</h2>
+
+  <table>
+    <thead>
+      <tr><th>Funzione</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>mediaStudente(Studente s)</code></td>
+        <td>Restituisce la media dei voti dello studente come <code>double</code></td>
+      </tr>
+      <tr>
+        <td><code>stampaScheda(Studente s)</code></td>
+        <td>Stampa nome e cognome, la data di nascita nel formato <code>giorno/mese/anno</code> (campo annidato) e la <strong>matrice 3×4</strong> dei voti, come nello schema qui sopra</td>
+      </tr>
+      <tr>
+        <td><code>inserisciStudente()</code></td>
+        <td>Chiede da tastiera nome, cognome e data di nascita (data annidata). I <strong>12 voti</strong> della matrice NON si chiedono: vanno <strong>generati casualmente da 2 a 10</strong>. Restituisce lo studente compilato</td>
+      </tr>
+      <tr>
+        <td><code>contaPromossi(Studente arr[], int n, double sufficienza)</code></td>
+        <td>Restituisce <strong>quanti studenti</strong> dell'array hanno la media (calcolata con <code>mediaStudente</code>) <strong>maggiore o uguale</strong> a <code>sufficienza</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – La funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>5 studenti</strong> e crea un menu che si ripete:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi studente</td>
+        <td>richiama <code>inserisciStudente</code>, salva il risultato nell'array e aumenta il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra tutti gli studenti</td>
+        <td>stampa la scheda di ogni studente con <code>stampaScheda</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Media di uno studente</td>
+        <td>chiede l'<strong>indice</strong> (da 0 a <em>n−1</em>) e stampa la media di quello studente con 2 decimali</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Conta promossi</td>
+        <td>chiede il voto di sufficienza (es. 6) e stampa quanti studenti sono promossi, usando <code>contaPromossi</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento 1:</strong> per leggere nome e cognome usa
+    <code>getline(cin, variabile)</code>. Metti <code>cin.ignore()</code> prima del primo
+    <code>getline</code> che viene dopo un <code>cin &gt;&gt;</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento 2:</strong> per riempire o scorrere la matrice usa <strong>due cicli
+    <code>for</code> annidati</strong>: uno esterno sulle 3 materie, uno interno sulle 4 verifiche.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento 3:</strong> non riscrivere il calcolo della media dentro
+    <code>contaPromossi</code>: <strong>richiama</strong> la funzione <code>mediaStudente</code>
+    già scritta. Dividi infine il lavoro in 3 file (vedi Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Matrice</td>
+        <td>Sempre 3 righe (materie) × 4 colonne (verifiche); ogni voto è un intero casuale da 2 a 10 (<code>rand() % 9 + 2</code>)</td>
+      </tr>
+      <tr>
+        <td>Data</td>
+        <td>giorno 1–31, mese 1–12, anno intero (es. 2009)</td>
+      </tr>
+      <tr>
+        <td>Media</td>
+        <td>Numero decimale (<code>double</code>); stampala con 2 cifre decimali</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>La struct <code>Data</code> deve essere dichiarata <em>prima</em> di <code>Studente</code></td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 5 studenti; usa una variabile contatore per quelli inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+
+</body>
+</html>
