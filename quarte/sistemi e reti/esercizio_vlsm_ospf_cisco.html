@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercizio VLSM e Routing OSPF – Cisco</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 960px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.85; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px;
+    }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 16px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .topology {
+      background: #0d1117; border-radius: 8px;
+      padding: 20px; font-family: 'Courier New', monospace;
+      font-size: 0.82rem; color: #58a6ff;
+      line-height: 1.7; overflow-x: auto; white-space: pre;
+    }
+    .topology .label  { color: #ffa657; }
+    .topology .device { color: #7ee787; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+
+    .fill { background: #fffbeb !important; color: #975a16; font-style: italic; }
+    .fill-empty {
+      background: #fffbeb !important; min-width: 140px;
+      border-bottom: 2px dashed #d69e2e;
+      height: 22px; display: inline-block;
+    }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-lan1 { background: #c6f6d5; color: #276749; }
+    .tag-lan2 { background: #bee3f8; color: #2a4365; }
+    .tag-lan3 { background: #fed7d7; color: #9b2c2c; }
+    .tag-lan4 { background: #fbd38d; color: #7b341e; }
+    .tag-wan  { background: #e9d8fd; color: #553c9a; }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+
+    .section-sep { border: none; border-top: 2px dashed #cbd5e0; margin: 26px 0; }
+    .points { float: right; background: #edf2f7; border-radius: 12px;
+              padding: 2px 10px; font-size: 0.78rem; color: #718096; }
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercizio: VLSM e Routing OSPF</h1>
+    <p>Subnetting VLSM su rete privata Classe B e routing dinamico OSPF tra due router</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">4&ordf; ITT</span>
+    <span class="badge">45 min</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p style="line-height:1.7; margin-bottom:12px;">
+      L'azienda <strong>NetSchool S.r.l.</strong> ha <strong>due sedi</strong> collegate da una linea
+      seriale tra i router <strong>R1</strong> e <strong>R2</strong>. Progetta il piano di
+      indirizzamento partendo da un indirizzo privato di <strong>Classe B</strong> e configura il
+      routing dinamico <strong>OSPF</strong> in modo che tutte le sottoreti comunichino tra loro.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Rete</th><th>Sede</th><th>Host richiesti</th><th>+10%</th><th>Da prevedere</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-lan1">LAN1</span> Uffici</td><td>A</td><td>350</td><td>+35</td><td>&ge; 385</td></tr>
+        <tr><td><span class="tag tag-lan2">LAN2</span> Laboratori</td><td>A</td><td>150</td><td>+15</td><td>&ge; 165</td></tr>
+        <tr><td><span class="tag tag-lan3">LAN3</span> Produzione</td><td>B</td><td>80</td><td>+8</td><td>&ge; 88</td></tr>
+        <tr><td><span class="tag tag-lan4">LAN4</span> Amministrazione</td><td>B</td><td>30</td><td>+3</td><td>&ge; 33</td></tr>
+        <tr><td><span class="tag tag-wan">WAN</span> R1&ndash;R2</td><td>&mdash;</td><td>2</td><td>&mdash;</td><td>2</td></tr>
+      </tbody>
+    </table>
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>Vincoli:</strong> partenza da <code>172.16.0.0/16</code>, VLSM con margine del 10% per
+      ogni sottorete. Indirizzamento delle interfacce e dei PC <span class="tag tag-gui">GUI</span>;
+      configurazione OSPF <span class="tag tag-cli">CLI</span> del router.
+    </div>
+  </div>
+
+  <!-- TOPOLOGIA -->
+  <div class="card">
+    <h2>Topologia</h2>
+    <div class="topology">  <span class="label">SEDE A</span>                                  <span class="label">SEDE B</span>
+
+  <span class="net">LAN1</span> <span class="tag-lan1">350 host</span>                          <span class="net">LAN3</span> <span class="tag-lan3">80 host</span>
+   <span class="device">[PC1]──SW1──R1 ═══ WAN ═══ R2──SW3──[PC3]</span>
+                <span class="device">│</span>                  <span class="device">│</span>
+              <span class="device">SW2</span>                <span class="device">SW4</span>
+               <span class="device">│</span>                  <span class="device">│</span>
+              <span class="device">[PC2]</span>              <span class="device">[PC4]</span>
+   <span class="net">LAN2</span> <span class="tag-lan2">150 host</span>                       <span class="net">LAN4</span> <span class="tag-lan4">30 host</span>
+</div>
+
+    <table style="margin-top:12px;">
+      <thead><tr><th>Router</th><th>Interfaccia</th><th>Rete</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lan1">LAN1</span></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-lan2">LAN2</span></td></tr>
+        <tr><td>R1</td><td>Se0/0/0 (DCE)</td><td><span class="tag tag-wan">WAN</span></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-lan3">LAN3</span></td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-lan4">LAN4</span></td></tr>
+        <tr><td>R2</td><td>Se0/0/0 (DTE)</td><td><span class="tag tag-wan">WAN</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PARTE 1: VLSM -->
+  <div class="card">
+    <h2>Parte 1 &mdash; Piano VLSM <span class="points">30 punti</span></h2>
+
+    <div class="info-box">
+      Spazio di partenza: <code>172.16.0.0/16</code>. Ordina le sottoreti dal maggior numero di host
+      al minore (margine +10%) e scegli il prefisso pi&ugrave; piccolo che soddisfa il fabbisogno.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Rete</th><th>Indirizzo di rete</th><th>Subnet Mask</th><th>/</th>
+          <th>Primo host</th><th>Ultimo host</th><th>Broadcast</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-lan1">LAN1</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-lan2">LAN2</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-lan3">LAN3</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-lan4">LAN4</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PARTE 2: GUI -->
+  <div class="card">
+    <h2>Parte 2 &mdash; Indirizzamento in GUI <span class="tag tag-gui">GUI</span> <span class="points">30 punti</span></h2>
+
+    <div class="warn-box">
+      Lavora dalla scheda <em>Config</em> dei router e <em>Desktop &rarr; IP Configuration</em> dei PC.
+      Metti <strong>On</strong> le porte del router e imposta il <em>clock rate</em> sull'interfaccia
+      seriale <strong>DCE</strong> (R1 Se0/0/0).
+    </div>
+
+    <h3>Interfacce dei router</h3>
+    <p style="font-size:0.85rem; color:#718096; margin-bottom:8px;">
+      Assegna a ogni interfaccia il <em>primo</em> indirizzo host della sua sottorete.
+    </p>
+    <table>
+      <thead><tr><th>Router</th><th>Interfaccia</th><th>IP</th><th>Subnet Mask</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Gig0/0 (LAN1)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Gig0/1 (LAN2)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Se0/0/0 (WAN)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Gig0/0 (LAN3)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Gig0/1 (LAN4)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Se0/0/0 (WAN)</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>PC di test</h3>
+    <table>
+      <thead><tr><th>PC</th><th>LAN</th><th>IP</th><th>Subnet Mask</th><th>Default Gateway</th></tr></thead>
+      <tbody>
+        <tr><td>PC1</td><td><span class="tag tag-lan1">LAN1</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC2</td><td><span class="tag tag-lan2">LAN2</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC3</td><td><span class="tag tag-lan3">LAN3</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC4</td><td><span class="tag tag-lan4">LAN4</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PARTE 3: OSPF -->
+  <div class="card">
+    <h2>Parte 3 &mdash; Routing OSPF <span class="tag tag-cli">CLI</span> <span class="points">25 punti</span></h2>
+
+    <div class="info-box">
+      Configura il protocollo <strong>OSPF</strong> <u>esclusivamente dalla CLI</u> su entrambi i
+      router (scheda <em>CLI</em>), in modo che ciascun router conosca tutte le sottoreti dell'altro.
+      Usa la stessa <strong>area</strong> sui due router e annuncia in OSPF tutte le reti direttamente
+      connesse (le due LAN + il link WAN). Al termine salva la configurazione in NVRAM.
+    </div>
+
+    <h3>Verifica</h3>
+    <p style="font-size:0.85rem; color:#4a5568; line-height:1.7;">
+      Controlla il vicinato OSPF e le rotte apprese su entrambi i router, poi prova un <code>ping</code>
+      da un PC della Sede A a un PC della Sede B.
+    </p>
+    <table>
+      <thead><tr><th>Test</th><th>Esito atteso</th><th>OK?</th></tr></thead>
+      <tbody>
+        <tr><td>Vicinato OSPF su R1 / R2</td><td>Vicino in stato FULL</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Tabella di routing</td><td>Rotte con codice <strong>O</strong> verso le LAN dell'altro router</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Ping PC1 (LAN1) &rarr; PC4 (LAN4)</td><td>4 risposte, 0% loss</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Ping PC2 (LAN2) &rarr; PC3 (LAN3)</td><td>4 risposte, 0% loss</td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TEMPI -->
+  <div class="card">
+    <h2>Tempistica (45 min)</h2>
+    <table>
+      <thead><tr><th>Fase</th><th>Attivit&agrave;</th><th>Tempo</th><th>Punti</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Calcolo VLSM</td><td>10 min</td><td>30</td></tr>
+        <tr><td>2</td><td>Topologia e indirizzamento in GUI</td><td>15 min</td><td>30</td></tr>
+        <tr><td>3</td><td>Configurazione OSPF da CLI</td><td>10 min</td><td>25</td></tr>
+        <tr><td>4</td><td>Verifica con <code>show</code> e <code>ping</code></td><td>10 min</td><td>15</td></tr>
+        <tr><td colspan="2" style="text-align:right;"><strong>TOTALE</strong></td><td><strong>45 min</strong></td><td><strong>100</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Esercizio di reti &mdash; VLSM su Classe B privata e routing OSPF tra due router &mdash; 4&ordf; ITT &mdash; 2026
+  </footer>
+
+</div>
+</body>
+</html>
