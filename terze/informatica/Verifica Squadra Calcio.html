@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Squadra di Calcio</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #134e5e;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2a8ba0;
+      color: #e6f4f7;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c5e6ec;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1a7fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1a7fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #134e5e;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #eaf5f7; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #cfe6ea;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e2f1f4;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #134e5e;
+    }
+    .star { color: #1a7fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #134e5e; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #134e5e; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #e6f4f7;
+      border-left: 5px solid #1a7fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #0c2f38;
+    }
+    .hint strong { color: #134e5e; }
+    .hint code {
+      background: #c9e6ec;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0a2a33;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #134e5e;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA (esempio visivo) ── */
+    .matrice-box {
+      background: #eef7f9;
+      border: 1px solid #c9e2e7;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #134e5e;
+      overflow-x: auto;
+    }
+    .matrice-box .titolo-griglia {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #134e5e;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>SQUADRA DI CALCIO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct, array, funzioni, cicli</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    L'allenatore di una squadra di calcio vuole tenere traccia dei <strong>giocatori</strong> e
+    dei loro <strong>gol</strong>. Per ogni giocatore si conoscono <strong>nome</strong>,
+    <strong>ruolo</strong> (portiere, difensore, centrocampista, attaccante) e
+    <strong>numero di maglia</strong>. Inoltre, di ogni giocatore si registrano i gol
+    segnati in <strong>5 partite</strong>: questi gol NON vengono digitati dall'utente,
+    ma sono numeri interi <strong>generati casualmente da 0 a 3</strong> dal programma.
+  </p>
+  <p class="scenario">
+    Devi scrivere un programma C++ che permetta di inserire giocatori, stampare la loro
+    scheda, calcolare il <strong>totale gol</strong> di un giocatore e trovare il
+    <strong>capocannoniere</strong> della squadra (il giocatore con più gol in totale).
+  </p>
+
+  <div class="nota">
+    <strong>Idea chiave:</strong> i gol di un giocatore sono una <strong>sequenza di 5 numeri</strong>,
+    uno per ogni partita. In C++ una sequenza di numeri si rappresenta con un <strong>array</strong>:
+    <code>gol[5]</code> dentro la struct del giocatore.
+  </div>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct</h2>
+
+  <h3>Definisci la struct <strong>Giocatore</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome del giocatore (es. "Marco")</td></tr>
+      <tr><td><code>ruolo</code></td><td>ruolo in campo (es. "attaccante")</td></tr>
+      <tr><td><code>numeroMaglia</code></td><td>numero intero da 1 a 99 (es. 9)</td></tr>
+      <tr>
+        <td><code>gol[5]</code></td>
+        <td><strong>Array</strong> di 5 interi: i gol fatti in 5 partite. Ogni valore è un intero casuale da 0 a 3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di scheda di un giocatore:</h3>
+  <div class="matrice-box">
+    <div class="titolo-griglia">Giocatore: Marco &nbsp;|&nbsp; Ruolo: attaccante &nbsp;|&nbsp; Maglia: 9</div>
+    Partita 1: 2 gol<br>
+    Partita 2: 0 gol<br>
+    Partita 3: 3 gol<br>
+    Partita 4: 1 gol<br>
+    Partita 5: 2 gol
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Le funzioni da scrivere</h2>
+
+  <table>
+    <thead>
+      <tr><th>Funzione</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>totaleGol(Giocatore g)</code></td>
+        <td>Restituisce la <strong>somma</strong> di tutti i gol dell'array <code>gol[5]</code> del giocatore</td>
+      </tr>
+      <tr>
+        <td><code>stampaGiocatore(Giocatore g)</code></td>
+        <td>Stampa nome, ruolo, numero di maglia e i 5 gol partita per partita, come nello schema qui sopra</td>
+      </tr>
+      <tr>
+        <td><code>inserisciGiocatore()</code></td>
+        <td>Chiede da tastiera nome, ruolo e numero di maglia. I <strong>5 gol</strong> dell'array NON si chiedono: vanno <strong>generati casualmente da 0 a 3</strong>. Restituisce il giocatore compilato</td>
+      </tr>
+      <tr>
+        <td><code>indiceCapocannoniere(Giocatore arr[], int n)</code></td>
+        <td>Restituisce l'<strong>indice</strong> (posizione nell'array) del giocatore che ha il maggior <strong>totale gol</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – La funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>6 giocatori</strong> e crea un menu che si ripete:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Aggiungi giocatore</td>
+        <td>richiama <code>inserisciGiocatore</code>, salva il risultato nell'array e aumenta il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra tutti i giocatori</td>
+        <td>stampa la scheda di ogni giocatore con <code>stampaGiocatore</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Totale gol di un giocatore</td>
+        <td>chiede l'<strong>indice</strong> (da 0 a <em>n−1</em>) e stampa il totale gol con <code>totaleGol</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Capocannoniere</td>
+        <td>usa <code>indiceCapocannoniere</code> per trovare il giocatore con più gol e stampa la sua scheda con <code>stampaGiocatore</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Array gol</td>
+        <td>Sempre 5 elementi (5 partite); ogni gol è un intero casuale da 0 a 3</td>
+      </tr>
+      <tr>
+        <td>Numero maglia</td>
+        <td>Intero da 1 a 99</td>
+      </tr>
+      <tr>
+        <td>Array squadra</td>
+        <td>Massimo 6 giocatori; usa una variabile contatore per quelli inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+
+</body>
+</html>
