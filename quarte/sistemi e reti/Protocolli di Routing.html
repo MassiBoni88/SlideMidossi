@@ -575,13 +575,8 @@ Router# <span class="cmd">debug ip rip</span></pre>
       <div class="card">
         <h3 style="color:var(--accent4);">Configurazione Cisco — OSPFv2</h3>
 <pre>Router(config)# <span class="cmd">router ospf</span> <span class="arg">1</span>
-Router(config-router)# <span class="ok">router-id</span> <span class="arg">1.1.1.1</span>
 Router(config-router)# <span class="cmd">network</span> <span class="arg">192.168.1.0 0.0.0.255</span> <span class="ok">area 0</span>
 Router(config-router)# <span class="cmd">network</span> <span class="arg">10.0.0.0 0.0.0.3</span> <span class="ok">area 0</span>
-Router(config-router)# <span class="ok">auto-cost reference-bandwidth</span> <span class="arg">10000</span>
-
-<span class="cmt">! Costo manuale su interfaccia</span>
-Router(config-if)# <span class="cmd">ip ospf cost</span> <span class="arg">10</span>
 
 <span class="cmt">! Verifica</span>
 Router# <span class="cmd">show ip ospf neighbor</span>
