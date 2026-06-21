@@ -643,6 +643,21 @@ g++ -Wall -Wextra main.cpp -o prog</pre>
 <span class="fn">getline</span>(cin, frase);
 cout &lt;&lt; <span class="str">"Hai scritto: "</span> &lt;&lt; frase &lt;&lt; <span class="str">"\n"</span>;</pre>
       </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🧹 cin.ignore() — pulire il buffer</h3>
+        <p style="margin-bottom:6px;">Quando leggi con <code style="font-family:'JetBrains Mono',monospace;">cin &gt;&gt;</code>, il tasto <strong>Invio</strong> (il carattere <code style="font-family:'JetBrains Mono',monospace;">\n</code>) <strong>resta nel buffer</strong> di input. Un <code style="font-family:'JetBrains Mono',monospace;">getline</code> successivo legge subito quell'Invio e ottiene una <strong>riga vuota</strong>, saltando l'inserimento.</p>
+        <pre style="margin-top:4px;"><span class="kw">int</span> eta;
+cin &gt;&gt; eta;            <span class="cm">// lascia '\n' nel buffer</span>
+
+<span class="kw">string</span> nome;
+cin.<span class="fn">ignore</span>();           <span class="cm">// scarta l'Invio rimasto</span>
+<span class="fn">getline</span>(cin, nome);   <span class="cm">// ora legge davvero il nome</span></pre>
+        <p style="margin-top:6px;font-size:0.8rem;color:var(--muted);">Forma più robusta — salta tutto fino a fine riga: <code style="font-family:'JetBrains Mono',monospace;">cin.ignore(1000, '\n');</code></p>
+        <div class="callout callout-blue" style="font-size:0.82rem;padding:7px 10px;margin-top:8px;">
+          <span class="callout-icon">📌</span>
+          <span><strong>Quando usarlo:</strong> solo prima di un <code style="font-family:'JetBrains Mono',monospace;">getline</code> che segue un <code style="font-family:'JetBrains Mono',monospace;">cin &gt;&gt;</code>. Se leggi tutto con <code style="font-family:'JetBrains Mono',monospace;">getline</code> oppure tutto con <code style="font-family:'JetBrains Mono',monospace;">cin &gt;&gt;</code>, non serve.</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
