@@ -121,9 +121,7 @@
 
     /* ── TABELLA VARIABILI ── */
     .var-table thead th:nth-child(1) { width: 175px; }
-    .var-table thead th:nth-child(2) { width: 120px; }
     .var-table tbody td:first-child { font-weight: 700; color: #1b3a5c; }
-    .var-table tbody td:nth-child(2) code { font-weight: 700; }
 
     /* ── TABELLA MENU ── */
     .menu-table thead tr { background: #1b3a5c; }
@@ -228,27 +226,19 @@
 
   <table class="var-table">
     <thead>
-      <tr><th>Variabile</th><th>Tipo</th><th>Descrizione</th></tr>
+      <tr><th>Variabile</th><th>Descrizione</th></tr>
     </thead>
     <tbody>
-      <tr><td>nomeCliente</td><td><code>string</code></td><td>nome e cognome del cliente (può contenere spazi)</td></tr>
-      <tr><td>numProdotti</td><td><code>int</code></td><td>quanti prodotti acquista il cliente</td></tr>
-      <tr><td>prezzo</td><td><code>double</code></td><td>prezzo del prodotto letto di volta in volta nel ciclo</td></tr>
-      <tr><td>totale</td><td><code>double</code></td><td>somma di tutti i prezzi (da inizializzare a <code>0</code>)</td></tr>
-      <tr><td>prezzoMax</td><td><code>double</code></td><td>prezzo del prodotto più costoso trovato finora</td></tr>
-      <tr><td>numCari</td><td><code>int</code></td><td>quanti prodotti costano <strong>più di 50 €</strong> (da inizializzare a <code>0</code>)</td></tr>
-      <tr><td>scontoApplicato</td><td><code>bool</code></td><td><code>true</code> se è stato applicato lo sconto, altrimenti <code>false</code></td></tr>
-      <tr><td>SCONTO</td><td><code>const double</code></td><td>percentuale di sconto fedeltà, costante = <code>0.10</code> (cioè 10%)</td></tr>
+      <tr><td>nomeCliente</td><td>nome e cognome del cliente (può contenere spazi)</td></tr>
+      <tr><td>numProdotti</td><td>quanti prodotti acquista il cliente</td></tr>
+      <tr><td>prezzo</td><td>prezzo del prodotto letto di volta in volta nel ciclo</td></tr>
+      <tr><td>totale</td><td>somma di tutti i prezzi (da inizializzare a <code>0</code>)</td></tr>
+      <tr><td>prezzoMax</td><td>prezzo del prodotto più costoso trovato finora</td></tr>
+      <tr><td>numCari</td><td>quanti prodotti costano <strong>più di 50 €</strong> (da inizializzare a <code>0</code>)</td></tr>
+      <tr><td>scontoApplicato</td><td><code>true</code> se è stato applicato lo sconto, altrimenti <code>false</code></td></tr>
+      <tr><td>SCONTO</td><td>percentuale di sconto fedeltà, costante = <code>0.10</code> (cioè 10%)</td></tr>
     </tbody>
   </table>
-
-  <div class="hint">
-    <strong>Suggerimento:</strong> i prezzi possono avere i decimali (es. <code>2.50</code>), quindi vanno
-    in variabili <code>double</code> e <strong>non</strong> <code>int</code>. Il nome del cliente è testo,
-    quindi una <code>string</code>; il "sì/no" dello sconto si rappresenta bene con un <code>bool</code>.
-    Ricorda le librerie: <code>#include &lt;iostream&gt;</code> per <code>cin</code>/<code>cout</code> e
-    <code>#include &lt;string&gt;</code> per le stringhe.
-  </div>
 
   <!-- ══════════════ PARTE 2 ══════════════ -->
   <h2>Parte 2 – Lettura dei dati (input)</h2>
@@ -262,32 +252,25 @@
       <tr>
         <td>1</td>
         <td>Messaggio di benvenuto</td>
-        <td>stampa con <code>cout</code> un'intestazione, es. <code>"=== Cassa MidoMarket ==="</code>, andando a capo con <code>endl</code> o <code>\n</code></td>
+        <td>stampa un'intestazione, es. <code>"=== Cassa MidoMarket ==="</code>, andando a capo</td>
       </tr>
       <tr>
         <td>2</td>
         <td>Nome del cliente</td>
-        <td>chiedi e leggi il nome <strong>completo</strong> con <code>getline(cin, nomeCliente)</code> (contiene spazi)</td>
+        <td>chiedi e leggi il nome <strong>completo</strong> (contiene spazi)</td>
       </tr>
       <tr>
         <td>3</td>
         <td>Numero di prodotti</td>
-        <td>chiedi e leggi <code>numProdotti</code> con <code>cin &gt;&gt; numProdotti</code></td>
+        <td>chiedi e leggi <code>numProdotti</code></td>
       </tr>
     </tbody>
   </table>
 
-  <div class="hint">
-    <strong>Suggerimento:</strong> se usi <code>getline</code> <em>dopo</em> un <code>cin &gt;&gt;</code>,
-    inserisci prima <code>cin.ignore()</code> per "ripulire" l'invio rimasto nel buffer. In questo
-    esercizio conviene leggere <strong>prima</strong> il nome con <code>getline</code> e <strong>poi</strong>
-    il numero con <code>cin &gt;&gt;</code>, così eviti il problema.
-  </div>
-
   <!-- ══════════════ PARTE 3 ══════════════ -->
   <h2>Parte 3 – Elaborazione (sequenza · selezione · iterazione)</h2>
 
-  <p>Usa un <strong>ciclo</strong> (<code>for</code> oppure <code>while</code>) che si ripete
+  <p>Usa un <strong>ciclo</strong> che si ripete
      <code>numProdotti</code> volte. Ad ogni giro:</p>
   <ul>
     <li>chiedi e leggi il <strong>prezzo</strong> del prodotto corrente (es. <code>"Prezzo prodotto 1: "</code>);</li>
@@ -303,17 +286,10 @@
         (<code>totale = totale - totale * SCONTO;</code>) e imposta <code>scontoApplicato = true</code>.</li>
   </ul>
 
-  <div class="hint">
-    <strong>Suggerimento (inizializzazione del massimo):</strong> per trovare il prodotto più costoso,
-    inizializza <code>prezzoMax</code> a <code>0</code> <em>prima</em> del ciclo (i prezzi sono sempre
-    &gt;= 0), oppure leggi il primo prezzo e usalo come valore iniziale. Senza inizializzare,
-    <code>prezzoMax</code> conterrebbe un valore <strong>indeterminato</strong> (garbage).
-  </div>
-
   <!-- ══════════════ PARTE 4 ══════════════ -->
   <h2>Parte 4 – Output dello scontrino</h2>
 
-  <p>Stampa con <code>cout</code> uno scontrino riepilogativo che contenga:</p>
+  <p>Stampa uno scontrino riepilogativo che contenga:</p>
   <table>
     <thead>
       <tr><th>Dato da mostrare</th><th>Variabile / calcolo</th></tr>
@@ -393,13 +369,6 @@ TOTALE DA PAGARE: 112.95 EUR
       </tr>
     </tbody>
   </table>
-
-  <div class="nota">
-    <strong>Attenzione:</strong> ricorda di <strong>inizializzare</strong> a <code>0</code> le variabili
-    <code>totale</code> e <code>numCari</code> <em>prima</em> del ciclo: usarle senza inizializzarle è un
-    errore logico. Il prezzo medio va mostrato con <strong>2 decimali</strong> e la media va calcolata
-    sul totale <strong>prima</strong> dell'eventuale sconto.
-  </div>
 
 </body>
 </html>

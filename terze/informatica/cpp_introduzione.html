@@ -245,7 +245,7 @@
     <div class="title-bar">Introduzione al C++ — Sintassi, Librerie, I/O, Commenti e Variabili</div>
   </div>
   <div id="topbar-right">
-    <div id="slide-counter">01 / 12</div>
+    <div id="slide-counter">01 / 11</div>
     <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
   </div>
 </div>
@@ -480,18 +480,6 @@ g++ -Wall -Wextra main.cpp -o prog</pre>
           <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
             <span style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:4px;padding:2px 8px;color:var(--accent3);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.7rem;flex-shrink:0;">&lt;cmath&gt;</span>
             <span style="color:var(--ct);">Funzioni matematiche: <strong>sqrt()</strong>, <strong>pow()</strong>, <strong>abs()</strong>, <strong>ceil()</strong>, <strong>floor()</strong></span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
-            <span style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:4px;padding:2px 8px;color:var(--accent2);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.7rem;flex-shrink:0;">&lt;vector&gt;</span>
-            <span style="color:var(--ct);">Array dinamici: <strong>vector&lt;T&gt;</strong> con dimensione variabile a runtime</span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
-            <span style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.3);border-radius:4px;padding:2px 8px;color:var(--accent4);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.7rem;flex-shrink:0;">&lt;algorithm&gt;</span>
-            <span style="color:var(--ct);">Algoritmi su collezioni: <strong>sort()</strong>, <strong>find()</strong>, <strong>min()</strong>, <strong>max()</strong></span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
-            <span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:4px;padding:2px 8px;color:var(--accent1);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.7rem;flex-shrink:0;">&lt;fstream&gt;</span>
-            <span style="color:var(--ct);">Lettura e scrittura su file: <strong>ifstream</strong> (lettura) e <strong>ofstream</strong> (scrittura)</span>
           </div>
           <div style="display:flex;gap:8px;align-items:flex-start;font-size:0.84rem;">
             <span style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);border-radius:4px;padding:2px 8px;color:var(--accent3);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:0.7rem;flex-shrink:0;">&lt;cstdlib&gt;</span>
@@ -750,7 +738,7 @@ cout &lt;&lt; risultato;</pre>
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">Le Variabili — Dichiarazione e Inizializzazione</h2>
-    <span class="section-num">Variabili · 01/03</span>
+    <span class="section-num">Variabili · 01/02</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -825,79 +813,12 @@ cout &lt;&lt; risultato;</pre>
   </div>
 </div>
 
-<!-- ═══ SLIDE 10 — TIPI DI DATO ═══ -->
-<div class="slide" data-section="variabili">
-  <div class="section-header">
-    <div class="section-dot" style="background:var(--accent4)"></div>
-    <h2 style="color:var(--accent4)">I Tipi di Dato Fondamentali</h2>
-    <span class="section-num">Variabili · 02/03</span>
-  </div>
-  <div class="two-col">
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div class="callout callout-blue">
-        <span class="callout-icon">🔬</span>
-        <span>Il <strong>tipo</strong> di una variabile determina: quanta memoria occupa, quali valori può contenere e quali operazioni si possono eseguire su di essa. Il compilatore C++ controlla i tipi a compile-time (<em>type safety</em>).</span>
-      </div>
-      <div class="card" style="border-top:3px solid var(--accent4);">
-        <h3 style="color:var(--accent4);">📊 Tipi interi</h3>
-        <table class="type-table">
-          <tr><th>Tipo</th><th>Dimensione</th><th>Intervallo</th></tr>
-          <tr><td class="hl-cell">int</td><td>4 byte</td><td>−2·10⁹ … +2·10⁹</td></tr>
-          <tr><td>short</td><td>2 byte</td><td>−32.768 … 32.767</td></tr>
-          <tr><td>long</td><td>4/8 byte</td><td>±2·10⁹ / ±9·10¹⁸</td></tr>
-          <tr><td>long long</td><td>8 byte</td><td>±9·10¹⁸</td></tr>
-          <tr><td class="hl-yel">unsigned int</td><td>4 byte</td><td>0 … 4·10⁹</td></tr>
-        </table>
-      </div>
-      <div class="card" style="border-top:3px solid var(--accent1);">
-        <h3 style="color:var(--accent1);">📊 Tipi floating point</h3>
-        <table class="type-table">
-          <tr><th>Tipo</th><th>Dimensione</th><th>Precisione</th></tr>
-          <tr><td>float</td><td>4 byte</td><td>~7 cifre decimali</td></tr>
-          <tr><td class="hl-cell">double</td><td>8 byte</td><td>~15 cifre decimali</td></tr>
-          <tr><td>long double</td><td>10/16 byte</td><td>~18 cifre decimali</td></tr>
-        </table>
-        <p style="margin-top:5px;font-size:0.78rem;color:var(--muted);">Si preferisce sempre <strong>double</strong> a float per la maggiore precisione.</p>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div class="card" style="border-top:3px solid var(--accent3);">
-        <h3 style="color:var(--accent3);">📊 Altri tipi fondamentali</h3>
-        <table class="type-table">
-          <tr><th>Tipo</th><th>Dimensione</th><th>Valori / Uso</th></tr>
-          <tr><td class="hl-cell">char</td><td>1 byte</td><td>'A' … 'z', '0'…'9', simboli</td></tr>
-          <tr><td class="hl-cell">bool</td><td>1 byte</td><td>true (1) oppure false (0)</td></tr>
-          <tr><td class="hl-yel">string</td><td>variabile</td><td>Testo (dalla libreria &lt;string&gt;)</td></tr>
-          <tr><td>void</td><td>0 byte</td><td>Nessun tipo (usato per funzioni)</td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <h3 style="color:var(--accent2);">💻 Esempi pratici</h3>
-        <pre><span class="kw">int</span>    punteggio = <span class="num">100</span>;
-<span class="kw">double</span> media     = <span class="num">8.75</span>;
-<span class="kw">char</span>   voto      = <span class="str">'A'</span>;
-<span class="kw">bool</span>   promosso  = <span class="kw">true</span>;
-<span class="kw">string</span> studente  = <span class="str">"Giulia"</span>;
-
-<span class="cm">// sizeof() restituisce i byte occupati</span>
-cout &lt;&lt; <span class="kw">sizeof</span>(<span class="kw">int</span>)    &lt;&lt; endl; <span class="cm">// 4</span>
-cout &lt;&lt; <span class="kw">sizeof</span>(<span class="kw">double</span>) &lt;&lt; endl; <span class="cm">// 8</span>
-cout &lt;&lt; <span class="kw">sizeof</span>(<span class="kw">char</span>)   &lt;&lt; endl; <span class="cm">// 1</span></pre>
-      </div>
-      <div class="callout callout-green">
-        <span class="callout-icon">💡</span>
-        <span>Con <code style="font-family:'JetBrains Mono',monospace;">auto</code> (C++11) il compilatore deduce automaticamente il tipo dalla costante di inizializzazione: <code style="font-family:'JetBrains Mono',monospace;">auto x = 3.14;</code> deduce <strong>double</strong>.</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ SLIDE 11 — COSTANTI ═══ -->
+<!-- ═══ SLIDE 10 — COSTANTI ═══ -->
 <div class="slide" data-section="variabili">
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">Le Costanti</h2>
-    <span class="section-num">Variabili · 03/03</span>
+    <span class="section-num">Variabili · 02/02</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -971,7 +892,7 @@ cout &lt;&lt; <span class="kw">sizeof</span>(<span class="kw">char</span>)   &lt
   </div>
 </div>
 
-<!-- ═══ SLIDE 12 — RIEPILOGO ═══ -->
+<!-- ═══ SLIDE 11 — RIEPILOGO ═══ -->
 <div class="slide" data-section="riepilogo">
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
@@ -991,7 +912,7 @@ cout &lt;&lt; <span class="kw">sizeof</span>(<span class="kw">char</span>)   &lt
         <h3 style="color:var(--accent1);">🟢 Librerie e namespace</h3>
         <ul>
           <li><code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">#include &lt;libreria&gt;</code> inserisce funzioni e classi pronte</li>
-          <li>Librerie chiave: <strong>&lt;iostream&gt;</strong>, <strong>&lt;string&gt;</strong>, <strong>&lt;cmath&gt;</strong>, <strong>&lt;vector&gt;</strong></li>
+          <li>Librerie chiave: <strong>&lt;iostream&gt;</strong>, <strong>&lt;string&gt;</strong>, <strong>&lt;cmath&gt;</strong>, <strong>&lt;cstdlib&gt;</strong></li>
           <li><code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">using namespace std;</code> evita il prefisso <code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">std::</code></li>
         </ul>
       </div>
