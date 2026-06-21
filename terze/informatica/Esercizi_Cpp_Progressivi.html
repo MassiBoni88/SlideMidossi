@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizi C++ – Progressivi (Variabili e I/O)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 22px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── INTRO ── */
+    .intro {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 0 0 26px;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .intro strong { color: #1b3a5c; }
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+      font-size: 11.5px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+    /* ── ESERCIZIO ── */
+    .ex {
+      border: 1px solid #d4dfe8;
+      border-radius: 6px;
+      padding: 14px 18px 16px;
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+    }
+    .ex-head {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 9px;
+    }
+    .ex-num {
+      flex: 0 0 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #1b3a5c;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ex-title {
+      color: #1e6fa8;
+      font-size: 15px;
+      font-weight: 700;
+      flex: 1;
+    }
+    .level {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .level-1 { background: #e3f4ea; color: #1f7a45; border: 1px solid #9fd0b0; }
+    .level-2 { background: #fff5e0; color: #9a6700; border: 1px solid #e6c477; }
+    .level-3 { background: #fdeaea; color: #b02a2a; border: 1px solid #e2a3a3; }
+
+    /* ── CONCETTI ── */
+    .concetti {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 9px;
+    }
+    .tag {
+      background: #e8f0f8;
+      color: #1b3a5c;
+      border: 1px solid #c4d7e6;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .consegna { line-height: 1.6; margin-bottom: 4px; }
+    .consegna strong { font-weight: 700; }
+    code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    .esempio-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #5a6b78;
+      margin: 11px 0 4px;
+    }
+
+    /* ── CONSOLE ── */
+    .console {
+      background: #0d2438;
+      color: #e8f0f8;
+      border-radius: 5px;
+      padding: 12px 16px;
+      margin: 0;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .console .in  { color: #ffd479; font-weight: 700; }
+    .console .out { color: #9fd0a8; }
+
+    /* ── SUGGERIMENTO ── */
+    .hint {
+      background: #f4f7fa;
+      border-left: 4px solid #1e6fa8;
+      border-radius: 3px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #2a3a48;
+    }
+    .hint strong { color: #1b3a5c; }
+
+    @media print {
+      body { padding: 0; }
+      .ex { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZI C++ –<br>VARIABILI, TIPI E I/O</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: sintassi, librerie, input/output,<br>commenti, variabili, tipi di dato, costanti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ INTRODUZIONE ══════════════ -->
+  <div class="intro">
+    Dieci esercizi <strong>brevi e a difficoltà crescente</strong>: si parte dal solo output a video,
+    poi si aggiungono variabili e input, fino a un esercizio riepilogativo che combina tutti gli argomenti
+    visti. Si usano <strong>solo</strong> gli argomenti dell'introduzione al C++: <code>cout</code>/<code>cin</code>,
+    variabili, tipi di dato, costanti e commenti. <strong>Non</strong> servono <code>if</code>, cicli o funzioni.
+    Per ogni esercizio è mostrato un <strong>esempio di esecuzione</strong> (in <span style="color:#b8860b;font-weight:700;">giallo</span>
+    ciò che digita l'utente).
+    <div class="legend">
+      <span><span class="dot" style="background:#1f7a45;"></span> Base</span>
+      <span><span class="dot" style="background:#d99a00;"></span> Medio</span>
+      <span><span class="dot" style="background:#b02a2a;"></span> Impegnativo</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ ESERCIZIO 1 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">1</span>
+      <span class="ex-title">Il primo output</span>
+      <span class="level level-1">Base</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">main()</span>
+      <span class="tag">cout</span>
+      <span class="tag">endl / \n</span>
+      <span class="tag">commenti</span>
+    </div>
+    <p class="consegna">
+      Scrivi un programma che stampi a video <strong>tre righe</strong>: un messaggio di benvenuto,
+      il tuo nome e la tua classe. All'inizio del file inserisci un <strong>commento di intestazione</strong>
+      <code>/* */</code> con il tuo nome e lo scopo del programma. Non usare ancora le variabili né <code>cin</code>.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Benvenuto nel mio primo programma!
+Mi chiamo Luca Bianchi
+Classe 3B</span></div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 2 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">2</span>
+      <span class="ex-title">Variabili e stampa</span>
+      <span class="level level-1">Base</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">variabili</span>
+      <span class="tag">string</span>
+      <span class="tag">int</span>
+      <span class="tag">cout &lt;&lt;</span>
+    </div>
+    <p class="consegna">
+      Dichiara e inizializza due variabili: una <code>string nome</code> e una <code>int eta</code> con i tuoi dati.
+      Stampa <strong>una sola frase</strong> che le contenga, concatenando testo e variabili con l'operatore
+      <code>&lt;&lt;</code>. Anche qui niente <code>cin</code>: i valori li scrivi tu nel codice.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Mi chiamo Sara e ho 16 anni.</span></div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 3 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">3</span>
+      <span class="ex-title">Tutti i tipi di dato</span>
+      <span class="level level-1">Base</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">int</span>
+      <span class="tag">double</span>
+      <span class="tag">char</span>
+      <span class="tag">bool</span>
+      <span class="tag">string</span>
+    </div>
+    <p class="consegna">
+      Dichiara <strong>una variabile per ciascun tipo fondamentale</strong> (<code>int</code>, <code>double</code>,
+      <code>char</code>, <code>bool</code>, <code>string</code>), inizializzala con un valore a tua scelta e stampala
+      con un'etichetta. Ricorda che un <code>bool</code> viene stampato come <code>1</code> (true) o <code>0</code> (false)
+      e che un <code>char</code> va racchiuso tra apici singoli (es. <code>'A'</code>).
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Intero: 7
+Decimale: 3.14
+Carattere: A
+Booleano: 1
+Testo: ciao</span></div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 4 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">4</span>
+      <span class="ex-title">Il primo input</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">cin &gt;&gt;</span>
+      <span class="tag">int</span>
+      <span class="tag">cout</span>
+    </div>
+    <p class="consegna">
+      Chiedi all'utente un <strong>numero intero</strong>, leggilo con <code>cin</code> in una variabile
+      e poi <strong>ristampalo</strong> all'interno di una frase.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Inserisci un numero: </span><span class="in">42</span>
+<span class="out">Hai inserito il numero 42</span></div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 5 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">5</span>
+      <span class="ex-title">Saluto personalizzato</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">string</span>
+      <span class="tag">cin &gt;&gt;</span>
+    </div>
+    <p class="consegna">
+      Chiedi all'utente il proprio <strong>nome</strong> (una sola parola) e leggilo con <code>cin</code>
+      in una <code>string</code>. Poi salutalo per nome.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Come ti chiami? </span><span class="in">Marco</span>
+<span class="out">Ciao Marco, benvenuto!</span></div>
+    <div class="hint">
+      <strong>Ricorda:</strong> <code>cin &gt;&gt;</code> legge una sola parola, fermandosi al primo spazio.
+      Per leggere un nome <em>composto</em> con gli spazi serve <code>getline</code> (lo vedi nell'esercizio 9).
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 6 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">6</span>
+      <span class="ex-title">Area del rettangolo</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">double</span>
+      <span class="tag">cin &gt;&gt;</span>
+      <span class="tag">calcolo</span>
+    </div>
+    <p class="consegna">
+      Chiedi <strong>base</strong> e <strong>altezza</strong> di un rettangolo (numeri che possono avere i decimali,
+      quindi <code>double</code>), calcola l'<strong>area</strong> con <code>area = base * altezza;</code> e stampala.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Base: </span><span class="in">5</span>
+<span class="out">Altezza: </span><span class="in">3.5</span>
+<span class="out">Area del rettangolo: 17.5</span></div>
+    <div class="hint">
+      <strong>Attenzione al tipo:</strong> i numeri con la virgola vanno in variabili <code>double</code> e
+      <strong>non</strong> <code>int</code>, altrimenti i decimali verrebbero persi.
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 7 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">7</span>
+      <span class="ex-title">Costante e conversione</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">const</span>
+      <span class="tag">double</span>
+      <span class="tag">cin / cout</span>
+    </div>
+    <p class="consegna">
+      Definisci una <strong>costante</strong> <code>const double CAMBIO = 1.08;</code> per il cambio Euro → Dollaro.
+      Chiedi all'utente un importo in euro e stampa il valore corrispondente in dollari (<code>euro * CAMBIO</code>).
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Quanti euro vuoi convertire? </span><span class="in">50</span>
+<span class="out">50 euro = 54 dollari</span></div>
+    <div class="hint">
+      <strong>Sulle costanti:</strong> una <code>const</code> non può più essere modificata dopo l'inizializzazione
+      (un tentativo di modifica è un errore di compilazione). Per convenzione il nome si scrive in
+      <strong>MAIUSCOLO</strong>.
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 8 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">8</span>
+      <span class="ex-title">Caratteri e booleani</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">char</span>
+      <span class="tag">bool</span>
+      <span class="tag">cin &gt;&gt;</span>
+    </div>
+    <p class="consegna">
+      Chiedi all'utente l'<strong>iniziale</strong> del proprio nome (un solo carattere, quindi <code>char</code>)
+      e leggila con <code>cin</code>. Dichiara inoltre una variabile <code>bool patente = true;</code>.
+      Stampa entrambe (ricorda: il <code>bool</code> appare come <code>1</code> o <code>0</code>).
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Iniziale del tuo nome: </span><span class="in">G</span>
+<span class="out">Iniziale: G
+Patente: 1</span></div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 9 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">9</span>
+      <span class="ex-title">Nome completo con getline</span>
+      <span class="level level-3">Impegnativo</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">getline</span>
+      <span class="tag">cin &gt;&gt;</span>
+      <span class="tag">cin.ignore()</span>
+    </div>
+    <p class="consegna">
+      Chiedi <strong>prima</strong> l'età con <code>cin &gt;&gt;</code> e <strong>poi</strong> il nome completo
+      (nome e cognome, con spazi) con <code>getline(cin, nome)</code>. Poiché il <code>getline</code> segue un
+      <code>cin &gt;&gt;</code>, inserisci <code>cin.ignore()</code> per ripulire l'Invio rimasto nel buffer.
+      Infine stampa un riepilogo.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Età: </span><span class="in">17</span>
+<span class="out">Nome e cognome: </span><span class="in">Anna Maria Rossi</span>
+<span class="out">Anna Maria Rossi, 17 anni</span></div>
+    <div class="hint">
+      <strong>Perché serve <code>cin.ignore()</code>:</strong> dopo <code>cin &gt;&gt; eta</code> l'Invio resta nel
+      buffer; senza ripulirlo, il <code>getline</code> leggerebbe subito quell'Invio e otterrebbe una riga vuota,
+      "saltando" l'inserimento del nome.
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 10 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">10</span>
+      <span class="ex-title">Scheda personale (riepilogo)</span>
+      <span class="level level-3">Impegnativo</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">getline</span>
+      <span class="tag">int / double / char</span>
+      <span class="tag">const</span>
+      <span class="tag">commenti</span>
+      <span class="tag">output formattato</span>
+    </div>
+    <p class="consegna">
+      Realizza un programma che compili una piccola <strong>"scheda personale"</strong>, combinando tutto ciò che hai
+      imparato. Inserisci un <strong>commento di intestazione</strong>. Leggi nell'ordine: il <strong>nome completo</strong>
+      con <code>getline</code> (per primo, così eviti il problema del buffer), poi l'<strong>età</strong> (<code>int</code>),
+      l'<strong>altezza</strong> in metri (<code>double</code>) e l'<strong>iniziale del cognome</strong> (<code>char</code>).
+      Definisci una costante <code>const string SCUOLA = "ITT Midossi";</code>. Stampa infine una scheda ordinata
+      con tutti i dati.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">=== SCHEDA PERSONALE ===
+Nome e cognome: </span><span class="in">Giulia Verdi</span>
+<span class="out">Età: </span><span class="in">16</span>
+<span class="out">Altezza (m): </span><span class="in">1.68</span>
+<span class="out">Iniziale del cognome: </span><span class="in">V</span>
+<span class="out">-------------------------
+Nome: Giulia Verdi
+Età: 16 anni
+Altezza: 1.68 m
+Iniziale cognome: V
+Scuola: ITT Midossi
+=========================</span></div>
+    <div class="hint">
+      <strong>Ordine di lettura:</strong> leggendo il nome con <code>getline</code> <em>per primo</em> (prima di qualsiasi
+      <code>cin &gt;&gt;</code>) non serve <code>cin.ignore()</code>. Tutti i numeri successivi si leggono con <code>cin &gt;&gt;</code>.
+    </div>
+  </section>
+
+</body>
+</html>
