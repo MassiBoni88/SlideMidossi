@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Cassa Rapida (senza cicli)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA VARIABILI ── */
+    .var-table thead th:nth-child(1) { width: 175px; }
+    .var-table tbody td:first-child { font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 175px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── ESEMPIO DI ESECUZIONE (console) ── */
+    .console {
+      background: #0d2438;
+      color: #e8f0f8;
+      border-radius: 5px;
+      padding: 14px 18px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .console .in { color: #ffd479; font-weight: 700; }
+    .console .out { color: #9fd0a8; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>CASSA RAPIDA (SENZA CICLI)</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: variabili e tipi, input/output,<br>commenti, selezione (sequenza + if/if-else)</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Il piccolo supermercato <strong>"MidoMarket"</strong> apre una <strong>cassa rapida</strong> riservata a chi
+    acquista <strong>esattamente 3 prodotti</strong>. Il tuo compito è realizzare un programma in C++ che, a partire
+    dai <strong>prezzi dei tre prodotti</strong> acquistati da un cliente, calcoli il <strong>totale della spesa</strong>,
+    individui il <strong>prodotto più costoso</strong>, conti quanti prodotti sono "cari", applichi un eventuale
+    <strong>sconto fedeltà</strong> e stampi uno <strong>scontrino riepilogativo</strong>.
+  </p>
+  <p class="scenario">
+    Il programma deve usare <strong>solo gli argomenti visti finora</strong>: variabili, tipi di dato,
+    input/output (<code>cin</code> / <code>cout</code>), commenti e <strong>solo due</strong> delle tre strutture
+    fondamentali: <strong>sequenza</strong> e <strong>selezione</strong>. <strong>Non</strong> si usano cicli
+    (niente <code>for</code>, <code>while</code>, <code>do-while</code>) e <strong>non</strong> si usano
+    funzioni, array o struct.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Variabili e tipi di dato</h2>
+
+  <p>Prima di tutto dichiara, all'inizio di <code>main()</code>, le variabili che ti serviranno,
+     scegliendo per ognuna il <strong>tipo di dato corretto</strong>:</p>
+
+  <table class="var-table">
+    <thead>
+      <tr><th>Variabile</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>nomeCliente</td><td>nome e cognome del cliente (può contenere spazi)</td></tr>
+      <tr><td>prezzo1</td><td>prezzo del <strong>primo</strong> prodotto</td></tr>
+      <tr><td>prezzo2</td><td>prezzo del <strong>secondo</strong> prodotto</td></tr>
+      <tr><td>prezzo3</td><td>prezzo del <strong>terzo</strong> prodotto</td></tr>
+      <tr><td>totale</td><td>somma dei tre prezzi</td></tr>
+      <tr><td>prezzoMax</td><td>prezzo del prodotto più costoso fra i tre</td></tr>
+      <tr><td>media</td><td>prezzo medio dei tre prodotti (numero con la virgola)</td></tr>
+      <tr><td>numCari</td><td>quanti prodotti costano <strong>più di 50 €</strong> (da inizializzare a <code>0</code>)</td></tr>
+      <tr><td>scontoApplicato</td><td><code>true</code> se è stato applicato lo sconto, altrimenti <code>false</code></td></tr>
+      <tr><td>SCONTO</td><td>percentuale di sconto fedeltà, costante = <code>0.10</code> (cioè 10%)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Lettura dei dati (input)</h2>
+
+  <p>Realizza la fase di <strong>input</strong> con messaggi chiari per l'utente:</p>
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Operazione</th><th>Come</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Messaggio di benvenuto</td>
+        <td>stampa un'intestazione, es. <code>"=== Cassa Rapida MidoMarket ==="</code>, andando a capo</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Nome del cliente</td>
+        <td>chiedi e leggi il nome <strong>completo</strong> (contiene spazi)</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Prezzo prodotto 1</td>
+        <td>chiedi e leggi <code>prezzo1</code> (es. <code>"Prezzo prodotto 1: "</code>)</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Prezzo prodotto 2</td>
+        <td>chiedi e leggi <code>prezzo2</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Prezzo prodotto 3</td>
+        <td>chiedi e leggi <code>prezzo3</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> i tre prezzi si leggono con <strong>tre istruzioni</strong>
+    <code>cin</code> separate, una dopo l'altra (sequenza). Non serve nessun ciclo: i prodotti sono
+    sempre e solo tre.
+  </div>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Elaborazione (sequenza · selezione)</h2>
+
+  <p>Tutta l'elaborazione si fa con <strong>istruzioni in sequenza</strong> e con <strong>selezioni</strong>
+     (<code>if</code> / <code>if-else</code>), <strong>senza alcun ciclo</strong>.</p>
+
+  <h3>1) Totale e media</h3>
+  <ul>
+    <li><strong>somma</strong> i tre prezzi: <code>totale = prezzo1 + prezzo2 + prezzo3;</code></li>
+    <li>calcola la <strong>media</strong>: <code>media = totale / 3;</code> (usa un tipo con la virgola).</li>
+  </ul>
+
+  <h3>2) Prodotto più costoso (selezione)</h3>
+  <p>Trova il prezzo più alto fra i tre confrontandoli con <code>if</code>. Ad esempio:</p>
+  <ul>
+    <li>parti assegnando <code>prezzoMax = prezzo1;</code></li>
+    <li>se <code>prezzo2 &gt; prezzoMax</code>, allora <code>prezzoMax = prezzo2;</code></li>
+    <li>se <code>prezzo3 &gt; prezzoMax</code>, allora <code>prezzoMax = prezzo3;</code></li>
+  </ul>
+
+  <h3>3) Conteggio dei prodotti "cari" (selezione)</h3>
+  <p>Usa <strong>tre <code>if</code> separati</strong>, uno per ciascun prezzo:</p>
+  <ul>
+    <li>se <code>prezzo1 &gt; 50</code>, incrementa <code>numCari</code> di 1;</li>
+    <li>se <code>prezzo2 &gt; 50</code>, incrementa <code>numCari</code> di 1;</li>
+    <li>se <code>prezzo3 &gt; 50</code>, incrementa <code>numCari</code> di 1.</li>
+  </ul>
+
+  <h3>4) Sconto fedeltà (selezione)</h3>
+  <ul>
+    <li>se <code>totale &gt; 100</code>, applica lo sconto
+        (<code>totale = totale - totale * SCONTO;</code>) e imposta <code>scontoApplicato = true</code>.</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Output dello scontrino</h2>
+
+  <p>Stampa uno scontrino riepilogativo che contenga:</p>
+  <table>
+    <thead>
+      <tr><th>Dato da mostrare</th><th>Variabile / calcolo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Nome del cliente</td><td><code>nomeCliente</code></td></tr>
+      <tr><td>Numero di prodotti acquistati</td><td>sempre <code>3</code></td></tr>
+      <tr><td>Prodotto più costoso (prezzo)</td><td><code>prezzoMax</code></td></tr>
+      <tr><td>Prezzo medio dei prodotti</td><td><code>media</code> (con 2 decimali)</td></tr>
+      <tr><td>Numero di prodotti "cari" (&gt; 50 €)</td><td><code>numCari</code></td></tr>
+      <tr><td>Totale da pagare</td><td><code>totale</code> (eventualmente già scontato)</td></tr>
+      <tr><td>Messaggio sconto</td><td>se <code>scontoApplicato</code> è <code>true</code> scrivi "Sconto fedeltà del 10% applicato!", altrimenti "Nessuno sconto applicato."</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di esecuzione</h3>
+  <div class="console"><span class="out">=== Cassa Rapida MidoMarket ===</span>
+Nome cliente: <span class="in">Mario Rossi</span>
+Prezzo prodotto 1: <span class="in">60</span>
+Prezzo prodotto 2: <span class="in">25.50</span>
+Prezzo prodotto 3: <span class="in">40</span>
+<span class="out">--------- SCONTRINO ---------
+Cliente: Mario Rossi
+Prodotti acquistati: 3
+Prodotto piu' costoso: 60.00 EUR
+Prezzo medio: 41.83 EUR
+Prodotti cari (> 50 EUR): 1
+Sconto fedelta' del 10% applicato!
+TOTALE DA PAGARE: 112.95 EUR
+-----------------------------</span></div>
+
+  <p style="font-size:12.5px;color:#555;">
+    (Totale prima dello sconto: 60 + 25,50 + 40 = 125,50 €. Essendo &gt; 100 €, si applica il 10%:
+    125,50 − 12,55 = <strong>112,95 €</strong>.)
+  </p>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Prezzi</td>
+        <td>Valori <code>double</code> sempre &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Numero prodotti</td>
+        <td>Sempre <strong>3</strong> (non viene chiesto all'utente)</td>
+      </tr>
+      <tr>
+        <td>Prodotti "cari"</td>
+        <td>Prezzo <strong>strettamente maggiore</strong> di 50 €</td>
+      </tr>
+      <tr>
+        <td>Sconto fedeltà</td>
+        <td>10% del totale, applicato <strong>solo se</strong> il totale supera 100 €</td>
+      </tr>
+      <tr>
+        <td>Strutture</td>
+        <td>Solo variabili, sequenza e <code>if</code> / <code>if-else</code>. <strong>Niente cicli</strong>, niente funzioni, array o struct</td>
+      </tr>
+      <tr>
+        <td>Librerie</td>
+        <td><code>&lt;iostream&gt;</code> e <code>&lt;string&gt;</code></td>
+      </tr>
+      <tr>
+        <td>Commenti</td>
+        <td>Inserisci un commento di intestazione <code>/* */</code> (nome, classe, data, scopo) e commenti <code>//</code> per spiegare le parti principali</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un unico file <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> poiché i prodotti sono sempre e solo tre, <strong>non è necessario (né consentito)</strong>
+    usare un ciclo. Ogni prezzo ha la sua variabile e viene gestito con istruzioni separate. L'obiettivo è
+    proprio esercitarsi su <strong>sequenza</strong> e <strong>selezione</strong>.
+  </div>
+
+</body>
+</html>
