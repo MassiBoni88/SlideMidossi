@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Esercizi C++ – Progressivi (Variabili e I/O)</title>
+  <title>Esercizi C++ – Progressivi (Variabili, I/O, Cicli e Array)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -195,6 +195,66 @@
     }
     .hint strong { color: #1b3a5c; }
 
+    /* ── DIVISORE DI SEZIONE ── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 34px 0 20px;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: "";
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #c4d7e6 40%, #c4d7e6 60%, transparent);
+    }
+    .section-divider span {
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: #1b3a5c;
+      white-space: nowrap;
+    }
+
+    /* ── DOMANDE DI RIFLESSIONE ── */
+    .domande {
+      background: #f4f7fa;
+      border: 1px dashed #c4d7e6;
+      border-radius: 4px;
+      padding: 9px 14px 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #2a3a48;
+    }
+    .domande-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #5a6b78;
+      margin-bottom: 5px;
+    }
+    .domande ol { margin: 0; padding-left: 20px; }
+    .domande li { margin-bottom: 3px; }
+    .domande li:last-child { margin-bottom: 0; }
+
+    /* ── SFIDA EXTRA ── */
+    .sfida {
+      background: #fff8ec;
+      border-left: 4px solid #d99a00;
+      border-radius: 3px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #5a4a20;
+    }
+    .sfida strong { color: #9a6700; }
+    .sfida code { background: #fbeccb; color: #9a6700; }
+
     @media print {
       body { padding: 0; }
       .ex { break-inside: avoid; }
@@ -206,21 +266,22 @@
   <!-- ══════════════ INTESTAZIONE ══════════════ -->
   <div class="header">
     <div class="header-left">
-      <h1>ESERCIZI C++ –<br>VARIABILI, TIPI E I/O</h1>
+      <h1>ESERCIZI C++ –<br>VARIABILI, I/O, CICLI E ARRAY</h1>
     </div>
     <div class="header-right">
       <span class="school">ITT Midossi – Classe 3°</span>
-      <span class="topics">Argomenti: sintassi, librerie, input/output,<br>commenti, variabili, tipi di dato, costanti</span>
+      <span class="topics">Argomenti: input/output, variabili, tipi di dato,<br>costanti, ciclo for e array</span>
     </div>
   </div>
 
   <!-- ══════════════ INTRODUZIONE ══════════════ -->
   <div class="intro">
-    Dieci esercizi <strong>brevi e a difficoltà crescente</strong>: si parte dal solo output a video,
-    poi si aggiungono variabili e input, fino a un esercizio riepilogativo che combina tutti gli argomenti
-    visti. Si usano <strong>solo</strong> gli argomenti dell'introduzione al C++: <code>cout</code>/<code>cin</code>,
-    variabili, tipi di dato, costanti e commenti. <strong>Non</strong> servono <code>if</code>, cicli o funzioni.
-    Per ogni esercizio è mostrato un <strong>esempio di esecuzione</strong> (in <span style="color:#b8860b;font-weight:700;">giallo</span>
+    Tredici esercizi <strong>brevi e a difficoltà crescente</strong>: si parte dal solo output a video,
+    poi si aggiungono variabili e input fino a un esercizio riepilogativo, e infine si introducono il
+    <strong>ciclo <code>for</code></strong> e gli <strong>array</strong>. I primi dieci usano solo gli
+    argomenti dell'introduzione al C++ (<code>cout</code>/<code>cin</code>, variabili, tipi di dato, costanti
+    e commenti); gli ultimi tre aggiungono i cicli e i vettori. Per ogni esercizio è mostrato un
+    <strong>esempio di esecuzione</strong> (in <span style="color:#b8860b;font-weight:700;">giallo</span>
     ciò che digita l'utente).
     <div class="legend">
       <span><span class="dot" style="background:#1f7a45;"></span> Base</span>
@@ -490,6 +551,159 @@ Scuola: ITT Midossi
     <div class="hint">
       <strong>Ordine di lettura:</strong> leggendo il nome con <code>getline</code> <em>per primo</em> (prima di qualsiasi
       <code>cin &gt;&gt;</code>) non serve <code>cin.ignore()</code>. Tutti i numeri successivi si leggono con <code>cin &gt;&gt;</code>.
+    </div>
+  </section>
+
+  <!-- ══════════════ DIVISORE: CICLI E ARRAY ══════════════ -->
+  <div class="section-divider">
+    <span>Cicli e array</span>
+  </div>
+
+  <!-- ══════════════ ESERCIZIO 11 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">11</span>
+      <span class="ex-title">Il ciclo for: conta e somma</span>
+      <span class="level level-1">Base</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">for</span>
+      <span class="tag">cin &gt;&gt;</span>
+      <span class="tag">cout</span>
+      <span class="tag">somma</span>
+    </div>
+    <p class="consegna">
+      Chiedi all'utente un <strong>numero intero positivo N</strong>. Usando un ciclo <code>for</code>,
+      stampa a video tutti i numeri <strong>da 1 fino a N</strong>. Sempre nello stesso ciclo (o con un secondo
+      <code>for</code>), calcola e mostra la <strong>somma</strong> di tutti i numeri da 1 a N.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Inserisci un numero intero positivo: </span><span class="in">5</span>
+
+<span class="out">Numeri da 1 a 5:
+1 2 3 4 5
+
+La somma dei numeri da 1 a 5 è 15</span></div>
+    <div class="hint">
+      <strong>Ricorda la struttura del for:</strong> <code>for (int i = 1; i &lt;= N; i++) { ... }</code>.
+      Crea una variabile <code>somma</code> inizializzata a <code>0</code> <strong>prima</strong> del ciclo e, ad ogni
+      giro, aggiungi il valore di <code>i</code> con <code>somma += i;</code>.
+    </div>
+    <div class="domande">
+      <div class="domande-label">Domande di riflessione</div>
+      <ol>
+        <li>Cosa succede se l'utente inserisce N = 1?</li>
+        <li>Quante volte viene eseguito il ciclo se N = 10?</li>
+        <li>Prova a modificare il programma per stampare solo i numeri <strong>pari</strong> da 1 a N. Quale parte del <code>for</code> cambieresti?</li>
+      </ol>
+    </div>
+    <div class="sfida">
+      <strong>Sfida extra:</strong> modifica il programma in modo che stampi i numeri <strong>al contrario</strong>,
+      cioè da N fino a 1.
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 12 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">12</span>
+      <span class="ex-title">Array di numeri e somma</span>
+      <span class="level level-1">Base</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">array</span>
+      <span class="tag">int[ ]</span>
+      <span class="tag">for</span>
+      <span class="tag">indici</span>
+    </div>
+    <p class="consegna">
+      Dichiara un <strong>array di interi</strong> capace di contenere <strong>5 valori</strong>. Chiedi all'utente
+      di inserire i 5 numeri, uno alla volta, usando un ciclo <code>for</code>. Stampa a video tutti i numeri inseriti
+      (sempre con un <code>for</code>) e infine calcola e mostra la <strong>somma</strong> di tutti i valori dell'array.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Inserisci il valore 1: </span><span class="in">10</span>
+<span class="out">Inserisci il valore 2: </span><span class="in">4</span>
+<span class="out">Inserisci il valore 3: </span><span class="in">7</span>
+<span class="out">Inserisci il valore 4: </span><span class="in">2</span>
+<span class="out">Inserisci il valore 5: </span><span class="in">8</span>
+
+<span class="out">Hai inserito i seguenti numeri:
+10 4 7 2 8
+
+La somma dei valori è 31</span></div>
+    <div class="hint">
+      <strong>Attenzione agli indici:</strong> dichiari l'array con <code>int numeri[5];</code> ma gli indici partono
+      da <strong>0</strong>, quindi le caselle sono <code>numeri[0]</code> … <code>numeri[4]</code>. Per riempirlo:
+      <code>for (int i = 0; i &lt; 5; i++) cin &gt;&gt; numeri[i];</code>.
+    </div>
+    <div class="domande">
+      <div class="domande-label">Domande di riflessione</div>
+      <ol>
+        <li>Qual è l'indice del <strong>primo</strong> elemento dell'array? E quello dell'<strong>ultimo</strong>?</li>
+        <li>Cosa succede se nel ciclo scrivo <code>i &lt;= 5</code> invece di <code>i &lt; 5</code>?</li>
+        <li>Se volessi gestire 10 numeri invece di 5, quali parti del programma dovresti modificare?</li>
+      </ol>
+    </div>
+    <div class="sfida">
+      <strong>Sfida extra:</strong> dopo aver calcolato la somma, fai stampare anche il valore <strong>più grande</strong>
+      tra i 5 numeri. Usa una variabile <code>massimo</code>, assegnale <code>numeri[0]</code> e confrontala con gli altri
+      dentro un ciclo <code>for</code>.
+    </div>
+  </section>
+
+  <!-- ══════════════ ESERCIZIO 13 ══════════════ -->
+  <section class="ex">
+    <div class="ex-head">
+      <span class="ex-num">13</span>
+      <span class="ex-title">Analisi di una sequenza</span>
+      <span class="level level-2">Medio</span>
+    </div>
+    <div class="concetti">
+      <span class="tag">for</span>
+      <span class="tag">max / min</span>
+      <span class="tag">% (modulo)</span>
+      <span class="tag">double</span>
+      <span class="tag">setprecision</span>
+    </div>
+    <p class="consegna">
+      Scrivi un programma che analizza una sequenza di numeri interi. Chiedi <strong>quanti numeri</strong> inserire (N),
+      poi con un ciclo <code>for</code> leggi N numeri uno alla volta. Durante lo stesso ciclo calcola: la <strong>somma</strong>,
+      il numero <strong>massimo</strong>, il numero <strong>minimo</strong> e <strong>quanti</strong> numeri sono pari e quanti dispari.
+      Alla fine, fuori dal ciclo, stampa un riepilogo con somma, <strong>media</strong> (con la virgola), massimo, minimo, pari e dispari.
+    </p>
+    <div class="esempio-label">Esempio di esecuzione</div>
+    <div class="console"><span class="out">Quanti numeri vuoi inserire? </span><span class="in">5</span>
+<span class="out">Inserisci il numero 1: </span><span class="in">7</span>
+<span class="out">Inserisci il numero 2: </span><span class="in">2</span>
+<span class="out">Inserisci il numero 3: </span><span class="in">9</span>
+<span class="out">Inserisci il numero 4: </span><span class="in">4</span>
+<span class="out">Inserisci il numero 5: </span><span class="in">3</span>
+
+<span class="out">----- RIEPILOGO -----
+Somma:    25
+Media:    5.00
+Massimo:  9
+Minimo:   2
+Pari:     2
+Dispari:  3</span></div>
+    <div class="hint">
+      <strong>Max e min:</strong> usa il primo numero letto come valore iniziale sia di <code>massimo</code> sia di
+      <code>minimo</code>, poi confronta gli altri. Per la parità usa il modulo: <code>if (numero % 2 == 0)</code> è pari.
+      Per la media con i decimali dividi usando i <code>double</code>: <code>double media = (double) somma / N;</code> e
+      mostra due cifre con <code>#include &lt;iomanip&gt;</code> e <code>cout &lt;&lt; fixed &lt;&lt; setprecision(2) &lt;&lt; media;</code>.
+    </div>
+    <div class="domande">
+      <div class="domande-label">Domande di riflessione</div>
+      <ol>
+        <li>Perché <strong>non</strong> conviene inizializzare <code>massimo</code> a 0?</li>
+        <li>Cosa succede alla media se N = 0? Come potresti evitare il problema?</li>
+        <li>Se scrivessi <code>int media = somma / N;</code> cosa otterresti con i numeri dell'esempio? Perché?</li>
+      </ol>
+    </div>
+    <div class="sfida">
+      <strong>Sfida extra (un for dentro un altro for):</strong> aggiungi una parte che, con due cicli <code>for</code> annidati,
+      stampi la <strong>tabella delle tabelline</strong> da 1 a 10 (un <code>for</code> esterno per le righe e uno interno per le colonne).
     </div>
   </section>
 
