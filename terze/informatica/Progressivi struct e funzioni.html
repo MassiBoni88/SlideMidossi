@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizi C++ progressivi – Struct e Funzioni</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── INTRO ── */
+    .intro {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 0 0 10px;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .intro strong { color: #1b3a5c; }
+
+    /* ── BANNER ESERCIZIO ── */
+    .ex-banner {
+      background: linear-gradient(90deg, #1b3a5c, #2e5f8a);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 6px;
+      margin: 40px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .ex-num {
+      background: #e6a817;
+      color: #1b3a5c;
+      font-weight: 800;
+      min-width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+    .ex-titles { display: flex; flex-direction: column; }
+    .ex-title {
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.2;
+    }
+    .ex-sub {
+      font-size: 11.5px;
+      font-style: italic;
+      color: #c8ddf0;
+      margin-top: 2px;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 24px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── TABELLA VARIABILI / CAMPI ── */
+    .var-table thead th:nth-child(1) { width: 185px; }
+    .var-table tbody td:first-child { font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #f6ead0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #6b4a00;
+    }
+
+    /* ── BLOCCO DI CODICE C++ ── */
+    .codeblock {
+      background: #f4f7fa;
+      border: 1px solid #cde0f0;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 5px;
+      padding: 12px 16px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      white-space: pre;
+      color: #10344f;
+      overflow-x: auto;
+    }
+    .codeblock .kw { color: #b5006a; font-weight: 700; }
+    .codeblock .ty { color: #1e6fa8; font-weight: 700; }
+    .codeblock .cm { color: #5a8a63; font-style: italic; }
+    .codeblock .st { color: #a15b00; }
+    .codeblock .bl { color: #c0392b; font-weight: 700; }
+
+    /* ── ESEMPIO DI ESECUZIONE (console) ── */
+    .console {
+      background: #0d2438;
+      color: #e8f0f8;
+      border-radius: 5px;
+      padding: 14px 18px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .console .in { color: #ffd479; font-weight: 700; }
+    .console .out { color: #9fd0a8; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZI C++ PROGRESSIVI –<br>STRUCT E FUNZIONI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct, struct annidate,<br>array nelle struct, funzioni (con e senza ritorno)</span>
+    </div>
+  </div>
+
+  <p class="intro">
+    <strong>Come lavorare:</strong> i tre esercizi sono in ordine di difficoltà crescente e usano lo stesso "mondo"
+    (la palestra <strong>"MidoSport"</strong>). Svolgi prima l'Esercizio&nbsp;1, poi passa al 2 e infine al 3: ognuno
+    riprende ciò che hai imparato nel precedente e aggiunge un concetto nuovo. Per ciascun esercizio consegna un
+    file <code>.cpp</code> compilabile con librerie <code>&lt;iostream&gt;</code> e <code>&lt;string&gt;</code>,
+    con il commento di intestazione <code>/* nome, classe, data, scopo */</code>.
+  </p>
+
+  <p class="nota">
+    <strong>Importante:</strong> in tutti gli esercizi i <strong>tipi di dato</strong> dei campi e delle variabili
+    <strong>non sono indicati</strong>: dove trovi lo spazio <code>______</code> devi scegliere tu il tipo corretto
+    (<code>int</code>, <code>double</code>, <code>string</code>, ...) ragionando sulla descrizione del dato.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ══════════════ ESERCIZIO 1 – STRUCT BASE ═══════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="ex-banner">
+    <div class="ex-num">1</div>
+    <div class="ex-titles">
+      <span class="ex-title">Le struct – La scheda di un socio</span>
+      <span class="ex-sub">Definire una struct, dichiarare una variabile, accedere ai campi con il punto</span>
+    </div>
+  </div>
+
+  <h2>Scenario</h2>
+  <p class="scenario">
+    La palestra <strong>"MidoSport"</strong> vuole gestire la <strong>scheda di un socio</strong>. Ogni socio ha un
+    nome, un'età e paga un abbonamento mensile. Il tuo compito è raccogliere in <strong>un'unica struct</strong> tutte
+    le informazioni di un socio, calcolarne alcuni dati e stampare una scheda riepilogativa.
+  </p>
+
+  <h2>Parte 1 – Definizione della struct</h2>
+  <p>Fuori dal <code>main()</code> definisci una struct chiamata <code>Socio</code> con i seguenti campi.
+     <strong>Il tipo di dato lo scegli tu</strong> in base alla descrizione:</p>
+
+  <table class="var-table">
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>nome</td><td>nome e cognome del socio (può contenere spazi)</td></tr>
+      <tr><td>eta</td><td>età del socio in anni</td></tr>
+      <tr><td>quotaMensile</td><td>quanto paga ogni mese</td></tr>
+      <tr><td>mesi</td><td>numero di mesi di abbonamento sottoscritti</td></tr>
+      <tr><td>totale</td><td>importo totale dovuto (da calcolare)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="codeblock"><span class="cm">// definizione della struct: va scritta PRIMA del main</span>
+<span class="kw">struct</span> <span class="ty">Socio</span> {   <span class="cm">// completa tu i tipi al posto di ______</span>
+    <span class="bl">______</span> nome;
+    <span class="bl">______</span> eta;
+    <span class="bl">______</span> quotaMensile;
+    <span class="bl">______</span> mesi;
+    <span class="bl">______</span> totale;
+};</div>
+
+  <h2>Parte 2 – Lettura dei dati (input)</h2>
+  <p>Dentro il <code>main()</code> dichiara <strong>una sola variabile</strong> di tipo <code>Socio</code>
+     (ad esempio <code>Socio s;</code>) e riempi i suoi campi leggendoli da tastiera:</p>
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Operazione</th><th>Come</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Nome del socio</td><td>leggi il nome completo (contiene spazi) in <code>s.nome</code></td></tr>
+      <tr><td>2</td><td>Età</td><td>leggi <code>s.eta</code></td></tr>
+      <tr><td>3</td><td>Quota mensile</td><td>leggi <code>s.quotaMensile</code></td></tr>
+      <tr><td>4</td><td>Mesi di abbonamento</td><td>leggi <code>s.mesi</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per accedere a un campo della struct si usa il <strong>punto</strong>:
+    <code>s.nome</code>, <code>s.eta</code>, ecc. Per leggere il nome con gli spazi ricordati
+    <code>getline(cin, s.nome)</code> (attenzione a "svuotare" il buffer con <code>cin.ignore()</code> se leggi
+    prima dei numeri).
+  </div>
+
+  <h2>Parte 3 – Elaborazione (sequenza · selezione)</h2>
+  <ul>
+    <li>calcola il totale dovuto: <code>s.totale = s.quotaMensile * s.mesi;</code></li>
+    <li>se il socio ha sottoscritto <strong>almeno 12 mesi</strong>, applica uno <strong>sconto del 15%</strong>
+        sul totale (<code>s.totale = s.totale - s.totale * 0.15;</code>);</li>
+    <li>usando un <code>if</code>, stabilisci se il socio è <strong>"Under 18"</strong> (<code>s.eta &lt; 18</code>)
+        oppure <strong>"Adulto"</strong>.</li>
+  </ul>
+
+  <h2>Parte 4 – Output della scheda</h2>
+  <p>Stampa una scheda che mostri: <code>s.nome</code>, <code>s.eta</code>, la categoria (Under 18 / Adulto),
+     <code>s.mesi</code>, la quota mensile e il <strong>totale dovuto</strong> (con 2 decimali). Se lo sconto è
+     stato applicato, scrivilo.</p>
+
+  <h3>Esempio di esecuzione</h3>
+  <div class="console"><span class="out">=== MidoSport - Scheda Socio ===</span>
+Nome del socio: <span class="in">Luca Bianchi</span>
+Eta': <span class="in">17</span>
+Quota mensile: <span class="in">40</span>
+Mesi di abbonamento: <span class="in">12</span>
+<span class="out">--------- SCHEDA SOCIO ---------
+Socio: Luca Bianchi
+Eta': 17 (categoria: Under 18)
+Abbonamento: 12 mesi x 40.00 EUR
+Sconto fedelta' 15% applicato!
+TOTALE DOVUTO: 408.00 EUR
+--------------------------------</span></div>
+
+  <p style="font-size:12.5px;color:#555;">
+    (Totale prima dello sconto: 40 × 12 = 480 €. Avendo almeno 12 mesi si applica il 15%:
+    480 − 72 = <strong>408,00 €</strong>.)
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ═════════ ESERCIZIO 2 – STRUCT ANNIDATA + ARRAY ════════════ -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="ex-banner">
+    <div class="ex-num">2</div>
+    <div class="ex-titles">
+      <span class="ex-title">Struct annidate – La scheda allenamento</span>
+      <span class="ex-sub">Una struct dentro un'altra struct, con un array di misurazioni</span>
+    </div>
+  </div>
+
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Ora "MidoSport" vuole registrare, per ogni socio, anche la sua <strong>scheda allenamento</strong>. Oltre ai dati
+    anagrafici (che riorganizzi in una struct <strong>annidata</strong>), il socio ha <strong>tre pesi sollevati</strong>
+    durante l'ultima sessione, salvati in un <strong>array</strong>. Devi calcolare il peso totale, quello massimo e la
+    media.
+  </p>
+
+  <h2>Parte 1 – Definizione delle struct</h2>
+  <p>Definisci <strong>due</strong> struct: una struct "piccola" per l'anagrafica, che viene poi <strong>usata come
+     campo</strong> (annidata) dentro la struct principale. Anche qui <strong>i tipi dei campi li scegli tu</strong>
+     (attento: uno dei campi ha come tipo l'altra struct!).</p>
+
+  <table class="var-table">
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="2" style="background:#dce8f4;color:#1b3a5c;font-weight:700;">struct Anagrafica</td></tr>
+      <tr><td>nome</td><td>nome e cognome</td></tr>
+      <tr><td>eta</td><td>età in anni</td></tr>
+      <tr><td colspan="2" style="background:#dce8f4;color:#1b3a5c;font-weight:700;">struct SchedaAllenamento (contiene un'Anagrafica)</td></tr>
+      <tr><td>dati</td><td><strong>struct annidata</strong> con i dati del socio</td></tr>
+      <tr><td>pesi[3]</td><td><strong>array</strong> dei 3 pesi sollevati (kg)</td></tr>
+      <tr><td>totale</td><td>somma dei tre pesi (da calcolare)</td></tr>
+      <tr><td>massimo</td><td>peso più alto fra i tre (da calcolare)</td></tr>
+      <tr><td>media</td><td>media dei tre pesi (da calcolare)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="codeblock"><span class="cm">// struct "piccola" usata dentro l'altra</span>
+<span class="kw">struct</span> <span class="ty">Anagrafica</span> {
+    <span class="bl">______</span> nome;
+    <span class="bl">______</span> eta;
+};
+
+<span class="cm">// struct principale: contiene un'Anagrafica (annidata) e un array</span>
+<span class="kw">struct</span> <span class="ty">SchedaAllenamento</span> {
+    <span class="bl">______</span> dati;      <span class="cm">// usa la struct Anagrafica definita sopra</span>
+    <span class="bl">______</span> pesi[3];   <span class="cm">// array di 3 numeri con la virgola</span>
+    <span class="bl">______</span> totale;
+    <span class="bl">______</span> massimo;
+    <span class="bl">______</span> media;
+};</div>
+
+  <h2>Parte 2 – Lettura dei dati (input)</h2>
+  <p>Dichiara una variabile <code>SchedaAllenamento sch;</code> e leggi:</p>
+  <ul>
+    <li>il nome in <code>sch.dati.nome</code> e l'età in <code>sch.dati.eta</code>
+        (nota il <strong>doppio punto</strong>: struct annidata!);</li>
+    <li>i tre pesi in <code>sch.pesi[0]</code>, <code>sch.pesi[1]</code>, <code>sch.pesi[2]</code>
+        con <strong>tre <code>cin</code> separati</strong> (sono sempre 3, niente cicli richiesti).</li>
+  </ul>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per raggiungere un campo dentro la struct annidata si "concatenano" i punti:
+    <code>sch.dati.nome</code> significa «della scheda <code>sch</code>, prendi il campo <code>dati</code> e di
+    quello il campo <code>nome</code>». Gli elementi dell'array si indicano con l'indice fra parentesi quadre,
+    che <strong>parte da 0</strong>: <code>sch.pesi[0]</code> è il primo peso.
+  </div>
+
+  <h2>Parte 3 – Elaborazione (sequenza · selezione)</h2>
+  <ul>
+    <li><strong>Totale:</strong> <code>sch.totale = sch.pesi[0] + sch.pesi[1] + sch.pesi[2];</code></li>
+    <li><strong>Media:</strong> <code>sch.media = sch.totale / 3;</code></li>
+    <li><strong>Massimo (selezione):</strong> parti da <code>sch.massimo = sch.pesi[0];</code>, poi con due
+        <code>if</code> confronta <code>sch.pesi[1]</code> e <code>sch.pesi[2]</code> aggiornando
+        <code>sch.massimo</code> quando trovi un valore più grande;</li>
+    <li>se la media supera <strong>80 kg</strong>, il socio è di livello <strong>"Avanzato"</strong>, altrimenti
+        <strong>"Base"</strong>.</li>
+  </ul>
+
+  <h2>Parte 4 – Output della scheda</h2>
+  <p>Stampa nome ed età (presi dalla struct annidata), i tre pesi, il totale, il massimo, la media (2 decimali)
+     e il livello.</p>
+
+  <h3>Esempio di esecuzione</h3>
+  <div class="console"><span class="out">=== MidoSport - Scheda Allenamento ===</span>
+Nome del socio: <span class="in">Sara Verdi</span>
+Eta': <span class="in">25</span>
+Peso 1 (kg): <span class="in">70</span>
+Peso 2 (kg): <span class="in">95</span>
+Peso 3 (kg): <span class="in">85</span>
+<span class="out">------ SCHEDA ALLENAMENTO ------
+Socio: Sara Verdi (25 anni)
+Pesi sollevati: 70.0 - 95.0 - 85.0 kg
+Peso totale: 250.00 kg
+Peso massimo: 95.00 kg
+Media: 83.33 kg
+Livello: Avanzato
+--------------------------------</span></div>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> la struct <code>Anagrafica</code> deve essere definita <strong>prima</strong> di
+    <code>SchedaAllenamento</code>, altrimenti il compilatore non la conosce ancora. L'array <code>pesi</code> ha
+    tre celle con indici <code>0</code>, <code>1</code>, <code>2</code>: non esiste <code>pesi[3]</code>.
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- ══════════ ESERCIZIO 3 – FUNZIONI CON/SENZA RITORNO ════════ -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="ex-banner">
+    <div class="ex-num">3</div>
+    <div class="ex-titles">
+      <span class="ex-title">Le funzioni – Il gestionale della palestra</span>
+      <span class="ex-sub">Funzioni con valore di ritorno e funzioni <code>void</code> (senza ritorno)</span>
+    </div>
+  </div>
+
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Il codice del gestionale sta diventando lungo: è ora di dividerlo in <strong>funzioni</strong>. Riprendi la struct
+    <code>Socio</code> e organizza il programma in funzioni ben separate: alcune <strong>restituiscono un valore</strong>
+    (con <code>return</code>), altre <strong>non restituiscono nulla</strong> (di tipo <code>void</code>) e servono solo
+    a "fare qualcosa", come stampare a schermo.
+  </p>
+
+  <h2>Parte 1 – La struct</h2>
+  <p>Riusa la struct dell'Esercizio 1 (versione semplificata):</p>
+  <div class="codeblock"><span class="kw">struct</span> <span class="ty">Socio</span> {   <span class="cm">// completa tu i tipi al posto di ______</span>
+    <span class="bl">______</span> nome;
+    <span class="bl">______</span> eta;
+    <span class="bl">______</span> quotaMensile;
+    <span class="bl">______</span> mesi;
+};</div>
+
+  <h2>Parte 2 – Le funzioni da realizzare</h2>
+  <p>Scrivi (e poi usa nel <code>main()</code>) le seguenti <strong>quattro funzioni</strong>. Il
+     <strong>tipo di ritorno è nascosto</strong> (<code>______</code>): leggendo la colonna «Cosa fa» devi capire
+     tu se la funzione restituisce un valore (e di quale tipo) oppure se non restituisce nulla ed è
+     <code>void</code>.</p>
+
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Cosa fa</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>______ intestazione()</code></td>
+        <td>stampa a video il titolo <code>"=== MidoSport - Gestionale ==="</code> andando a capo. Non ha parametri.</td>
+      </tr>
+      <tr>
+        <td><code>______ leggiSocio()</code></td>
+        <td>chiede e legge da tastiera nome, età, quota e mesi; li raccoglie in una variabile struct e la <strong>consegna</strong> a chi l'ha chiamata.</td>
+      </tr>
+      <tr>
+        <td><code>______ calcolaTotale(Socio s)</code></td>
+        <td>calcola <code>s.quotaMensile * s.mesi</code>, applica lo sconto 15% se <code>s.mesi &gt;= 12</code> e <strong>fornisce come risultato</strong> il totale.</td>
+      </tr>
+      <tr>
+        <td><code>______ stampaScheda(Socio s, double totale)</code></td>
+        <td>riceve il socio e il totale già calcolato e stampa a video la scheda finale.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Con ritorno vs senza ritorno:</strong> una funzione che dichiara un tipo diverso da <code>void</code>
+    (es. <code>double</code>, <code>Socio</code>) <strong>deve</strong> contenere un <code>return</code> che
+    restituisce un valore di quel tipo; quel valore può essere assegnato a una variabile o usato in un'espressione.
+    Una funzione <code>void</code> <strong>non</strong> usa <code>return</code> per dare un valore: serve solo a
+    svolgere un'azione (tipicamente stampare).
+  </div>
+
+  <h2>Parte 3 – Il main()</h2>
+  <p>Il <code>main()</code> diventa cortissimo: si limita a <strong>chiamare</strong> le funzioni nell'ordine giusto.</p>
+  <div class="codeblock"><span class="kw">int</span> main() {
+    intestazione();                    <span class="cm">// void: chiamata "da sola"</span>
+    <span class="bl">______</span> s   = leggiSocio();      <span class="cm">// che tipo restituisce leggiSocio()?</span>
+    <span class="bl">______</span> tot = calcolaTotale(s);   <span class="cm">// che tipo restituisce calcolaTotale()?</span>
+    stampaScheda(s, tot);              <span class="cm">// void: usa i valori ricevuti</span>
+    <span class="kw">return</span> <span class="st">0</span>;
+}</div>
+
+  <div class="hint">
+    <strong>Come capire il ritorno guardando il <code>main()</code>:</strong> se una chiamata è scritta
+    <strong>da sola</strong> su una riga, quella funzione <strong>non restituisce nulla</strong> ed è
+    <code>void</code>; se invece il risultato viene <strong>assegnato a una variabile</strong>
+    (<code>variabile = funzione(...);</code>), allora la funzione <strong>restituisce un valore</strong> e il tipo
+    della variabile è lo stesso del valore restituito. Applica questa regola alle quattro chiamate qui sopra per
+    ricavare i tipi mancanti.
+  </div>
+
+  <h2>Parte 4 – Esempio di esecuzione</h2>
+  <div class="console"><span class="out">=== MidoSport - Gestionale ===</span>
+Nome del socio: <span class="in">Marco Neri</span>
+Eta': <span class="in">30</span>
+Quota mensile: <span class="in">50</span>
+Mesi di abbonamento: <span class="in">6</span>
+<span class="out">--------- SCHEDA SOCIO ---------
+Socio: Marco Neri (30 anni)
+Abbonamento: 6 mesi x 50.00 EUR
+Nessuno sconto applicato.
+TOTALE DOVUTO: 300.00 EUR
+--------------------------------</span></div>
+
+  <p style="font-size:12.5px;color:#555;">
+    (Solo 6 mesi: niente sconto. Totale = 50 × 6 = <strong>300,00 €</strong>. Prova a rieseguire con 12 mesi per
+    verificare che lo sconto del 15% venga applicato.)
+  </p>
+
+  <!-- ══════════════ VINCOLI COMUNI ══════════════ -->
+  <h2>Vincoli e note (validi per tutti e tre)</h2>
+  <table class="var-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>struct</td><td>Sempre definite <strong>prima</strong> del <code>main()</code>; l'accesso ai campi è con il punto</td></tr>
+      <tr><td>Annidamento</td><td>La struct interna va definita prima di quella che la contiene (Esercizio 2)</td></tr>
+      <tr><td>Array</td><td>Indici da <code>0</code> a <code>n-1</code>; nell'Esercizio 2 sono 3 pesi (indici 0,1,2)</td></tr>
+      <tr><td>Funzioni</td><td>Definite prima del <code>main()</code> (o dichiarate con prototipo); <code>void</code> = senza ritorno, altro tipo = con <code>return</code> (Esercizio 3)</td></tr>
+      <tr><td>Strutture</td><td>Solo sequenza e selezione (<code>if</code>/<code>if-else</code>). <strong>Niente cicli</strong></td></tr>
+      <tr><td>Librerie</td><td><code>&lt;iostream&gt;</code> e <code>&lt;string&gt;</code></td></tr>
+      <tr><td>Commenti</td><td>Intestazione <code>/* nome, classe, data, scopo */</code> e commenti <code>//</code> nei punti chiave</td></tr>
+      <tr><td>Consegna</td><td>Un file <code>.cpp</code> per ciascun esercizio</td></tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
