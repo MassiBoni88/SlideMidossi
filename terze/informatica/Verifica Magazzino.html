@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Gestione Magazzino</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1f5034;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2f8050;
+      color: #e6f4ec;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ead4;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e7a44;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e7a44;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1f5034;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #eaf6ee; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #cfe6d6;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e2f1e7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1f5034;
+    }
+    .star { color: #1e7a44; font-size: 14px; }
+
+    /* ── TABELLA PASSI ── */
+    .menu-table thead tr { background: #1f5034; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1f5034; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #e9f6ee;
+      border-left: 5px solid #1e7a44;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #0c2f1c;
+    }
+    .hint strong { color: #1f5034; }
+    .hint code {
+      background: #c9e9d3;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0a2a18;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1f5034;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    /* ── SCHEMA (esempio visivo) ── */
+    .matrice-box {
+      background: #eef7f0;
+      border: 1px solid #c9e2cf;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #1f5034;
+      overflow-x: auto;
+    }
+    .matrice-box .titolo-griglia {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #1f5034;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>GESTIONE MAGAZZINO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array,<br>funzioni, if, cicli</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Un negozio di ferramenta gestisce <strong>un magazzino</strong> con <strong>6 scaffali</strong>.
+    Su ogni scaffale è depositata una certa <strong>quantità di pezzi</strong>. Il magazzino ha un
+    <strong>responsabile</strong>, descritto da una <strong>struct annidata</strong>.
+  </p>
+  <p class="scenario">
+    Si lavora su <strong>un solo magazzino</strong>: non c'è un menu con tante voci, ma un
+    <strong>report</strong> che, una volta riempito il magazzino, calcola le scorte totali e individua
+    lo scaffale più rifornito.
+    Le quantità NON si digitano: sono numeri interi <strong>generati casualmente da 0 a 40</strong>
+    dal programma.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Le struct e l'array</h2>
+
+  <h3>1a. Definisci PRIMA la struct <strong>Responsabile</strong> con i campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome e cognome del responsabile (es. "Anna Verdi")</td></tr>
+      <tr><td><code>telefono</code></td><td>numero di telefono come stringa (es. "333-1234567")</td></tr>
+      <tr><td><code>anniServizio</code></td><td>anni di anzianità nel magazzino (intero &gt;= 0)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci POI la struct <strong>Magazzino</strong>, che contiene <strong>Responsabile</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome del magazzino (es. "Deposito Nord")</td></tr>
+      <tr><td><code>capo</code></td><td>il responsabile</td></tr>
+      <tr>
+        <td><code>scorte[6]</code></td>
+        <td><strong>Array</strong> di 6 interi: la quantità di pezzi su ciascuno dei 6 scaffali. Ogni valore è un intero casuale da 0 a 40</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio della scheda di un magazzino:</h3>
+  <div class="matrice-box">
+    <div class="titolo-griglia">Magazzino: Deposito Nord &nbsp;|&nbsp; Responsabile: Anna Verdi</div>
+    Scaffale 0: 12 pezzi<br>
+    Scaffale 1:&nbsp;&nbsp;0 pezzi<br>
+    Scaffale 2:&nbsp;&nbsp;8 pezzi<br>
+    Scaffale 3: 25 pezzi<br>
+    Scaffale 4:&nbsp;&nbsp;3 pezzi<br>
+    Scaffale 5: 18 pezzi
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Le funzioni da scrivere</h2>
+
+  <table>
+    <thead>
+      <tr><th>Funzione</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>creaMagazzino()</code></td>
+        <td>Chiede da tastiera il nome del magazzino e i dati del responsabile (nome, telefono, anni di servizio → struct annidata). Poi riempie l'array <code>scorte[6]</code> con quantità <strong>casuali da 0 a 40</strong> usando un ciclo. Restituisce il <code>Magazzino</code> compilato</td>
+      </tr>
+      <tr>
+        <td><code>totaleScorte(Magazzino m)</code></td>
+        <td>Restituisce la <strong>somma di tutti i 6 valori</strong> dell'array <code>scorte</code></td>
+      </tr>
+      <tr>
+        <td><code>indiceScaffalePiuRifornito(Magazzino m)</code></td>
+        <td>Restituisce l'<strong>indice</strong> (da 0 a 5) dello scaffale con la <strong>quantità massima</strong></td>
+      </tr>
+      <tr>
+        <td><code>stampaMagazzino(Magazzino m)</code></td>
+        <td>Stampa nome del magazzino e dati del responsabile (struct annidata), poi per ogni scaffale stampa numero e quantità, come nello schema sopra</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – La funzione main()</h2>
+
+  <p>Il programma lavora su <strong>un solo magazzino</strong> ed esegue, nell'ordine, questi passi
+  (niente menu che si ripete):</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Operazione</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Crea il magazzino</td>
+        <td>richiama <code>creaMagazzino</code> e salva il risultato in una variabile <code>Magazzino</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra la scheda</td>
+        <td>richiama <code>stampaMagazzino</code>: ogni scaffale con la sua quantità</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Scorte totali</td>
+        <td>stampa il numero totale di pezzi con <code>totaleScorte</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Scaffale più rifornito</td>
+        <td>usa <code>indiceScaffalePiuRifornito</code> e stampa il numero dello scaffale e la sua quantità (es. "Scaffale 3 con 25 pezzi")</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Interrogazione scaffali</td>
+        <td><strong>ripeti con un ciclo</strong>: chiedi l'indice di uno scaffale (0–5) e stampa la sua quantità; continua finché l'utente digita <code>-1</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Array scorte</td>
+        <td>Sempre 6 scaffali; ogni quantità è un intero casuale da 0 a 40 (<code>rand() % 41</code>)</td>
+      </tr>
+      <tr>
+        <td>Costante</td>
+        <td>Usa <code>const int SCAFFALI = 6</code>; niente "numeri magici" sparsi nel codice</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>La struct <code>Responsabile</code> deve essere dichiarata <em>prima</em> di <code>Magazzino</code></td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
