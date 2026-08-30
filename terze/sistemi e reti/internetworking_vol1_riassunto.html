@@ -169,6 +169,23 @@
   .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
   .ov-content p  { font-size: 0.85rem; color: var(--muted); }
 
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '→'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
   #nav {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 24px; border-top: 1px solid var(--border);
@@ -340,56 +357,56 @@
     <span class="section-num">418 pagine · 8 Unità</span>
   </div>
   <div class="overview-grid" style="grid-template-columns:1fr 1fr; gap:8px;">
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u1" style="padding:9px 12px; --ovc:var(--accent4);">
       <div class="ov-num" style="color:var(--accent4)">01</div>
       <div class="ov-content">
         <h4>Il sistema di elaborazione</h4>
         <p>Modello di von Neumann · Bus · CPU · Memorie · Periferiche · Ciclo macchina · Pipelining · CISC/RISC</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u2" style="padding:9px 12px; --ovc:var(--accent1);">
       <div class="ov-num" style="color:var(--accent1)">02</div>
       <div class="ov-content">
         <h4>Dall'accensione al sistema operativo</h4>
         <p>Bootstrap · POST · Firmware UEFI · GPT · Multi-boot · Virtualizzazione · Windows e GNU/Linux</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u3" style="padding:9px 12px; --ovc:var(--accent3);">
       <div class="ov-num" style="color:var(--accent3)">03</div>
       <div class="ov-content">
         <h4>Programmare in assembly</h4>
         <p>Assembly Intel x86 · Registri 8086 · Metodi di indirizzamento · EMU8086 · Costrutti strutturati</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u4" style="padding:9px 12px; --ovc:var(--accent2);">
       <div class="ov-num" style="color:var(--accent2)">04</div>
       <div class="ov-content">
         <h4>Le basi della comunicazione in rete</h4>
         <p>Segnali · Modulazioni · Canale · Controllo errori · Mezzi · PSTN/xDSL/FTTx · Commutazioni</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u5" style="padding:9px 12px; --ovc:var(--accent4);">
       <div class="ov-num" style="color:var(--accent4)">05</div>
       <div class="ov-content">
         <h4>La tecnologia delle reti</h4>
         <p>Sistemi aperti · Protocolli e standard · Client-Server e P2P · Topologie · Apparati · Packet Tracer</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u6" style="padding:9px 12px; --ovc:var(--accent1);">
       <div class="ov-num" style="color:var(--accent1)">06</div>
       <div class="ov-content">
         <h4>Le reti di telecomunicazioni</h4>
         <p>LAN · Ethernet · MAN · WAN · Satelliti e geolocalizzazione · QoS · IntServ/DiffServ</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u7" style="padding:9px 12px; --ovc:var(--accent3);">
       <div class="ov-num" style="color:var(--accent3)">07</div>
       <div class="ov-content">
         <h4>L'automazione della rete con Python e l'AI</h4>
         <p>Perché automatizzare · L'AI nella rete · Ambiente Python · Moduli e package · GeoPy · Scapy</p>
       </div>
     </div>
-    <div class="ov-item" style="padding:9px 12px;">
+    <div class="ov-item" data-goto="u8" style="padding:9px 12px; --ovc:var(--accent2);">
       <div class="ov-num" style="color:var(--accent2)">08</div>
       <div class="ov-content">
         <h4>Cybersecurity: le basi</h4>
@@ -2706,6 +2723,19 @@ for sent, received in answered:
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  // sommario cliccabile: ogni voce porta alla prima slide della sua unità
+  document.querySelectorAll('[data-goto]').forEach(function(el) {
+    var target = slides.findIndex(function(s) { return s.dataset.section === el.dataset.goto; });
+    if (target < 0) return;
+    el.classList.add('ov-link');
+    el.setAttribute('role', 'link');
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('click', function() { goTo(target); });
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(target); }
+    });
   });
 
   goTo(0);
