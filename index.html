@@ -15,6 +15,7 @@
       --accent3: #059669;
       --text: #1e293b;
       --muted: #64748b;
+      --prime: #d97706;
       --terze: #2563eb;
       --quarte: #7c3aed;
       --quinte: #059669;
@@ -34,6 +35,7 @@
       --accent3: #34d399;
       --text: #e8eaf0;
       --muted: #6b7280;
+      --prime: #fbbf24;
       --terze: #4f8ef7;
       --quarte: #a78bfa;
       --quinte: #34d399;
@@ -145,6 +147,7 @@
       flex-shrink: 0;
     }
 
+    .badge-prime  { background: rgba(251,191,36,0.15);  color: var(--prime);  }
     .badge-terze  { background: rgba(79,142,247,0.15);  color: var(--terze);  }
     .badge-quarte { background: rgba(167,139,250,0.15); color: var(--quarte); }
     .badge-quinte { background: rgba(52,211,153,0.15);  color: var(--quinte); }
@@ -204,6 +207,7 @@
       border-color: var(--border-hover);
     }
 
+    .prime  .subset-header:hover { border-color: rgba(251,191,36,0.3); }
     .terze  .subset-header:hover { border-color: rgba(79,142,247,0.3); }
     .quarte .subset-header:hover { border-color: rgba(167,139,250,0.3); }
     .quinte .subset-header:hover { border-color: rgba(52,211,153,0.3); }
@@ -283,6 +287,7 @@
       opacity: 0;
     }
 
+    .prime  .slide-card::before { background: var(--prime); }
     .terze  .slide-card::before { background: var(--terze); }
     .quarte .slide-card::before { background: var(--quarte); }
     .quinte .slide-card::before { background: var(--quinte); }
@@ -366,6 +371,52 @@
       <h1>Materiale<br><span>Didattico</span></h1>
       <p class="subtitle">Slide e guide per le lezioni — seleziona la tua classe</p>
     </header>
+
+    <!-- PRIME -->
+    <div class="class-section prime">
+      <div class="class-header">
+        <span class="class-badge badge-prime">1°</span>
+        <span class="class-label">Classi Prime</span>
+        <div class="class-line"></div>
+      </div>
+
+      <div class="subject-group">
+        <div class="subject-label">Tecnologie Informatiche</div>
+
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">📊</span>
+            <span>Slide</span>
+            <span class="subset-count">1</span>
+          </button>
+          <div class="subset-content">
+            <div class="slides-grid">
+              <a class="slide-card" href="prime/tecnologie informatiche/teknolab_unita1_computer_struttura_funzioni.html">
+                <div class="slide-info">
+                  <div class="slide-title">Il computer: struttura e funzioni</div>
+                  <div class="slide-filename">teknolab_unita1_computer_struttura_funzioni.html</div>
+                </div>
+                <span class="slide-arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="subset-group">
+          <button class="subset-header" onclick="toggleSubset(this)">
+            <span class="subset-arrow">▶</span>
+            <span class="subset-icon-label">✏️</span>
+            <span>Esercizi</span>
+            <span class="subset-count">0</span>
+          </button>
+          <div class="subset-content">
+            <p class="subset-empty">Nessun elemento disponibile.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
     <!-- TERZE -->
     <div class="class-section terze">
@@ -890,53 +941,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    
-    <!-- PRIME -->
-    <div class="class-section prime">
-      <div class="class-header">
-        <span class="class-badge badge-prime">1°</span>
-        <span class="class-label">Classi Prime</span>
-        <div class="class-line"></div>
-      </div>
-
-      <div class="subject-group">
-        <div class="subject-label">Tecnologie Informatiche</div>
-
-        <div class="subset-group">
-          <button class="subset-header" onclick="toggleSubset(this)">
-            <span class="subset-arrow">▶</span>
-            <span class="subset-icon-label">📊</span>
-            <span>Slide</span>
-            <span class="subset-count">1</span>
-          </button>
-          <div class="subset-content">
-            <div class="slides-grid">
-              <a class="slide-card" href="prime/tecnologie informatiche/teknolab_unita1_computer_struttura_funzioni.html">
-                <div class="slide-info">
-                  <div class="slide-title">Il computer: struttura e funzioni</div>
-                  <div class="slide-filename">teknolab_unita1_computer_struttura_funzioni.html</div>
-                </div>
-                <span class="slide-arrow">→</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div class="subset-group">
-          <button class="subset-header" onclick="toggleSubset(this)">
-            <span class="subset-arrow">▶</span>
-            <span class="subset-icon-label">✏️</span>
-            <span>Esercizi</span>
-            <span class="subset-count">0</span>
-          </button>
-          <div class="subset-content">
-            <p class="subset-empty">Nessun elemento disponibile.</p>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <footer>A.S. 2025/2026 &nbsp;·&nbsp; <a href="admin.html" style="color:inherit;opacity:0.4;text-decoration:none;font-size:0.8em;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">&#9881;</a></footer>
