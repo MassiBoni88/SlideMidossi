@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 1 — Il computer: struttura e funzioni</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 24px 44px;
+    display: flex; flex-direction: column;
+    justify-content: center; justify-content: safe center;
+    overflow-y: auto; scrollbar-width: thin;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.25rem, 2.1vw, 1.9rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 15px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 13px;
+  }
+  .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.86rem; color: var(--ct); line-height: 1.48; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 11px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+    line-height: 1.5; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+
+  .callout {
+    border-radius: 8px; padding: 8px 11px; font-size: 0.85rem; line-height: 1.45;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  .ad-table { border-collapse: collapse; width: 100%; font-size: 0.73rem; margin-top: 5px; }
+  .ad-table th, .ad-table td { border: 1px solid var(--border); padding: 3px 6px; text-align: center; }
+  .ad-table th { background: rgba(37,99,235,0.1); color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .ad-table td { color: var(--ct); font-family: 'JetBrains Mono', monospace; }
+  .ad-table .best { color: var(--accent1); font-weight: 700; }
+  .ad-table .mid  { color: var(--accent3); font-weight: 700; }
+  .ad-table .bad  { color: var(--accent2); font-weight: 700; }
+  .ad-table td.lbl { text-align: left; font-family: 'Syne', sans-serif; }
+
+  /* catena di blocchi (input → elaborazione → output) */
+  .chain { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chain .blk {
+    flex: 1; min-width: 90px; text-align: center;
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 6px;
+    background: var(--code-bg);
+  }
+  .chain .blk .bt { font-size: 0.84rem; font-weight: 700; }
+  .chain .blk .bs { font-size: 0.72rem; color: var(--muted); }
+  .chain .arw { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 1rem; flex: 0 0 auto; }
+
+  .qa-list { list-style: none; padding-left: 0; }
+  .qa-list li { margin-bottom: 4px; font-size: 0.82rem; }
+  .sol { color: var(--accent1); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .sol-f { color: var(--accent2); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.68rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    .chain .blk { min-width: 70px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">Primo Biennio · Tecnologie Informatiche</div>
+    <div class="title-bar">Unità 1 — Il computer: struttura e funzioni</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 24</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Unità 1</div>
+  <div class="big" style="color:var(--accent1);">Il computer:</div>
+  <div class="big" style="color:var(--accent1);">struttura e funzioni</div>
+  <div class="sub" style="font-size:1.0rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Hardware e software · Privacy e sicurezza · Dati in digitale · Basi di numerazione
+  </div>
+  <div class="sub">Nuovo TeknoLab · Camagni, Nikolassy · Hoepli</div>
+  <div class="tag-row">
+    <span class="tag tag-green">Von Neumann</span>
+    <span class="tag tag-blue">Software e licenze</span>
+    <span class="tag tag-yellow">Bit, byte e codifiche</span>
+    <span class="tag tag-red">Binario · Ottale · Esadecimale</span>
+  </div>
+</div>
+
+<!-- ═══ 2 — SOMMARIO ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">clicca una voce per andare alla lezione</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="l1">
+      <div class="ov-num" style="color:var(--accent1)">L1</div>
+      <div class="ov-content">
+        <h4>Computer e Information Technology</h4>
+        <p>Input-elaborazione-output · Case e porte · Von Neumann · CPU e memorie · Tipi di computer</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="l2">
+      <div class="ov-num" style="color:var(--accent4)">L2</div>
+      <div class="ov-content">
+        <h4>Il software: privacy, protezione e sicurezza</h4>
+        <p>Software di base e applicativo · Licenze · Diritto d'autore · Privacy e GDPR · Ergonomia</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="l3">
+      <div class="ov-num" style="color:var(--accent3)">L3</div>
+      <div class="ov-content">
+        <h4>Rappresentare i dati in digitale</h4>
+        <p>Analogico e digitale · Bit e byte · ASCII e Unicode · Immagini e suoni</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="l4">
+      <div class="ov-num" style="color:var(--accent2)">L4</div>
+      <div class="ov-content">
+        <h4>Basi di numerazione e conversioni</h4>
+        <p>Sistema posizionale · Base 2, 8, 16 · Algoritmo della divisione ripetuta</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="ripasso">
+      <div class="ov-num" style="color:var(--accent1)">✓</div>
+      <div class="ov-content">
+        <h4>Abbiamo imparato che…</h4>
+        <p>La sintesi delle quattro lezioni in un colpo d'occhio</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="verifica">
+      <div class="ov-num" style="color:var(--accent4)">?</div>
+      <div class="ov-content">
+        <h4>Verifica le tue conoscenze</h4>
+        <p>Risposta multipla e Vero/Falso, con le soluzioni</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout callout-green" style="margin-top:12px;">
+    <span class="callout-icon">🎯</span>
+    <span><strong>Obiettivi:</strong> riconoscere la struttura di un sistema di elaborazione e i componenti hardware, comprendere il ruolo del computer come esecutore di algoritmi, distinguere i tipi di software e le relative licenze, conoscere le norme su sicurezza e privacy, riconoscere grandezze analogiche e digitali, saper rappresentare e convertire i numeri nelle diverse basi.</span>
+  </div>
+</div>
+
+<!-- ═══ 3 — L1: INFORMATICA E COMPUTER ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Informatica, computer e ICT</h2>
+    <span class="section-num">L1 · 03/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Che cos'è l'informatica</h3>
+        <p>L'<strong>informatica</strong> è la scienza che studia come <strong>elaborare</strong> e <strong>memorizzare</strong> le informazioni. Un'<strong>informazione</strong> è composta da più <strong>dati</strong>: un dato può essere un nome, un numero di telefono, il colore dei capelli, un importo in banca.</p>
+        <p style="margin-top:6px;">Il termine nasce nel <strong>1962</strong> da Philippe Dreyfus dall'unione dei termini francesi <em>information automatique</em>. Oggi gli si affianca <strong>Information Technology (IT)</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il computer</h3>
+        <p>Il computer è il sistema di elaborazione dei dati più diffuso; è detto anche <strong>elaboratore elettronico digitale</strong>:</p>
+        <ul style="margin-top:5px;">
+          <li><strong>Elaboratore</strong>: macchina in grado di elaborare e rappresentare i dati mediante un programma</li>
+          <li><strong>Elettronico</strong>: realizzato con componenti elettronici</li>
+          <li><strong>Digitale</strong>: elabora e memorizza informazioni con soli <strong>due simboli</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🌐</span>
+        <span><strong>ICT</strong> (Information and Communication Technology): la tecnologia dell'informazione e della comunicazione usata dai computer per creare, memorizzare e trasmettere le informazioni.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le tre fasi di lavoro</h3>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">INPUT</div><div class="bs">immissione dei dati</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">ELABORAZIONE</div><div class="bs">computazione dei dati</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent3);"><div class="bt" style="color:var(--accent3)">OUTPUT</div><div class="bs">emissione dei risultati</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Hardware, software e firmware</h3>
+        <ul>
+          <li><strong>Hardware</strong>: l'insieme dei componenti <strong>fisici</strong> — elettrici, meccanici, ottici, magnetici</li>
+          <li><strong>Software</strong>: l'insieme dei <strong>dati e dei programmi</strong> memorizzati nel computer</li>
+          <li><strong>Firmware</strong>: un software inserito nell'hardware e <strong>non modificabile</strong> — un ibrido tra i due</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Le periferiche</h3>
+        <p style="margin-bottom:6px;">Dette anche <strong>dispositivi periferici</strong>, consentono il dialogo con l'utente e si collegano tramite le porte di comunicazione.</p>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-blue">INPUT</div><div class="proto-cell hl">INPUT/OUTPUT</div><div class="proto-cell hl-yel">OUTPUT</div></div>
+          <div class="proto-row">
+            <div class="proto-cell">tastiera · mouse · joystick · scanner · webcam · microfono · barcode reader · optical pen</div>
+            <div class="proto-cell">touch screen · hard disk · pen drive · CD/DVD · router Wi-Fi · headset</div>
+            <div class="proto-cell">monitor · stampante laser e inkjet · plotter · altoparlanti · cuffie</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4 — L1: IL CASE ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il case e le porte di comunicazione</h2>
+    <span class="section-num">L1 · 04/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">L'unità centrale e il case</h3>
+        <p>La parte del computer che elabora i dati è l'<strong>unità centrale</strong>, posizionata logicamente <strong>tra le periferiche di input e di output</strong>. È contenuta in un parallelepipedo detto <strong>case</strong> (o cabinet), che ospita anche <strong>alimentatore</strong> e <strong>chassis</strong> (il telaio in lamiera SECC).</p>
+        <ul style="margin-top:6px;">
+          <li><strong>Desktop</strong>: orizzontale, ormai poco diffuso</li>
+          <li><strong>Tower</strong>: verticale — <em>mini-tower</em> (fino a 3 slot), <em>middle-tower</em> (fino a 4), <em>big-tower</em> (oltre 4)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Pannello anteriore (fronte)</h3>
+        <ul>
+          <li>Pulsante di accensione (<strong>Power ON</strong>) e pulsante di <strong>Reset</strong></li>
+          <li>Lettore o masterizzatore <strong>CD/DVD/Blu-Ray</strong></li>
+          <li><strong>Porte USB</strong> frontali e prese jack per cuffie e microfono</li>
+          <li><strong>Slot</strong> per periferiche interne aggiuntive (masterizzatori, hard disk estraibili…)</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Pannello posteriore (retro)</h3>
+        <p style="margin-bottom:6px;">Ospita le <strong>porte di comunicazione</strong> — seriali, parallele, USB, audio/video e di alimentazione. I cavi vanno inseriti nella presa <strong>dello stesso colore</strong>.</p>
+        <table class="ad-table">
+          <tr><th>Porta</th><th>Collegamento</th></tr>
+          <tr><td class="lbl"><strong>PS2</strong></td><td class="lbl">tastiera e mouse</td></tr>
+          <tr><td class="lbl"><strong>VGA</strong></td><td class="lbl">schermo</td></tr>
+          <tr><td class="lbl"><strong>USB</strong></td><td class="lbl">periferiche di ogni tipo</td></tr>
+          <tr><td class="lbl"><strong>LAN RJ45</strong></td><td class="lbl">collegamento di rete</td></tr>
+          <tr><td class="lbl"><strong>FireWire</strong></td><td class="lbl">audio/video ad alta velocità</td></tr>
+          <tr><td class="lbl"><strong>S/PDIF</strong></td><td class="lbl">uscita audio digitale</td></tr>
+          <tr><td class="lbl"><strong>Jack audio</strong></td><td class="lbl">altoparlanti, microfoni, home theater</td></tr>
+          <tr><td class="lbl"><strong>VDE</strong></td><td class="lbl">presa di alimentazione</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🌬️</span>
+        <span>Sul retro si trovano anche gli <strong>alloggiamenti per le schede di espansione</strong>, la <strong>ventola di raffreddamento</strong> dell'alimentatore e la fessura per il raffreddamento della scheda madre.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 5 — L1: IL RUOLO DEL COMPUTER ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il computer come esecutore di algoritmi</h2>
+    <span class="section-num">L1 · 05/24</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il ruolo del computer</h3>
+        <p>Il computer ha un ruolo ben definito: è l'<strong>esecutore</strong> dei comandi e quindi degli <strong>algoritmi</strong>. In quanto esecutore, viene "istruito" dalle istruzioni presenti nel <strong>programma</strong>.</p>
+        <p style="margin-top:6px;">Un <strong>algoritmo</strong> è un procedimento formato da singole istruzioni impartite al computer, che risolve un problema o una classe di problemi.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Dal problema al programma</h3>
+<pre>  <span class="cmt">┌── PROGRAMMATORE ──────────────────┐</span>
+  <span class="kw">PROBLEMA</span>
+     │  conoscenza del problema
+     ▼
+  <span class="arg">ALGORITMO</span>
+     │  conoscenza del linguaggio
+     ▼            di programmazione
+  <span class="cmd">PROGRAMMA</span>  →  programma memorizzato
+  <span class="cmt">└───────────────────────────────────┘</span>
+  <span class="cmt">┌── UTENTE UTILIZZATORE ────────────┐</span>
+  <span class="ok">ESECUZIONE DEL PROGRAMMA</span>
+     │  l'utente inserisce i dati
+     ▼  che vengono elaborati
+  <span class="cmt">└───────────────────────────────────┘</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Il programmatore</h3>
+        <p>Il <strong>programmatore</strong> (o sviluppatore) è l'esperto che, individuato il problema da risolvere, grazie alla padronanza del linguaggio di programmazione sviluppa la soluzione scrivendo un algoritmo, che viene poi <strong>codificato</strong> nel linguaggio desiderato.</p>
+        <p style="margin-top:6px;">Interagisce con il computer attraverso i <strong>linguaggi di programmazione</strong>, che si differenziano secondo vari <strong>paradigmi</strong>.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🧭</span>
+        <span>Un algoritmo non è solo "roba da computer": lo sono anche i passi per <strong>uscire da un labirinto</strong> nel minor numero di mosse, la procedura per preparare una pizza o per lavare un'automobile.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📐</span>
+        <span>Un <strong>sistema</strong> è un insieme di componenti correlati tra loro per svolgere una specifica funzione: il computer è un sistema.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6 — L1: VON NEUMANN ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il modello di Von Neumann</h2>
+    <span class="section-num">L1 · 06/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Lo schema</h3>
+<pre>┌─────────── <span class="cmd">UNITÀ CENTRALE</span> ────────────┐
+│  ┌──────── <span class="ok">CPU</span> ─────────┐            │
+│  │  <span class="arg">CU</span>   <span class="arg">ALU</span>   <span class="arg">Registri</span> │            │
+│  └─────────────────────┘            │
+│                              <span class="kw">B</span>      │
+│  ┌─── <span class="ok">MEMORIA CENTRALE</span> ───┐   <span class="kw">U</span>      │
+│  │  <span class="arg">RAM</span>   <span class="arg">ROM</span>   <span class="arg">Cache</span>   │   <span class="kw">S</span>      │
+│  └──────────────────────┘          │
+└──────────────────┬──────────────────┘
+                   │
+┌────────────── <span class="cmd">UNITÀ DI I/O</span> ─────────────┐
+│   periferiche   ·   memorie di massa │
+│                     (dischi e USB)   │
+└──────────────────────────────────────┘</pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🎓</span>
+        <span>Il modello fu usato nel <strong>1952</strong> da <strong>John Von Neumann</strong> per la creazione del primo computer digitale (<em>IAS machine</em>). L'idea alla base è che la <strong>RAM contenga sia i dati sia i programmi</strong>. Il modello antagonista è quello <strong>Harvard</strong>, con due memorie centrali distinte: una per i dati e una per i programmi.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">La CPU (Central Processing Unit)</h3>
+        <p style="margin-bottom:5px;">È la parte che <strong>esegue le istruzioni</strong> dei programmi; fisicamente è il <strong>microprocessore</strong>. È formata da:</p>
+        <ul>
+          <li><strong>Control Unit (CU)</strong>: controlla e coordina le azioni necessarie all'esecuzione delle istruzioni</li>
+          <li><strong>Arithmetic Logic Unit (ALU)</strong>: effettua i calcoli aritmetici e logici</li>
+          <li><strong>Registri</strong>: celle di memoria dedicate all'esecuzione delle istruzioni e al trasferimento con la memoria</li>
+        </ul>
+        <p style="margin-top:6px;">La velocità di elaborazione si misura in <strong>gigahertz (GHz)</strong>. Un <strong>bus dati</strong> più ampio permette una maggiore velocità di elaborazione.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">La memoria centrale</h3>
+        <ul>
+          <li><strong>RAM</strong> (Random Access Memory) — memoria ad accesso casuale, di tipo <strong>volatile</strong>: mantiene i dati solo finché è alimentata</li>
+          <li><strong>ROM</strong> (Read Only Memory) — memoria di <strong>sola lettura</strong>, contiene il codice di avvio</li>
+          <li><strong>Cache</strong> — piccola e <strong>molto veloce</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">💾</span>
+        <span>Poiché la RAM è volatile, <strong>prima di spegnere il computer</strong> è necessario salvare i dati su un supporto permanente: la <strong>memoria di massa</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 7 — L1: MOTHERBOARD E MEMORIE ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">La motherboard e le unità di misura</h2>
+    <span class="section-num">L1 · 07/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">La scheda madre</h3>
+        <p>Tutti i componenti elettronici del computer, detti <strong>chip</strong>, sono collegati direttamente o indirettamente alla CPU. La CPU è montata sulla <strong>scheda madre</strong> (motherboard), che ospita anche:</p>
+        <ul style="margin-top:5px;">
+          <li>i circuiti principali: <strong>CPU, RAM, ROM</strong></li>
+          <li>le <strong>schede di espansione</strong> (rete, video) montate sugli <strong>slot di espansione</strong></li>
+          <li>il <strong>chipset</strong> e i <strong>BUS</strong>, le "autostrade percorse dai bit"</li>
+          <li>i <strong>jumper</strong> (ponticelli), per attivare funzionalità aggiuntive</li>
+          <li>gli <strong>slot SATA</strong>, per hard disk ad alta velocità</li>
+        </ul>
+        <p style="margin-top:6px;">La CPU si colloca in un alloggiamento <strong>ZIF</strong> (Zero Insertion Force): "zero forza di inserimento".</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔬</span>
+        <span><strong>Chip</strong> = circuito integrato: circuito elettronico in miniatura realizzato con materiali <strong>semiconduttori</strong>, contenuto in un parallelepipedo nero con dei piedini. Sono chip i microprocessori e gli elementi di RAM e ROM.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le memorie di massa</h3>
+        <p>Conservano programmi e dati in modo <strong>permanente</strong>.</p>
+        <ul style="margin-top:5px;">
+          <li><strong>Interne</strong> al case: hard disk, CD-ROM</li>
+          <li><strong>Esterne</strong>: collegate via cavo USB o via rete</li>
+          <li><strong>NAS</strong> (Network Attached Storage): dispositivo collegato alla rete, formato da uno o più dischi fissi, che consente a più dispositivi di accedere e condividere i dati</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il byte e la scala di equivalenza</h3>
+        <p style="margin-bottom:6px;">I dati in memoria si misurano in <strong>byte</strong>: a ciascun carattere corrisponde circa un byte — la parola <em>“Pesaro”</em> occupa <strong>6 byte</strong>.</p>
+<pre>1 byte           = <span class="ok">8 bit</span>
+1 kbyte (kB)     = <span class="arg">1024</span> byte
+1 Mbyte (MB)     = <span class="arg">1024</span> kbyte
+1 Gbyte (GB)     = <span class="arg">1024</span> Mbyte
+1 Tbyte (TB)     = <span class="arg">1024</span> Gbyte</pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🔧</span>
+        <span>Sulla scheda madre è possibile <strong>sostituire</strong> sia i chip di memoria RAM sia la CPU: è così che si effettua l'aggiornamento di un computer senza doverlo sostituire interamente.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 8 — L1: TIPI DI COMPUTER ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">I tipi di computer</h2>
+    <span class="section-num">L1 · 08/24</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-blue" style="flex:0 0 auto;">
+      <span class="callout-icon">📊</span>
+      <span>I computer si differenziano per: <strong>potenza</strong> (dimensione della memoria e velocità di elaborazione), <strong>capacità di interagire</strong> con altri dispositivi, <strong>portabilità</strong> e <strong>multielaborazione</strong> (gestire più utenti collegati). Ecco le tipologie, dai meno ai più potenti.</span>
+    </div>
+    <div class="three-col" style="flex:1;">
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card" style="border-top:3px solid var(--accent4);">
+          <h3 style="color:var(--accent4);">Sistemi embedded</h3>
+          <p>Sistemi a microprocessore integrati in un solo chip, autosufficienti e progettati per una <strong>specifica applicazione</strong>: unità di calcolo, memoria (RAM e ROM) e periferiche di I/O.</p>
+          <ul style="margin-top:5px;">
+            <li><strong>MCU</strong> (Micro Controller Unit): schede con microcontrollore, es. <strong>Arduino</strong></li>
+            <li><strong>SBC</strong> (Single Board Computer): mini PC su una sola scheda con S.O. su SD, es. <strong>Raspberry Pi</strong></li>
+          </ul>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent4);">
+          <h3 style="color:var(--accent4);">Dispositivi mobili</h3>
+          <p><strong>Tablet e smartphone</strong>: schermo touch, batteria ricaricabile, memoria flash SD card, connessione Wi-Fi o telefonica. La potenza di calcolo è ormai paragonabile a quella dei PC.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card" style="border-top:3px solid var(--accent1);">
+          <h3 style="color:var(--accent1);">Personal Computer</h3>
+          <p>Detti anche <em>home computer</em> o <em>micro computer</em>, sono i più diffusi. Varianti: <strong>desktop/tower</strong> (da tavolo), <strong>notebook o laptop</strong> (portatili), <strong>all in one</strong> (compatti da tavolo).</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent1);">
+          <h3 style="color:var(--accent1);">Minicomputer</h3>
+          <p>Nati negli <strong>anni Sessanta</strong>, più piccoli ed economici dei predecessori; prestazioni intermedie tra mainframe e PC. Caratteristica principale: la <strong>multiutenza</strong>, cioè un'unica unità centrale collegata a più terminali.</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent1);">
+          <h3 style="color:var(--accent1);">Workstation</h3>
+          <p>PC molto potenti, con avanzate prestazioni <strong>grafiche e matematiche</strong>: progettazione CAD, elaborazione di immagini e filmati.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card" style="border-top:3px solid var(--accent2);">
+          <h3 style="color:var(--accent2);">Supercomputer e mainframe</h3>
+          <p>Basano il funzionamento su <strong>cluster</strong> di computer che elaborano <strong>in parallelo</strong>: i problemi complessi vengono scomposti in operazioni elementari affidate ai singoli computer del gruppo.</p>
+          <ul style="margin-top:5px;">
+            <li><strong>Supercomputer</strong>: cluster di migliaia (o centinaia di migliaia) di unità, per calcoli molto complessi e scopi definiti</li>
+            <li><strong>Mainframe</strong>: calcoli relativamente semplici su <strong>enormi quantità di dati</strong> (transazioni finanziarie, censimenti). Spesso funzionano da <strong>server</strong> per altri computer detti <strong>client</strong></li>
+          </ul>
+        </div>
+        <div class="callout callout-yellow">
+          <span class="callout-icon">⏳</span>
+          <span><strong>Legge di Moore (1965):</strong> la potenza di un computer sarebbe dovuta raddoppiare ogni due anni; oggi il ciclo è di circa <strong>cinque anni</strong> (da 22 nm nel 2012 a circa 10 nm). Il limite è fisico: un elettrone occupa circa <strong>2 nanometri</strong>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 9 — L2: IL SOFTWARE ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Le tre categorie di software</h2>
+    <span class="section-num">L2 · 09/24</span>
+  </div>
+  <div class="three-col">
+    <div class="card" style="border-top:3px solid var(--accent4);">
+      <h3 style="color:var(--accent4);">1 · Software di sistema</h3>
+      <p>Progettato per fornire le <strong>funzionalità operative di base</strong> all'hardware e una "piattaforma" per i programmi applicativi. Ne fanno parte:</p>
+      <ul style="margin-top:5px;">
+        <li>il <strong>sistema operativo</strong></li>
+        <li>i <strong>driver</strong> dei dispositivi</li>
+        <li>le <strong>utility di gestione</strong></li>
+        <li>il <strong>firmware</strong>, ibrido tra software e hardware</li>
+      </ul>
+      <div class="callout callout-blue" style="margin-top:8px;">
+        <span class="callout-icon">⚙️</span>
+        <span><strong>BIOS</strong> (Basic I/O System): configura l'hardware, permette l'accensione ed effettua il <strong>bootstrap</strong> (caricamento del S.O.). Il menu si attiva di solito con <strong>F2</strong> o Shift+Canc. <strong>UEFI</strong> è il firmware più recente che lo ha sostituito, per gestire i dischi SSD, restando compatibile col BIOS.</span>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent1);">
+      <h3 style="color:var(--accent1);">2 · Software di programmazione</h3>
+      <p>Comprende i programmi usati dai <strong>programmatori</strong> per realizzare nuovi software eseguibili, scrivere le istruzioni ed eseguire il <strong>debug</strong>:</p>
+      <ul style="margin-top:5px;">
+        <li><strong>compilatori</strong></li>
+        <li><strong>debugger</strong></li>
+        <li><strong>interpreti</strong></li>
+        <li><strong>linker</strong></li>
+        <li><strong>ambienti di sviluppo (IDE)</strong></li>
+      </ul>
+      <div class="callout callout-green" style="margin-top:8px;">
+        <span class="callout-icon">💡</span>
+        <span>Il software <strong>permette all'hardware di funzionare</strong>: senza software, l'hardware è assolutamente inutile.</span>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--accent3);">
+      <h3 style="color:var(--accent3);">3 · Software applicativo</h3>
+      <p style="margin-bottom:5px;"><strong>General purpose</strong> se risponde a un ampio ventaglio di esigenze, <strong>special purpose</strong> (o <em>on demand</em>) se realizzato per un'esigenza specifica. Le cinque categorie:</p>
+      <ul>
+        <li><strong>Office productivity</strong>: word processor, database, fogli di calcolo, presentazioni, posta elettronica</li>
+        <li><strong>Strumenti di sviluppo</strong>: authoring tools, pagine web, audio/video, grafica, CAD/CAM</li>
+        <li><strong>Utilities</strong>: pulizia disco, masterizzazione, antivirus, firewall</li>
+        <li><strong>Applicazioni gestionali</strong>: fatturazione, personale, magazzino, processi industriali</li>
+        <li><strong>Svago</strong>: video, giochi, emulatori, lettori audio e video</li>
+      </ul>
+      <div class="callout callout-yellow" style="margin-top:8px;">
+        <span class="callout-icon">📦</span>
+        <span>Sinonimi: <strong>package</strong> (dai vecchi pacchetti con manuali e CD) e <strong>app</strong>, abbreviazione di <em>applications</em>, per i dispositivi mobili.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 10 — L2: LINGUAGGI E ALGORITMI ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Linguaggi di programmazione e algoritmi</h2>
+    <span class="section-num">L2 · 10/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le fasi di sviluppo di un programma</h3>
+        <div class="chain">
+          <div class="blk"><div class="bt" style="color:var(--accent4)">ANALISI</div><div class="bs">obiettivi, dati in ingresso e risultati attesi</div></div>
+          <span class="arw">→</span>
+          <div class="blk"><div class="bt" style="color:var(--accent1)">ALGORITMO</div><div class="bs">procedimento risolutivo in pseudocodifica</div></div>
+          <span class="arw">→</span>
+          <div class="blk"><div class="bt" style="color:var(--accent3)">CODIFICA</div><div class="bs">scrittura nel linguaggio scelto</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">I linguaggi più diffusi</h3>
+        <p style="margin-bottom:6px;">Si differenziano per le caratteristiche del contesto operativo in cui operano; ciascuno è specifico per una categoria di applicazioni.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          <span class="tag tag-blue">Java</span>
+          <span class="tag tag-green">Python</span>
+          <span class="tag tag-yellow">C</span>
+          <span class="tag tag-yellow">C++</span>
+          <span class="tag tag-red">PHP</span>
+          <span class="tag tag-blue">Visual Basic</span>
+          <span class="tag tag-green">JavaScript</span>
+          <span class="tag tag-red">R</span>
+        </div>
+        <p style="margin-top:8px;">Nei linguaggi di programmazione <strong>a ogni istruzione corrisponde un'azione</strong> che deve essere eseguita dalla CPU.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Lo studio degli algoritmi</h3>
+        <p>Ha come obiettivo la ricerca del metodo <strong>migliore e più veloce</strong> per risolvere un problema.</p>
+        <p style="margin-top:6px;">I <strong>navigatori GPS</strong>, per esempio, calcolano il percorso migliore verso una destinazione applicando un algoritmo ideato da <strong>Edsger Dijkstra</strong>.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">💬</span>
+        <span>Dijkstra, uno dei padri dell'informatica moderna: <em>“L'informatica riguarda i computer quanto l'astronomia riguarda i telescopi”</em>. L'informatica non è legata solo ai computer: è la scienza che studia algoritmi sempre più efficienti per migliorare la vita dell'uomo, sostituendolo nei compiti ripetitivi e gravosi.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Installazione e disinstallazione</h3>
+        <p>Un software applicativo va <strong>installato</strong> (setup) nel sistema, di solito tramite un programma <code>setup.exe</code>.</p>
+        <p style="margin-top:6px;">La <strong>disinstallazione</strong> è più complessa dell'installazione: cancellare file e cartelle non basta, occorre ripercorrere <strong>in ordine inverso e con operazioni opposte</strong> tutti i passi svolti durante l'installazione. Entrambe avvengono tramite appositi programmi detti <strong>wizard</strong>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 11 — L2: LICENZE E DIRITTO D'AUTORE ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Licenze del software e diritto d'autore</h2>
+    <span class="section-num">L2 · 11/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Proprietario o libero?</h3>
+        <ul>
+          <li><strong>Software proprietario</strong>: il programmatore che lo ha creato richiede i <strong>diritti d'autore</strong> (copyright)</li>
+          <li><strong>Free software</strong> (software libero): rilasciato a titolo gratuito. Permette di usarlo, copiarlo, studiarne il <strong>codice sorgente</strong>, modificarlo e ridistribuirlo in copie illimitate. Questi vincoli si chiamano <strong>copyleft</strong> e servono a divulgare e condividere il sapere</li>
+        </ul>
+        <p style="margin-top:6px;">Le aziende che creano software si chiamano <strong>software houses</strong>.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📄</span>
+        <span>La licenza <strong>EULA</strong> (End-User License Agreement) è il contratto tra il fornitore del software e l'utente finale: specifica come si può usare e ridistribuire il prodotto, garantendo diritti e imponendo obblighi. Si divide in licenze <strong>copyright</strong> (proprietario) e <strong>copyleft</strong> (libero).</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">La tutela legale</h3>
+        <ul>
+          <li><strong>Legge n. 633 del 22/04/1941</strong>: gli autori di software sono garantiti dalla stessa legge che tutela gli autori di opere letterarie. Acquistare, vendere e ridistribuire copie non autorizzate è <strong>reato</strong></li>
+          <li><strong>D.lgs. n. 518 del 29/12/1992</strong>: si può copiare il programma senza autorizzazione solo se la copia è <strong>necessaria all'uso</strong>, serve allo <strong>studio</strong> del programma o è una <strong>copia di riserva</strong></li>
+        </ul>
+        <p style="margin-top:6px;">Quando si "acquista un software" in realtà si acquista una <strong>licenza d'uso</strong>.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">I tipi di licenza</h3>
+        <table class="ad-table">
+          <tr><th>Licenza</th><th>Caratteristica</th></tr>
+          <tr><td class="lbl"><strong>Shareware</strong></td><td class="lbl">Gratuito solo per un breve periodo (30 o 60 giorni), poi va acquistato — detto anche <em>software di valutazione</em></td></tr>
+          <tr><td class="lbl"><strong>Demo</strong></td><td class="lbl">Promozionale, versione ridotta e completamente gratuita</td></tr>
+          <tr><td class="lbl"><strong>Freeware</strong></td><td class="lbl">Distribuito gratuitamente</td></tr>
+          <tr><td class="lbl"><strong>Adware</strong></td><td class="lbl">Freeware che richiede la visione di messaggi pubblicitari</td></tr>
+          <tr><td class="lbl"><strong>Donationware</strong></td><td class="lbl">Freeware con richiesta di donazione facoltativa</td></tr>
+          <tr><td class="lbl"><strong>Abandonware</strong></td><td class="lbl">Software obsoleto non più commercializzato, "abbandonato"</td></tr>
+          <tr><td class="lbl"><strong>OEM</strong></td><td class="lbl">Abbinata all'hardware venduto; prezzo conveniente, ma niente DVD di reinstallazione e valida su <strong>un solo PC</strong></td></tr>
+          <tr><td class="lbl"><strong>Creative Commons</strong></td><td class="lbl"><em>Some Rights Reserved</em>: copia e distribuzione permesse <strong>senza scopo di lucro</strong>, citando sempre l'autore originale</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🏴‍☠️</span>
+        <span><strong>Pirateria digitale:</strong> pratica illecita che copia e redistribuisce illegalmente software o materiale digitale senza rispettare il diritto d'autore. Chi rimuove le protezioni si chiama <strong>cracker</strong> e diffonde il materiale ad altri "pirati passivi".</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 12 — L2: SICUREZZA E PRIVACY ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Sicurezza dei dati e diritto alla privacy</h2>
+    <span class="section-num">L2 · 12/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Sicurezza e protezione dei dati</h3>
+        <p>Il <strong>D.lgs. n. 196 del 30/06/2003</strong> obbliga ogni azienda ad adottare una politica di protezione dei dati e a istruire i dipendenti sulle procedure di emergenza. Le principali misure:</p>
+        <ul style="margin-top:5px;">
+          <li><strong>Password</strong>: codici segreti per identificazione e accesso</li>
+          <li><strong>Identificativo utente + password</strong>, per verificare che l'identificativo sia usato solo dal suo assegnatario</li>
+          <li><strong>Backup</strong> periodico: copia di sicurezza dei dati più importanti, obbligatoria per garantire l'integrità</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🔑</span>
+        <span><strong>Una buona password</strong>: tenuta segreta e sostituita almeno ogni <strong>30 giorni</strong>; non intuibile da chi ci conosce; non una parola di uso comune, ma una sequenza alternata di numeri, maiuscole, minuscole e punteggiatura. Utile affiancarla alla <strong>crittografia</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">La privacy</h3>
+        <p>Tutelare la privacy non significa solo proteggere la sfera privata, ma anche <strong>controllare l'uso e la circolazione dei dati personali</strong>.</p>
+        <p style="margin-top:6px;">Il <strong>Codice della privacy</strong>, in vigore dall'<strong>1/1/2004</strong>, riunisce in un Testo Unico la legge n. 196 del 30/06/2003, i regolamenti e i codici deontologici, tenendo conto delle direttive UE e del <strong>Garante</strong> per la protezione dei dati personali.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le quattro figure della legge sulla privacy</h3>
+        <div class="proto-header" style="margin-top:4px;">
+          <div class="proto-row"><div class="proto-cell hl-blue">Interessato</div><div class="proto-cell w3">la persona alla quale si riferiscono i dati</div></div>
+          <div class="proto-row"><div class="proto-cell hl-blue">Titolare</div><div class="proto-cell w3">decide scopi e modalità del trattamento</div></div>
+          <div class="proto-row"><div class="proto-cell hl-blue">Responsabile</div><div class="proto-cell w3">affidatario della gestione e del controllo</div></div>
+          <div class="proto-row"><div class="proto-cell hl-blue">Incaricato</div><div class="proto-cell w3">elabora materialmente i dati per il titolare</div></div>
+        </div>
+        <p style="margin-top:7px;">L'interessato va sempre <strong>informato</strong> su finalità e modalità del trattamento, sull'obbligatorietà o meno del conferimento, sulle conseguenze del rifiuto e sui soggetti a cui i dati possono essere comunicati.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 13 — L2: DATI PERSONALI E GDPR ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">I dati personali e il GDPR</h2>
+    <span class="section-num">L2 · 13/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le tre categorie del Codice della privacy</h3>
+        <ul>
+          <li><strong>Dati identificativi</strong>: permettono l'identificazione diretta — nome e cognome, codice fiscale, fotografia</li>
+          <li><strong>Dati sensibili</strong>: origine razziale o etnica, convinzioni religiose e filosofiche, opinioni politiche, adesione a partiti e sindacati, stato di salute, vita sessuale. Trattabili dai privati solo con <strong>consenso scritto</strong> dell'interessato e autorizzazione del Garante</li>
+          <li><strong>Dati giudiziari</strong>: anagrafe giudiziale — sanzioni amministrative, condanne definitive, liberazione condizionale, misure alternative, qualità di imputato o indagato. Trattabili solo se autorizzati per legge o dal Garante</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il GDPR — Regolamento UE 679/2016</h3>
+        <p>Riguarda la protezione dei dati personali di cittadini europei raccolti online, su server sia dentro sia fuori l'Unione. Rende <strong>anonimi</strong> i dati per evitare la <strong>profilazione</strong> a insaputa dell'utente e sancisce il <strong>diritto alla cancellazione</strong> (art. 17).</p>
+        <p style="margin-top:6px;">Pone inoltre fine alle pratiche che subordinavano l'accesso a un servizio al consenso su clausole vincolanti e lesive della privacy.</p>
+        <p style="margin-top:6px;">Divide i dati personali in <strong>quattro categorie</strong>:</p>
+        <ul style="margin-top:4px;">
+          <li><strong>identificativi</strong>: ogni informazione che permetta di individuare una persona</li>
+          <li><strong>salute</strong>: ogni dato relativo alla salute</li>
+          <li><strong>genetici</strong>: da analisi del DNA o campioni biologici</li>
+          <li><strong>biometrici</strong>: iride, immagine facciale, impronte digitali</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🍪</span>
+        <span><strong>Cookie Law</strong> (3/6/2015): i siti devono informare l'utente con un <strong>banner</strong> sulla politica dei cookie e subordinarne l'accettazione alla navigazione. I <strong>cookie</strong> sono file di testo che memorizzano sul nostro computer ricerche recenti o dati di autenticazione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 13 — L2: ERGONOMIA ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">L'ergonomia e la postazione di lavoro</h2>
+    <span class="section-num">L2 · 14/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Che cos'è l'ergonomia</h3>
+        <p>Dal greco <em>érgos</em> = lavoro e <em>nómos</em> = controllo. È la disciplina che persegue la <strong>progettazione di prodotti, ambienti e servizi adatti alle necessità dell'utente</strong>, migliorando sicurezza, salute, comfort, benessere e prestazione umana.</p>
+        <p style="margin-top:6px;">È una scienza <strong>interdisciplinare</strong>: coinvolge anatomia, ingegneria, biologia, fisiologia, psicologia e ambiente di lavoro.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il Testo Unico sulla Sicurezza</h3>
+        <p>Il <strong>D.lgs. n. 81 del 9/4/2008</strong> (TUSL), integrato dal <strong>D.lgs. n. 106 del 3/8/2009</strong>, stabilisce le soluzioni per tutelare la salute del lavoratore nell'interazione con macchine e ambiente, garantendone l'<strong>integrità fisica e psicologica</strong> e accrescendo efficienza e sicurezza sul posto di lavoro.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Disturbi e cause</h3>
+        <p style="margin-bottom:5px;"><strong>Disturbi possibili:</strong> della vista (sindrome da fatica visiva, mal di testa, emicranie) e a carico dell'apparato <strong>muscolare e scheletrico</strong>.</p>
+        <p><strong>Cause principali:</strong> cattive condizioni di illuminazione · sforzo ottico prolungato · difetti della vista preesistenti · postura statica e rigida indotta dalla concentrazione (collo, spalle, colonna, schiena) · movimenti ripetitivi di braccia e mani.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">La postazione corretta</h3>
+        <table class="ad-table">
+          <tr><th>Elemento</th><th>Regola</th></tr>
+          <tr><td class="lbl"><strong>Monitor</strong></td><td class="lbl">Distanza dagli occhi tra <strong>50 e 70 cm</strong>, con corretto angolo di visuale</td></tr>
+          <tr><td class="lbl"><strong>Piano di lavoro</strong></td><td class="lbl">Altezza di circa <strong>72 cm</strong></td></tr>
+          <tr><td class="lbl"><strong>Sedia</strong></td><td class="lbl">Girevole, a <strong>5 ruote</strong>, regolabile in altezza (da 65 a 69 cm) con schienale regolabile</td></tr>
+          <tr><td class="lbl"><strong>Cosce</strong></td><td class="lbl">In posizione <strong>orizzontale</strong></td></tr>
+          <tr><td class="lbl"><strong>Braccia</strong></td><td class="lbl"><strong>Angolo retto</strong> tra braccio e avambraccio, polsi in linea retta</td></tr>
+          <tr><td class="lbl"><strong>Poggiapiedi</strong></td><td class="lbl">Da utilizzare per sostenere i piedi</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🪑</span>
+        <span>Obiettivo preliminare dell'ergonomia: <strong>aumentare l'efficienza del lavoratore e contribuire al suo benessere</strong>. Con la diffusione del computer nel lavoro, gran parte dell'ergonomia è oggi dedicata proprio ai contesti in cui il computer è l'elemento preponderante.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 14 — L3: ANALOGICO E DIGITALE ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Analogico e digitale</h2>
+    <span class="section-num">L3 · 15/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Il segnale analogico</h3>
+        <p>In natura tutte le grandezze fisiche sono rappresentate in formato <strong>continuo</strong>: variano crescendo e decrescendo, e il loro grafico nel tempo si disegna <strong>“senza staccare la penna”</strong> dal foglio.</p>
+        <p style="margin-top:6px;">Un segnale analogico è una <strong>sequenza infinita di valori istantanei</strong>.</p>
+        <table class="ad-table">
+          <tr><th>Grandezza</th><th>Segnale analogico</th></tr>
+          <tr><td class="lbl">Tempo</td><td class="lbl">Angolo della lancetta dell'orologio</td></tr>
+          <tr><td class="lbl">Musica</td><td class="lbl">Segnale elettrico microfonico</td></tr>
+          <tr><td class="lbl">Luce</td><td class="lbl">Apertura dell'otturatore o della pupilla</td></tr>
+          <tr><td class="lbl">Temperatura</td><td class="lbl">Altezza della colonnina di mercurio</td></tr>
+          <tr><td class="lbl">Velocità</td><td class="lbl">Lancetta del contachilometri</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🌡️</span>
+        <span>Il <strong>termometro digitale</strong> mostra su display cifre — numeri interi <strong>discreti</strong>; quello <strong>analogico</strong> ha l'ago che si muove <strong>in continuo</strong>. <em>Digitale</em> deriva da <em>digit</em> ("cifra"), a sua volta dal latino <em>digitus</em>, "dito".</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Dalla continuità al discreto</h3>
+        <ul>
+          <li><strong>Campionamento</strong>: si rileva il valore del segnale in istanti brevissimi ed equidistanziati (<em>intervallo di campionamento</em>). È una <strong>discretizzazione</strong>: da un insieme infinito di valori a uno discreto</li>
+          <li><strong>Quantizzazione</strong>: il valore letto in ogni istante di campionamento viene <strong>tradotto in un numero</strong></li>
+        </ul>
+        <p style="margin-top:6px;">Mantenendo il valore letto per tutto l'intervallo si ottiene un'<strong>onda rettangolare a scalini</strong>: abbiamo eseguito la <strong>digitalizzazione</strong> del segnale.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">La catena di conversione</h3>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent3);"><div class="bt" style="color:var(--accent3)">Segnale analogico</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">Convertitore A/D</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">Elaborazione dati binari</div></div>
+        </div>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">Elaborazione</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">Convertitore D/A</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent3);"><div class="bt" style="color:var(--accent3)">Segnale analogico</div></div>
+        </div>
+        <p style="margin-top:8px;">L'<strong>unità di elaborazione</strong> è il sistema a microprocessore (il personal computer).</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔢</span>
+        <span>Un segnale <strong>digitale</strong> può essere elaborato direttamente dal computer: i suoi componenti elettronici sono progettati per trattare segnali codificati con il <strong>sistema binario</strong>, cioè sequenze di 0 e 1. Le informazioni si dividono in tre gruppi: <strong>alfanumerici</strong>, <strong>numerici</strong> e <strong>multimediali</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 15 — L3: BIT E BYTE ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Bit, byte e codifica binaria</h2>
+    <span class="section-num">L3 · 16/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Bit, nibble e byte</h3>
+        <p>I simboli <strong>0</strong> e <strong>1</strong> si chiamano <strong>bit</strong>, contrazione di <em>binary digit</em>. Le parole più usate sono da <strong>4 bit (nibble)</strong> e da <strong>8 bit (byte)</strong>.</p>
+        <table class="ad-table">
+          <tr><th>Bit</th><th>Codifiche possibili</th><th>Esempi</th></tr>
+          <tr><td>1</td><td class="best">2</td><td>0 · 1</td></tr>
+          <tr><td>2</td><td class="best">4</td><td>00 · 01 · 10 · 11</td></tr>
+          <tr><td>3</td><td class="best">8</td><td>000 · 001 · … · 111</td></tr>
+          <tr><td><strong>n</strong></td><td class="best"><strong>2<sup>n</sup></strong></td><td>—</td></tr>
+        </table>
+        <p style="margin-top:8px;">Nel byte <code>1001 0110</code>: il bit più a destra è l'<strong>LSB</strong> (Least Significant Bit), quello più a sinistra è l'<strong>MSB</strong> (Most Significant Bit). Si scrive con uno spazio tra i due nibble e si legge cifra per cifra: <em>“uno zero zero uno — zero uno uno zero”</em>.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔤</span>
+        <span>La <strong>codifica</strong> è il processo che assegna un <strong>codice univoco</strong> a tutti gli oggetti di un insieme predefinito, usando un insieme di simboli detto <strong>alfabeto</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Convertire in binario con le potenze di 2</h3>
+        <p style="margin-bottom:6px;">Un metodo rapido per scrivere in binario a 8 bit un numero tra 0 e 255. Convertiamo <strong>163</strong>:</p>
+<pre><span class="cmt">1. Scrivi le prime 8 potenze di 2:</span>
+   <span class="arg">128   64   32   16    8    4    2    1</span>
+
+<span class="cmt">2. Parti da 128 (MSB): 163 &gt; 128 → scrivi 1</span>
+   <span class="cmt">e sottrai: 163 - 128 = 35   (resto)</span>
+<span class="cmt">3. 64 sta nel 35? NO  → 0</span>
+<span class="cmt">4. 32 sta nel 35? SÌ  → 1,  35 - 32 = 3</span>
+<span class="cmt">5. 16 → NO,  8 → NO,  4 → NO</span>
+<span class="cmt">6.  2 sta nel 3?  SÌ  → 1,   3 -  2 = 1</span>
+<span class="cmt">7.  1 sta nell'1? SÌ  → 1,   1 -  1 = 0</span>
+   <span class="cmt">l'algoritmo termina quando il resto è 0</span>
+
+   <span class="arg">128   64   32   16    8    4    2    1</span>
+   <span class="ok">  1    0    1    0    0    0    1    1</span>
+
+   <span class="kw">163 = 10100011</span></pre>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🃏</span>
+        <span>Con due soli simboli si rappresenta qualunque informazione. Un mazzo di carte: il <strong>valore</strong> (da 1 a 10) richiede <strong>4 bit</strong> perché 2<sup>3</sup> &lt; 10 &lt; 2<sup>4</sup>; il <strong>seme</strong> (fiori, quadri, cuori, picche) ne richiede <strong>2</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 16 — L3: ASCII E UNICODE ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La codifica dei caratteri: ASCII e Unicode</h2>
+    <span class="section-num">L3 · 17/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">I dati alfanumerici</h3>
+        <p>Comprendono i 26 caratteri dell'alfabeto anglosassone (maiuscoli e minuscoli), le dieci cifre, parentesi, operatori, punteggiatura e lettere accentate. Tutti codificabili con <strong>7 bit</strong> (2<sup>7</sup> = 128).</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il codice ASCII</h3>
+        <p><strong>ASCII</strong> = American Standard Code for Information Interchange, il metodo di codifica più diffuso tra i produttori di hardware e software, definito dall'<strong>ANSI</strong> (membro di ISO e IEC).</p>
+        <ul style="margin-top:5px;">
+          <li><strong>ASCII standard</strong>: usa 8 bit — i primi 128 codici per i caratteri comuni</li>
+          <li><strong>ASCII esteso</strong>: i successivi 128 codici, usati per le codifiche <strong>nazionali</strong>. Nato in America, l'ASCII standard non comprende le lettere accentate, sconosciute all'ortografia inglese: da qui le varie versioni nazionali</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Unicode</h3>
+        <p>È lo standard usato in <strong>Internet</strong>: il WWW è un servizio planetario e serve una codifica per tutte le lingue e gli alfabeti — arabo, bengalese, ebraico, thailandese…</p>
+        <p style="margin-top:6px;">Usa <strong>16 bit (2 byte)</strong>: 2<sup>16</sup> = <strong>65.536</strong> codici possibili. Ne sono stati definiti circa <strong>40.000</strong>, metà dei quali per gli ideogrammi cinesi <em>Han</em> e 11.000 per le sillabe coreane <em>Hangul</em>.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Codificare: “gatto rosso”</h3>
+<pre><span class="ok">01100111</span>  <span class="ok">01100001</span>  <span class="ok">01110100</span>  <span class="ok">01110100</span>  <span class="ok">01101111</span>
+   <span class="kw">g</span>         <span class="kw">a</span>         <span class="kw">t</span>         <span class="kw">t</span>         <span class="kw">o</span>
+
+<span class="ok">01110010</span>  <span class="ok">01101111</span>  <span class="ok">01110011</span>  <span class="ok">01110011</span>  <span class="ok">01101111</span>
+   <span class="kw">r</span>         <span class="kw">o</span>         <span class="kw">s</span>         <span class="kw">s</span>         <span class="kw">o</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Decodificare: due passi</h3>
+        <p style="margin-bottom:6px;"><strong>1.</strong> Suddividere la sequenza in gruppi di <strong>otto bit</strong> (un byte). &nbsp;<strong>2.</strong> Determinare il carattere corrispondente a ogni byte.</p>
+<pre><span class="cmt">Stringa da decodificare:</span>
+<span class="arg">0110001101101001011000010110111100101110</span>
+
+<span class="cmt">1. scomposizione in byte:</span>
+<span class="arg">01100011</span> <span class="arg">01101001</span> <span class="arg">01100001</span> <span class="arg">01101111</span> <span class="arg">00101110</span>
+
+<span class="cmt">2. decodifica carattere per carattere:</span>
+    <span class="ok">c</span>        <span class="ok">i</span>        <span class="ok">a</span>        <span class="ok">o</span>        <span class="ok">.</span></pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">📏</span>
+        <span>Con 7 bit si codificano 128 caratteri, con 8 bit 256, con 16 bit 65.536: <strong>più bit servono, più caratteri si possono rappresentare</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 18 — L3: IMMAGINI ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Le immagini in digitale</h2>
+    <span class="section-num">L3 · 18/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Raster e vettoriale</h3>
+        <p>Ci sono due metodi di digitalizzazione delle immagini:</p>
+        <ul style="margin-top:5px;">
+          <li><strong>Raster</strong> (o Bitmap): l'immagine è suddivisa in quadratini detti <strong>pixel</strong>. La codifica elenca in ordine, dalla prima riga in alto a sinistra fino in basso a destra, i colori di ciascun pixel</li>
+          <li><strong>Vector</strong>: descritta da forme geometriche, <strong>scalabile all'infinito</strong> senza perdita di qualità</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Profondità e risoluzione</h3>
+        <ul>
+          <li><strong>Profondità</strong>: la sequenza di bit di ogni pixel, indica il numero massimo di colori rappresentabili — con <strong>24 bit</strong> si hanno 2<sup>24</sup> = <strong>16.777.216</strong> colori</li>
+          <li><strong>Risoluzione</strong>: numero di pixel in larghezza e in altezza — <strong>1024×768</strong> significa 1024 pixel in larghezza e 768 in altezza</li>
+          <li>Si esprime anche in <strong>PPI</strong> (Pixel Per Inch): a parità di superficie, un'immagine a 1080 PPI è più dettagliata di una a 512</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Quanto occupa un'immagine?</h3>
+<pre><span class="cmt">bit richiesti = risoluzione × profondità</span>
+
+Immagine <span class="arg">1024 × 768</span> pixel a <span class="arg">24 bit</span>:
+
+  1024 × 768 × 24 = <span class="ok">18.874.368 bit</span>
+                  = <span class="kw">2,25 Mbyte</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">I principali formati</h3>
+        <table class="ad-table">
+          <tr><th>Formato</th><th>Caratteristiche</th></tr>
+          <tr><td class="lbl"><strong>JPEG</strong></td><td class="lbl">Raster compresso, qualità fotografica ottimale, <strong>non</strong> ammette lo sfondo trasparente</td></tr>
+          <tr><td class="lbl"><strong>GIF</strong></td><td class="lbl">Raster a bassa qualità (8 bit), ammette <strong>animazioni</strong> e trasparenza, adatto al web</td></tr>
+          <tr><td class="lbl"><strong>PNG</strong></td><td class="lbl">Raster compresso, profondità 24 bit, ammette la trasparenza</td></tr>
+          <tr><td class="lbl"><strong>SVG</strong></td><td class="lbl">Vector, scalabile all'infinito</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 19 — L3: SUONI ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">I suoni in digitale</h2>
+    <span class="section-num">L3 · 19/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Due passaggi</h3>
+        <div class="chain">
+          <div class="blk"><div class="bt" style="color:var(--accent3)">Segnale analogico</div></div>
+          <span class="arw">→</span>
+          <div class="blk"><div class="bt" style="color:var(--accent4)">Campionamento</div></div>
+          <span class="arw">→</span>
+          <div class="blk"><div class="bt" style="color:var(--accent4)">Quantizzazione</div></div>
+          <span class="arw">→</span>
+          <div class="blk"><div class="bt" style="color:var(--accent1)">Segnale digitale</div></div>
+        </div>
+        <p style="margin-top:8px;">Il segnale analogico, continuo nel tempo e in ampiezza, viene <strong>campionato</strong> e poi <strong>quantizzato</strong>. Il risultato è un segnale digitale, <strong>discreto sia nel tempo sia in ampiezza</strong>.</p>
+        <p style="margin-top:6px;">Le schede audio dei computer eseguono da <strong>8000 a 48000 campionamenti al secondo</strong> (frequenze da 8 a 48 kHz), quantizzando poi su <strong>8, 16 o 32 bit</strong>.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🎵</span>
+        <span>Più è <strong>alta la frequenza di campionamento</strong>, più la sequenza digitale è simile all'originale. Con una frequenza bassa si ottiene una <strong>distorsione</strong> dell'onda audio originale.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il bitrate</h3>
+<pre><span class="cmt">bitrate = bit × frequenza di campionamento</span>
+
+Con <span class="arg">48 kHz</span> e <span class="arg">32 bit</span>:
+
+  48000 × 32 = <span class="ok">768.000 bit/s</span> = <span class="kw">768 kbit/s</span></pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📐</span>
+        <span>Ogni misurazione si chiama <strong>campione</strong>, come i pixel per le immagini. La quantità di bit usata per rappresentare il segnale sonoro è la <strong>profondità in bit</strong> e determina il <em>dynamic range</em> (intervallo dinamico): il rapporto fra i valori massimi e minimi registrati nell'intervallo di tempo.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔁</span>
+        <span>Campionamento e quantizzazione sono gli <strong>stessi due passaggi</strong> visti per il segnale analogico generico: cambia solo la grandezza fisica di partenza.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 18 — L4: SISTEMA POSIZIONALE ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il sistema posizionale e le basi</h2>
+    <span class="section-num">L4 · 20/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Numero ≠ rappresentazione</h3>
+        <p>Non bisogna confondere il <strong>significato</strong> di un numero con la sua <strong>rappresentazione</strong>. Lo stesso numero <strong>10</strong> è rappresentato da <em>numerali</em> diversi in sistemi diversi: <strong>araba</strong> (10), <strong>romana</strong> (X), <strong>unaria</strong>, <strong>babilonese</strong>, <strong>maya</strong>, <strong>egizia</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il sistema posizionale</h3>
+        <p>Nel sistema decimale ogni cifra assume un <strong>valore diverso a seconda della posizione</strong>, a differenza delle notazioni non posizionali che danno a ogni cifra un valore fisso. La posizione si conta <strong>da destra verso sinistra</strong> partendo da 0.</p>
+<pre><span class="cmt">cifra più signif. ↓        ↓ meno signif.</span>
+       <span class="arg">3</span>     <span class="arg">7</span>     <span class="arg">5</span>
+peso: <span class="cmd">10²</span>   <span class="cmd">10¹</span>   <span class="cmd">10⁰</span>
+
+  3 × 100 = <span class="ok">300</span> + 7 × 10 = <span class="ok">70</span> + 5 × 1 = <span class="ok">5</span>
+                                  <span class="kw">375</span></pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">⚖️</span>
+        <span>Nel numero <strong>7237</strong> la cifra 7 a destra (7×10<sup>0</sup>) ha peso 7, mentre il 7 a sinistra (7×10<sup>3</sup>) vale <strong>7000</strong>: stessa cifra, peso diverso.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le basi usate in informatica</h3>
+        <p style="margin-bottom:6px;">Il <strong>pedice</strong> indica la base; senza pedice si intende la base 10.</p>
+        <table class="ad-table">
+          <tr><th>Base</th><th>Simboli</th><th>Esempio</th></tr>
+          <tr><td class="lbl"><strong>Binaria (2)</strong></td><td>{0, 1}</td><td class="best">1101<sub>2</sub></td></tr>
+          <tr><td class="lbl"><strong>Ottale (8)</strong></td><td>{0…7}</td><td class="mid">1057<sub>8</sub></td></tr>
+          <tr><td class="lbl"><strong>Decimale (10)</strong></td><td>{0…9}</td><td>375</td></tr>
+          <tr><td class="lbl"><strong>Esadecimale (16)</strong></td><td>{0…9, A…F}</td><td class="bad">34E<sub>H</sub></td></tr>
+        </table>
+        <p style="margin-top:6px;">Nell'esadecimale: <strong>A</strong>=10, <strong>B</strong>=11, <strong>C</strong>=12, <strong>D</strong>=13, <strong>E</strong>=14, <strong>F</strong>=15.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Da qualsiasi base a decimale</h3>
+        <p style="margin-bottom:6px;">Basta applicare la definizione: si somma ogni cifra <strong>moltiplicata per il suo peso</strong>.</p>
+<pre><span class="cmt">Binario →</span>     <span class="arg">1001₂</span> = 1·2³+0·2²+0·2¹+1·2⁰
+              = 8 + 0 + 0 + 1 = <span class="ok">9₁₀</span>
+
+<span class="cmt">Ottale →</span>      <span class="arg">354₈</span> = 3·8² + 5·8¹ + 4·8⁰
+              = 192 + 40 + 4 = <span class="ok">236₁₀</span>
+
+<span class="cmt">Esadecimale →</span> <span class="arg">34E H</span> = 3·16² + 4·16¹ + E·16⁰
+              = 768 + 64 + 14 = <span class="ok">846₁₀</span></pre>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">📌</span>
+        <span>In tutte le rappresentazioni la cifra <strong>meno significativa</strong> è sempre quella con esponente <strong>0</strong>. Ottale ed esadecimale servono a esprimere <strong>in modo più compatto</strong> lunghe stringhe di 0 e 1.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 21 — L4: DIVISIONI RIPETUTE ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">L'algoritmo della divisione ripetuta</h2>
+    <span class="section-num">L4 · 21/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il procedimento</h3>
+        <p style="margin-bottom:6px;">Si divide ripetutamente il numero decimale per la <strong>base di destinazione</strong> e si prendono i soli <strong>resti</strong>, letti “al contrario”. Si itera finché il quoziente diventa 0.</p>
+<pre><span class="cmd">1)</span> se il numero da convertire &lt; divisore
+      allora non c'è altro da convertire
+   altrimenti
+      <span class="arg">a.</span> dividi il numero per il divisore
+         e individua il resto;
+      <span class="arg">b.</span> sostituisci il valore con il quoziente;
+      <span class="arg">c.</span> torna al passo 1.
+
+<span class="cmd">2)</span> leggi i resti <span class="kw">nell'ordine opposto</span>
+   a quello con cui sono stati trovati.</pre>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔍</span>
+        <span>Nel sistema binario un numero <strong>pari</strong> termina sempre con un bit <strong>0</strong>, un numero <strong>dispari</strong> termina sempre con un bit <strong>1</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Esempio · 59 → binario (divisore 2)</h3>
+        <table class="ad-table">
+          <tr><th>Iterazione</th><th>Valore</th><th>Divisore</th><th>Quoziente</th><th>Resto</th></tr>
+          <tr><td>1</td><td>59</td><td>2</td><td>29</td><td class="best">1</td></tr>
+          <tr><td>2</td><td>29</td><td>2</td><td>14</td><td class="best">1</td></tr>
+          <tr><td>3</td><td>14</td><td>2</td><td>7</td><td class="best">0</td></tr>
+          <tr><td>4</td><td>7</td><td>2</td><td>3</td><td class="best">1</td></tr>
+          <tr><td>5</td><td>3</td><td>2</td><td>1</td><td class="best">1</td></tr>
+          <tr><td>6</td><td>1</td><td>2</td><td><strong>0</strong></td><td class="best">1</td></tr>
+        </table>
+        <p style="margin-top:6px;">Il quoziente è 0 → l'algoritmo termina. Leggendo i resti <strong>dal basso verso l'alto</strong>: <strong>59<sub>10</sub> = 111011<sub>2</sub></strong></p>
+        <p style="margin-top:4px;"><em>Verifica in forma polinomiale:</em> 1 + 2 + 0 + 8 + 16 + 32 = <strong>59</strong> ✓</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Un secondo esempio · 42 → binario</h3>
+<pre>42:2=21+<span class="ok">0</span>  21:2=10+<span class="ok">1</span>  10:2=5+<span class="ok">0</span>
+ 5:2= 2+<span class="ok">1</span>   2:2= 1+<span class="ok">0</span>   1:2=0+<span class="ok">1</span>
+
+resti  0 1 0 1 0 1  →  <span class="kw">101010₂</span>
+                        <span class="cmt">LSB ←     → MSB</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 22 — L4: OTTALE ED ESADECIMALE ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Convertire in ottale e in esadecimale</h2>
+    <span class="section-num">L4 · 22/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">3157 → ottale (divisore 8)</h3>
+        <table class="ad-table">
+          <tr><th>Iterazione</th><th>Valore</th><th>Divisore</th><th>Quoziente</th><th>Resto</th></tr>
+          <tr><td>1</td><td>3157</td><td>8</td><td>394</td><td class="mid">5</td></tr>
+          <tr><td>2</td><td>394</td><td>8</td><td>49</td><td class="mid">2</td></tr>
+          <tr><td>3</td><td>49</td><td>8</td><td>6</td><td class="mid">1</td></tr>
+          <tr><td>4</td><td>6</td><td>8</td><td><strong>0</strong></td><td class="mid">6</td></tr>
+        </table>
+        <p style="margin-top:6px;">Leggendo i resti dal basso: <strong>3157<sub>10</sub> = 6125<sub>8</sub></strong></p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Ancora ottale · 7043</h3>
+<pre>7043:8=880+<span class="ok">3</span>   880:8=110+<span class="ok">0</span>
+ 110:8= 13+<span class="ok">6</span>    13:8=  1+<span class="ok">5</span>
+   1:8=  0+<span class="ok">1</span>
+
+resti 3 0 6 5 1 → <span class="kw">15603₈</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">3157 → esadecimale (divisore 16)</h3>
+        <table class="ad-table">
+          <tr><th>Iterazione</th><th>Valore</th><th>Divisore</th><th>Quoziente</th><th>Resto</th></tr>
+          <tr><td>1</td><td>3157</td><td>16</td><td>197</td><td class="bad">5</td></tr>
+          <tr><td>2</td><td>197</td><td>16</td><td>12</td><td class="bad">5</td></tr>
+          <tr><td>3</td><td>12</td><td>16</td><td><strong>0</strong></td><td class="bad">C</td></tr>
+        </table>
+        <p style="margin-top:6px;">Ricorda che 12 = <strong>C</strong>. Quindi <strong>3157<sub>10</sub> = C55<sub>H</sub></strong></p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Ancora esadecimale · 44157</h3>
+<pre>44157:16=2759+<span class="ok">13 (D)</span>
+ 2759:16= 172+<span class="ok"> 7</span>
+  172:16=  10+<span class="ok">12 (C)</span>
+   10:16=   0+<span class="ok">10 (A)</span>
+
+resti 13, 7, 12, 10 → <span class="kw">AC7D H</span></pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">📏</span>
+        <span>Più è <strong>alta la base</strong>, più è <strong>corto</strong> il numero codificato: 3157 richiede 12 cifre in binario, 4 in ottale e solo 3 in esadecimale.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 20 — RIPASSO ═══ -->
+<div class="slide" data-section="ripasso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Abbiamo imparato che…</h2>
+    <span class="section-num">Sintesi · 23/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L1 — Computer e IT</h3>
+        <ul>
+          <li>Il computer è l'<strong>esecutore</strong> delle istruzioni che formano il programma, scritto dal programmatore</li>
+          <li><strong>Hardware</strong> = parti fisiche, <strong>software</strong> = programmi e dati, <strong>firmware</strong> = software inserito nell'hardware e non modificabile</li>
+          <li>Le tre fasi: <strong>input → elaborazione → output</strong></li>
+          <li>La <strong>CPU</strong> sta sulla scheda madre ed elabora le informazioni; la sua velocità si misura in <strong>GHz</strong></li>
+          <li>Memorie <strong>centrali</strong> (RAM volatile, ROM, cache) e <strong>di massa</strong> (permanenti)</li>
+          <li>1 byte = 8 bit; 1024 byte = 1 kbyte, e così via</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L2 — Software, privacy e sicurezza</h3>
+        <ul>
+          <li>Software <strong>di base</strong> (S.O., BIOS, UEFI, driver) e <strong>applicativo</strong> (pacchetti e app)</li>
+          <li>Licenze: shareware, freeware, demo, adware, donationware, abandonware, OEM, Creative Commons</li>
+          <li>Diritto d'autore: <strong>L. 633/1941</strong> e <strong>L. 518/1992</strong></li>
+          <li><strong>L. 196/2003</strong>: obbliga le aziende a proteggere i dati. Il <strong>Codice della privacy</strong> (2004) tutela i dati identificativi, sensibili e giudiziari</li>
+          <li>Il <strong>GDPR</strong> (UE 679/2016) sancisce il diritto alla non profilazione e alla cancellazione</li>
+          <li>L'<strong>ergonomia</strong> progetta prodotti e ambienti sicuri per l'utente</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 L3 — Dati in digitale</h3>
+        <ul>
+          <li>Un segnale <strong>tempo-continuo</strong> ha valore significativo in ogni istante; uno <strong>tempo-discreto</strong> solo in istanti prestabiliti</li>
+          <li>La <strong>digitalizzazione</strong> converte un segnale analogico in digitale: campionamento + quantizzazione</li>
+          <li>Il <strong>bit</strong> è la cardinalità minima; 8 bit = <strong>1 byte</strong>; il bit più a destra è l'<strong>LSB</strong>, quello più a sinistra l'<strong>MSB</strong></li>
+          <li><strong>ASCII</strong> a 7 bit (esteso a 8) è il codice più diffuso; <strong>Unicode</strong> usa 2 byte ed è lo standard di Internet</li>
+          <li>Immagini <strong>raster</strong> o <strong>vettoriali</strong>: bit richiesti = risoluzione × profondità</li>
+          <li><strong>Bitrate</strong> = bit × frequenza di campionamento</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 L4 — Basi di numerazione</h3>
+        <ul>
+          <li>Il sistema <strong>binario</strong> usa due simboli; ogni cifra (bit) vale 0 o 1</li>
+          <li>Da decimale a un'altra base si applica l'<strong>algoritmo della divisione ripetuta</strong>, usando come divisore la base di destinazione e leggendo i resti <strong>in ordine inverso</strong></li>
+          <li>Da una base qualsiasi a decimale basta sommare ogni cifra <strong>per il suo peso</strong></li>
+          <li>Un numero <strong>pari</strong> in binario finisce con 0, uno <strong>dispari</strong> con 1</li>
+          <li>Più alta è la base, <strong>più corto</strong> è il numero codificato</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 21 — VERIFICA ═══ -->
+<div class="slide" data-section="verifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Verifica le tue conoscenze</h2>
+    <span class="section-num">Autoverifica · 24/24</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Risposta multipla</h3>
+        <ul class="qa-list">
+          <li>1. L'espressione <strong>hardware</strong> indica: <span class="sol">l'insieme di tutti i dispositivi solidi di un computer</span></li>
+          <li>2. Il <strong>firmware</strong> è: <span class="sol">un software appartenente all'hardware</span></li>
+          <li>3. A quanto equivale un <strong>bit</strong>? <span class="sol">1/8 di byte</span></li>
+          <li>4. Le operazioni svolte da un computer sono: <span class="sol">input – elaborazione – output</span></li>
+          <li>5. Quale elemento <strong>non</strong> è contenuto nella CPU? <span class="sol">la RAM</span></li>
+          <li>6. Come si chiama la scheda dove alloggiano memorie centrali e CPU? <span class="sol">motherboard</span></li>
+          <li>7. Una caratteristica tipica della RAM è quella di essere: <span class="sol">volatile</span></li>
+          <li>8. Quale compito svolge l'ALU? <span class="sol">calcola il risultato delle operazioni aritmetiche e logiche</span></li>
+          <li>9. Quale software è utilizzabile solo per 30 giorni? <span class="sol">shareware</span></li>
+          <li>10. A quale distanza dagli occhi va il monitor secondo il TUSL? <span class="sol">fra 50 e 70 cm</span></li>
+          <li>11. Quante informazioni con una codifica a 5 bit? <span class="sol">2⁵ = 32</span></li>
+          <li>12. Quale software è progettato per risolvere molteplici problemi? <span class="sol">general purpose</span></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Vero o Falso</h3>
+        <ul class="qa-list">
+          <li>1. La memoria RAM è di tipo volatile. <span class="sol">V</span></li>
+          <li>2. I chip sono formati da materiali semiconduttori. <span class="sol">V</span></li>
+          <li>3. Le workstation basano il funzionamento su cluster di computer in parallelo. <span class="sol-f">F</span> <span style="color:var(--muted)">— sono i supercomputer</span></li>
+          <li>4. La cache memory è una memoria di massa. <span class="sol-f">F</span> <span style="color:var(--muted)">— è centrale</span></li>
+          <li>5. L'hardware è l'insieme dei dati e dei programmi memorizzati. <span class="sol-f">F</span> <span style="color:var(--muted)">— quello è il software</span></li>
+          <li>6. Il NAS è uno strumento di salvataggio dati in rete. <span class="sol">V</span></li>
+          <li>7. Il modello di Von Neumann venne implementato nel 1952. <span class="sol">V</span></li>
+          <li>8. Negli embedded, gli MCU sono PC integrati su una scheda. <span class="sol-f">F</span> <span style="color:var(--muted)">— lo sono gli SBC</span></li>
+          <li>9. Il computer è l'esecutore delle istruzioni del programma. <span class="sol">V</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Esercitati con le conversioni</h3>
+<pre><span class="cmt">Converti in binario:</span>   <span class="arg">25</span> · <span class="arg">100</span> · <span class="arg">200</span>
+<span class="cmt">Converti in ottale:</span>    <span class="arg">1234</span> · <span class="arg">560</span>
+<span class="cmt">Converti in esadec.:</span>   <span class="arg">3000</span> · <span class="arg">255</span>
+<span class="cmt">Converti in decimale:</span>  <span class="arg">10110₂</span> · <span class="arg">347₈</span> · <span class="arg">1F H</span>
+
+<span class="cmt">Quanti bit servono per codificare</span>
+<span class="cmt">18 valori diversi?</span>            <span class="ok">5 bit (2⁵ = 32)</span>
+<span class="cmt">Quanto occupa un'immagine</span>
+<span class="cmt">800×600 a 8 bit?</span>   <span class="ok">3.840.000 bit ≈ 469 kB</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':    'Introduzione',
+    'l1':       'L1 · Computer e IT',
+    'l2':       'L2 · Software e privacy',
+    'l3':       'L3 · Dati in digitale',
+    'l4':       'L4 · Basi di numerazione',
+    'ripasso':  'Abbiamo imparato che…',
+    'verifica': 'Verifica'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  document.getElementById('slide-counter').textContent = '01 / ' + String(total).padStart(2,'0');
+  document.getElementById('progress-fill').style.width = (1 / total * 100) + '%';
+  document.getElementById('section-label').textContent = sectionNames[slides[0].dataset.section] || '';
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { goTo(i); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
