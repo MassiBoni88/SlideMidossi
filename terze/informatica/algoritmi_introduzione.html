@@ -109,6 +109,23 @@
   .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
   .ov-content p  { font-size: 0.85rem; color: var(--muted); }
 
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
   /* ── Pipeline di fasi ───────────────────────────── */
   .pipe { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
   .pipe-step { flex: 1; min-width: 140px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; }
@@ -238,19 +255,19 @@
     <span class="section-num">PANORAMICA</span>
   </div>
   <div class="overview-grid">
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="definizione">
       <div class="ov-num" style="color:var(--accent1)">01</div>
       <div class="ov-content"><h4>Che cos'è un algoritmo</h4><p>Definizione, origine del termine e le proprietà che ogni algoritmo deve avere</p></div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="problema">
       <div class="ov-num" style="color:var(--accent4)">02</div>
       <div class="ov-content"><h4>Dal problema alla soluzione</h4><p>Le fasi della risoluzione · i dati: input, output, variabili e costanti</p></div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="rappresentazione">
       <div class="ov-num" style="color:var(--accent3)">03</div>
       <div class="ov-content"><h4>Come si rappresenta</h4><p>Linguaggio naturale, pseudocodice e diagramma di flusso · i simboli</p></div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="strutture">
       <div class="ov-num" style="color:var(--accent2)">04</div>
       <div class="ov-content"><h4>Le strutture &amp; gli esempi</h4><p>Sequenza, selezione, iterazione · tre esempi guidati · il ponte verso il C++</p></div>
     </div>
@@ -699,6 +716,31 @@ risultato a schermo.</pre>
       else        changeSlide(-1);
     }
   }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { changeSlide(i - current); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
 </script>
 </body>
 </html>

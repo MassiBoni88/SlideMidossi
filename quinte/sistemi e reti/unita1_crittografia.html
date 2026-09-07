@@ -161,6 +161,23 @@
   .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
   .ov-content p  { font-size: 0.85rem; color: var(--muted); }
 
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
   #nav {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 24px; border-top: 1px solid var(--border);
@@ -271,42 +288,42 @@
     <h2 style="color:var(--accent1)">In questa Unità</h2>
   </div>
   <div class="overview-grid">
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="internet-security">
       <div class="ov-num" style="color:var(--accent1)">01</div>
       <div class="ov-content">
         <h4>L'Internet Security</h4>
         <p>Recommendation X.800 · 5 requisiti di sicurezza · Attacchi e steganografia</p>
       </div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="crittografia">
       <div class="ov-num" style="color:var(--accent4)">02</div>
       <div class="ov-content">
         <h4>La Crittografia</h4>
         <p>Cifrari e codici · Principio di Kerckhoffs · Sostituzione · Trasposizione</p>
       </div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="simm-asimm">
       <div class="ov-num" style="color:var(--accent3)">03</div>
       <div class="ov-content">
         <h4>Crittografia Simmetrica e Asimmetrica</h4>
         <p>Chiave segreta · Chiave pubblica/privata · Confidenzialità · Autenticazione</p>
       </div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="des-3des">
       <div class="ov-num" style="color:var(--accent2)">04</div>
       <div class="ov-content">
         <h4>Algoritmi DES e Triple DES</h4>
         <p>Confusion · Diffusion · 16 round · S-BOX · AES · IDEA</p>
       </div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="rsa">
       <div class="ov-num" style="color:var(--accent2)">05</div>
       <div class="ov-content">
         <h4>L'Algoritmo RSA</h4>
         <p>Rivest Shamir Adleman · Fattorizzazione · Chiavi 1024-4096 bit</p>
       </div>
     </div>
-    <div class="ov-item">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="firma-digitale">
       <div class="ov-num" style="color:var(--accent4)">06</div>
       <div class="ov-content">
         <h4>Firma Digitale e Enti Certificatori</h4>
@@ -1306,6 +1323,31 @@
       else        goTo(current - 1);
     }
   }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { goTo(i); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
 </script>
 </body>
 </html>
