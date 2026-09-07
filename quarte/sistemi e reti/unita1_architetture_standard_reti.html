@@ -161,13 +161,27 @@
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 8px; padding: 11px 13px;
     display: flex; gap: 12px; align-items: flex-start;
-    text-decoration: none; color: inherit;
-    cursor: pointer; transition: border-color 0.2s, transform 0.15s;
   }
-  .ov-item:hover { border-color: var(--accent1); transform: translateX(3px); }
   .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
   .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
   .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
 
   #nav {
     display: flex; align-items: center; gap: 12px;
@@ -293,45 +307,45 @@
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent1)"></div>
     <h2 style="color:var(--accent1)">In questa Unità</h2>
-    <span class="section-num">clicca per andare alla lezione</span>
+    <span class="section-num">clicca una voce per andare alla lezione</span>
   </div>
   <div class="overview-grid">
-    <div class="ov-item" onclick="goTo(2)">
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="modelli">
       <div class="ov-num" style="color:var(--accent1)">L1</div>
       <div class="ov-content">
         <h4>I modelli e le architetture di rete</h4>
         <p>Modello a livelli · Peer entity · Primitive · Incapsulamento · PDU</p>
       </div>
     </div>
-    <div class="ov-item" onclick="goTo(7)">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="osi">
       <div class="ov-num" style="color:var(--accent4)">L2</div>
       <div class="ov-content">
         <h4>Il modello ISO/OSI</h4>
         <p>Sette livelli · Lower e upper layer · Compiti e apparati di ogni livello</p>
       </div>
     </div>
-    <div class="ov-item" onclick="goTo(10)">
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="tcpip">
       <div class="ov-num" style="color:var(--accent3)">L3</div>
       <div class="ov-content">
         <h4>Lo stack TCP/IP</h4>
         <p>Cerf e Kahn · Quattro livelli · Confronto con OSI · Evoluzione IPv4 → IPv6</p>
       </div>
     </div>
-    <div class="ov-item" onclick="goTo(12)">
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="sdn">
       <div class="ov-num" style="color:var(--accent2)">L4</div>
       <div class="ov-content">
         <h4>L'evoluzione: la SDN</h4>
         <p>Data/Control/Application plane · API NBI e SBI · OpenFlow e flow table</p>
       </div>
     </div>
-    <div class="ov-item" onclick="goTo(14)">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="enti">
       <div class="ov-num" style="color:var(--accent4)">L5</div>
       <div class="ov-content">
         <h4>Gli enti di standardizzazione</h4>
         <p>ITU-T · ISO · IETF · IEEE · 3GPP · ETSI · Il processo delle RFC</p>
       </div>
     </div>
-    <div class="ov-item" onclick="goTo(16)">
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="ripasso">
       <div class="ov-num" style="color:var(--accent1)">✓</div>
       <div class="ov-content">
         <h4>Ripassiamo insieme e autoverifica</h4>
@@ -533,28 +547,28 @@ liv. 1  <span class="kw">→ sequenza di bit sul mezzo trasmissivo →</span></p
   </div>
   <div class="one-col">
     <div class="overview-grid" style="flex:0 0 auto;">
-      <div class="ov-item" style="cursor:default;">
+      <div class="ov-item">
         <div class="ov-num" style="color:var(--accent1)">01</div>
         <div class="ov-content">
           <h4>Il modello di riferimento</h4>
           <p>Lo schema concettuale. Se si sceglie il modello a livelli, va definito il <strong>numero di livelli</strong> e la suddivisione dei compiti fra essi.</p>
         </div>
       </div>
-      <div class="ov-item" style="cursor:default;">
+      <div class="ov-item">
         <div class="ov-num" style="color:var(--accent4)">02</div>
         <div class="ov-content">
           <h4>Il servizio di ogni livello</h4>
           <p>Ciò che ciascun livello offre al livello adiacente superiore. Es.: la gestione della connessione logica tra gli host.</p>
         </div>
       </div>
-      <div class="ov-item" style="cursor:default;">
+      <div class="ov-item">
         <div class="ov-num" style="color:var(--accent3)">03</div>
         <div class="ov-content">
           <h4>Le funzioni di ogni livello</h4>
           <p>Le operazioni interne necessarie a realizzare il servizio. Es.: la rilevazione degli errori di trasmissione.</p>
         </div>
       </div>
-      <div class="ov-item" style="cursor:default;">
+      <div class="ov-item">
         <div class="ov-num" style="color:var(--accent2)">04</div>
         <div class="ov-content">
           <h4>Le specifiche formali</h4>
@@ -1275,6 +1289,31 @@ liv. 1  <span class="kw">→ sequenza di bit sul mezzo trasmissivo →</span></p
       else        goTo(current - 1);
     }
   }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { goTo(i); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
 </script>
 </body>
 </html>
