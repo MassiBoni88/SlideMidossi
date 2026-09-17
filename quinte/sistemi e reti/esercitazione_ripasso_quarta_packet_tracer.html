@@ -138,6 +138,7 @@
       <span class="chip"><b>2.</b> VLAN e porte access</span>
       <span class="chip"><b>3.</b> Trunk 802.1Q</span>
       <span class="chip"><b>4.</b> Indirizzamento di router, server e host</span>
+      <span class="chip"><b>4b.</b> Collegamento WAN in fibra ottica</span>
       <span class="chip"><b>5.</b> Routing dinamico OSPF</span>
       <span class="chip"><b>6.</b> DHCP server e pool</span>
       <span class="chip"><b>7.</b> DNS e risoluzione dei nomi</span>
@@ -158,8 +159,9 @@
     <h2>Scenario</h2>
     <p style="margin-bottom:12px;">
       La <strong>GammaTech S.r.l.</strong> ti affida il rifacimento della rete aziendale. L'azienda ha
-      una <strong>Sede Centrale</strong> e una <strong>Filiale</strong>, collegate da una linea seriale
-      punto-punto tra i router <strong>R1</strong> e <strong>R2</strong>.
+      una <strong>Sede Centrale</strong> e una <strong>Filiale</strong>, collegate da un
+      <strong>collegamento in fibra ottica</strong> punto-punto tra i router <strong>R1</strong> e
+      <strong>R2</strong>.
     </p>
     <p style="margin-bottom:14px;">
       Nella Sede Centrale il traffico va separato in <strong>due VLAN</strong>, che si estendono su
@@ -180,7 +182,7 @@
         <tr><td>2</td><td><span class="tag tag-v10">VLAN 10</span> AMMIN</td><td>Centrale</td><td>Amministrazione e direzione</td><td>60</td></tr>
         <tr><td>3</td><td><span class="tag tag-fil">FILIALE</span></td><td>Filiale</td><td>LAN unica della filiale</td><td>25</td></tr>
         <tr><td>4</td><td><span class="tag tag-srv">SERVER</span></td><td>Centrale</td><td>Server farm</td><td>10</td></tr>
-        <tr><td>5</td><td><span class="tag tag-wan">WAN</span></td><td>—</td><td>Link seriale R1–R2</td><td>2</td></tr>
+        <tr><td>5</td><td><span class="tag tag-wan">WAN</span></td><td>—</td><td>Link in fibra R1–R2</td><td>2</td></tr>
       </tbody>
     </table>
 
@@ -201,7 +203,7 @@
                         <span class="device">SW-SRV</span>   <span class="net">SERVER farm</span>
                            <span class="link">│ Gig0/2</span>
    <span class="device">[PC-A]</span> <span class="net">v10</span> ─┐          <span class="link">│</span>                                   <span class="link">Gig0/0</span>
-   <span class="device">[PC-B]</span> <span class="net">v20</span> ─┤       <span class="device">┌───┴───┐</span>  <span class="link">Se0/0/0(DCE)    (DTE)Se0/0/0</span>   <span class="link">│</span>
+   <span class="device">[PC-B]</span> <span class="net">v20</span> ─┤       <span class="device">┌───┴───┐</span>  <span class="link">Gig0/0/0   fibra    Gig0/0/0</span>   <span class="link">│</span>
             <span class="device">SW1</span>══════<span class="device">│  R1   │</span>════════ <span class="net">WAN /30</span> ════════<span class="device">│ R2 │</span>
              <span class="link">║</span> <span class="link">Gig0/0 → v10</span>  <span class="device">└───────┘</span>                          <span class="device">└──┬─┘</span>
              <span class="link">║</span> <span class="link">Gig0/1 → v20</span>                                       <span class="link">│</span>
@@ -219,7 +221,7 @@
     <table>
       <thead><tr><th>Dispositivo</th><th>Modello consigliato</th><th>Note</th></tr></thead>
       <tbody>
-        <tr><td>R1, R2</td><td>Router 2911 (+ modulo seriale HWIC-2T)</td><td>Spegni il router prima di inserire il modulo</td></tr>
+        <tr><td>R1, R2</td><td>Router 2911 + <code>HWIC-1GE-SFP</code> + <code>GLC-LH-SMD</code></td><td>Moduli ottici già montati nel file di partenza</td></tr>
         <tr><td>SW1, SW2, SW3, SW-SRV</td><td>Switch 2960</td><td>SW1–SW2 collegati tra loro</td></tr>
         <tr><td>SRV-DNS/WEB</td><td>Server generico</td><td>Server farm, IP statico</td></tr>
         <tr><td>SRV-DHCP</td><td>Server generico</td><td>Nella LAN della Filiale, IP statico</td></tr>
@@ -346,7 +348,8 @@
       <strong>Da non dimenticare:</strong>
       <ul style="margin:6px 0 0 20px; line-height:1.7;">
         <li>metti <strong>On</strong> ogni interfaccia che configuri (casella <em>Port Status</em>);</li>
-        <li>sul lato <strong>DCE</strong> del seriale (R1 Se0/0/0) imposta il <strong>Clock Rate</strong>, per esempio 64000;</li>
+        <li>attenzione al nome: <code>Gig0/0/0</code> con <strong>tre numeri</strong> è la porta ottica sul
+            modulo, diversa da <code>Gig0/0</code> con due numeri, che è integrata nel router;</li>
         <li>ogni PC e server ha bisogno di <strong>indirizzo, maschera e default gateway</strong>.</li>
       </ul>
     </div>
@@ -358,8 +361,8 @@
         <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-v10">VLAN 10</span> AMMIN</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
         <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-v20">VLAN 20</span> TECNICI</td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
         <tr><td>R1</td><td>Gig0/2</td><td><span class="tag tag-srv">SERVER</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
-        <tr><td>R1</td><td>Se0/0/0 (DCE)</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
-        <tr><td>R2</td><td>Se0/0/0 (DTE)</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Gig0/0/0 (fibra)</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Gig0/0/0 (fibra)</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
         <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-fil">FILIALE</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
       </tbody>
     </table>
@@ -492,81 +495,6 @@
     </div>
   </div>
 
-  <!-- PARTE 6 — FIBRA -->
-  <div class="card" style="border-left:5px solid #805ad5;">
-    <h2 style="color:#805ad5; border-left-color:#805ad5;">Parte 6 — Dal seriale alla fibra <span class="tag tag-gui">GUI</span> <span class="points">bonus +10</span></h2>
-
-    <div class="info-box" style="border-left-color:#805ad5; background:#faf5ff;">
-      <strong>Estensione facoltativa.</strong> Il collegamento fra le due sedi è oggi un link seriale,
-      la tecnologia con cui si facevano le WAN fino a pochi anni fa. Ora lo sostituirai con un
-      collegamento in <strong>fibra ottica</strong>, come si farebbe davvero nel 2026. L'obiettivo non è
-      solo farlo funzionare: è <strong>osservare che cosa cambia e che cosa no</strong>.
-    </div>
-
-    <h3>Passo 0 — Fotografa la situazione attuale</h3>
-    <p style="font-size:0.88rem; margin-bottom:6px;">Prima di toccare nulla, annota il costo OSPF del link seriale:</p>
-    <table>
-      <thead><tr><th>Comando su R1</th><th>Che cosa annotare</th><th>Valore trovato</th></tr></thead>
-      <tbody>
-        <tr><td><code>show ip ospf interface serial 0/0/0</code></td><td>la voce <strong>Cost</strong></td><td class="fill"><span class="fill-empty"></span></td></tr>
-        <tr><td><code>show interfaces serial 0/0/0</code></td><td>la voce <strong>BW</strong> (banda in kbit/s)</td><td class="fill"><span class="fill-empty"></span></td></tr>
-      </tbody>
-    </table>
-
-    <h3>Passo 1 — Monta i moduli ottici su R1 e R2</h3>
-    <div class="warn-box">
-      Il router va <strong>spento</strong> prima di inserire un modulo, come hai fatto per la scheda seriale.
-      Scheda <em>Physical</em> → interruttore → monta → riaccendi.
-    </div>
-    <table>
-      <thead><tr><th>#</th><th>Componente</th><th>Dove va inserito</th><th>Che cos'è</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td><code>HWIC-1GE-SFP</code></td><td>in uno <strong>slot HWIC libero</strong> del router</td><td>la scheda che porta al router uno <strong>slot SFP vuoto</strong></td></tr>
-        <tr><td>2</td><td><code>GLC-LH-SMD</code></td><td><strong>dentro lo slot SFP</strong> della scheda appena montata</td><td>il <strong>transceiver</strong>: contiene il laser e il fotodiodo</td></tr>
-      </tbody>
-    </table>
-    <div class="info-box">
-      <strong>Attenzione ai due livelli:</strong> la scheda HWIC da sola non trasmette nulla, è solo
-      una "culla". È il transceiver <code>GLC-LH-SMD</code> a fare il lavoro ottico — ed è lui a
-      determinare tipo di fibra e distanza raggiungibile.
-    </div>
-
-    <h3>Passo 2 — Collega la fibra</h3>
-    <ol style="margin:6px 0 0 20px; line-height:1.8; font-size:0.9rem;">
-      <li>Verifica che sui router sia comparsa una nuova interfaccia (scheda <em>Config</em>, oppure <code>show ip interface brief</code>). Annota come si chiama: <span class="fill-empty" style="min-width:200px;"></span></li>
-      <li>Nella barra <em>Connections</em> scegli il cavo <strong>Fiber</strong> (arancione) e collega le due nuove porte di R1 e R2.</li>
-      <li>Assegna alle due interfacce ottiche <strong>gli stessi indirizzi</strong> che avevi dato alle seriali, e mettile <strong>On</strong>.</li>
-      <li>Disattiva le vecchie interfacce seriali (<em>Port Status</em> → <strong>Off</strong>).</li>
-    </ol>
-
-    <h3>Passo 3 — Verifica e confronta</h3>
-    <table>
-      <thead><tr><th>Verifica</th><th>Esito atteso</th><th>OK?</th></tr></thead>
-      <tbody>
-        <tr><td><code>show ip ospf neighbor</code></td><td>il vicino torna in stato <strong>FULL</strong></td><td class="fill"><span class="fill-empty"></span></td></tr>
-        <tr><td>Ping PC-A → PC-E</td><td>0% loss, come prima</td><td class="fill"><span class="fill-empty"></span></td></tr>
-        <tr><td><code>show ip ospf interface</code> della porta ottica</td><td>annota il nuovo <strong>Cost</strong>: <span class="fill-empty" style="min-width:90px;"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
-      </tbody>
-    </table>
-
-    <h3>Passo 4 — Rispondi</h3>
-    <div class="warn-box" style="background:#faf5ff; border-left-color:#805ad5;">
-      <ol style="margin:0 0 0 18px; line-height:2;">
-        <li>Che cosa hai dovuto <strong>configurare da zero</strong> sul nuovo collegamento?</li>
-        <li>Che cosa <strong>non</strong> hai dovuto toccare? In particolare: hai modificato qualcosa in OSPF?</li>
-        <li>Il <strong>clock rate</strong> ti è servito? Perché?</li>
-        <li>Perché il <strong>costo OSPF</strong> è cambiato? Ricorda che si calcola come 10<sup>8</sup> ÷ banda in bit/s.</li>
-        <li>A quale <strong>livello del modello</strong> appartiene il cambiamento che hai fatto? Che cosa ti dice questo sulla struttura a livelli?</li>
-      </ol>
-    </div>
-
-    <div class="tip-box">
-      <strong>Sfida in più:</strong> invece di spegnere il seriale, lascialo attivo su una seconda
-      sottorete e tieni entrambi i collegamenti. Quale dei due sceglie OSPF per mandare i pacchetti?
-      Verificalo con <code>show ip route</code> e <code>tracert</code>, e spiega il perché.
-    </div>
-  </div>
-
   <!-- CONSEGNA -->
   <div class="card">
     <h2>Consegna e valutazione</h2>
@@ -586,7 +514,6 @@
         <tr><td>4</td><td>Routing OSPF</td><td><span class="tag tag-cli">CLI</span></td><td>25 min</td><td>20</td></tr>
         <tr><td>5</td><td>DHCP, DNS e collaudo finale</td><td><span class="tag tag-gui">GUI</span></td><td>20 min</td><td>10</td></tr>
         <tr><td colspan="3" style="text-align:right;"><strong>TOTALE</strong></td><td><strong>120 min</strong></td><td><strong>100</strong></td></tr>
-        <tr><td style="color:#805ad5;">6</td><td style="color:#805ad5;">Dal seriale alla fibra <em>(facoltativa)</em></td><td><span class="tag tag-gui">GUI</span></td><td>20 min</td><td><strong>+10</strong></td></tr>
       </tbody>
     </table>
 
