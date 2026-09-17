@@ -184,8 +184,8 @@
       <li><strong>Segui le parti in ordine</strong>, dalla 1 alla 4. Ogni parte si chiude con un
           <em>punto di controllo</em>: se le caselle sono tutte spuntate, puoi andare avanti tranquillo.</li>
       <li><strong>Salva spesso</strong> il file con <code>Ctrl+S</code>.</li>
-      <li><strong>Le parti 1-4 sono quelle che contano.</strong> La parte 5 è un'estensione: falla
-          solo se hai finito le altre.</li>
+      <li><strong>Le parti 1-4 sono quelle che contano.</strong> Le parti 5 e 6 sono estensioni:
+          falle solo se hai finito le altre.</li>
       <li><strong>Non c'è fretta.</strong> I tempi indicati sono solo orientativi: la valutazione
           guarda che cosa hai fatto bene, non quanto in fretta l'hai fatto. Se non finisci in una
           lezione, si continua nella successiva.</li>
@@ -227,6 +227,11 @@
         <div class="n">5</div>
         <div class="txt"><b>DHCP e DNS <span class="tag tag-plus">se resta tempo</span> <span class="tag tag-gui">GUI</span></b>
         <span>Servizi di rete sui server · ~20 min</span></div>
+      </div>
+      <div class="rm-item extra">
+        <div class="n">6</div>
+        <div class="txt"><b>Dal seriale alla fibra <span class="tag tag-plus">se resta tempo</span> <span class="tag tag-gui">GUI</span></b>
+        <span>Monta i moduli ottici e scopri che cosa cambia · ~20 min</span></div>
       </div>
     </div>
   </div>
@@ -605,6 +610,79 @@ end
         <li>Su PC-E il comando <code>ipconfig</code> mostra un indirizzo che comincia per <code>192.168.10.2</code></li>
         <li>Su PC-E il comando <code>nslookup www.gammatech.local</code> risponde con un indirizzo</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 6 -->
+  <div class="card part-extra">
+    <h2><span class="part-num">6</span>Dal seriale alla fibra <span class="tag tag-plus">se resta tempo</span> <span class="tag tag-gui">GUI</span></h2>
+
+    <div class="info-box">
+      Il collegamento fra le due sedi è un <strong>cavo seriale</strong>: la tecnologia con cui si
+      facevano le reti geografiche fino a pochi anni fa. Adesso lo sostituirai con una
+      <strong>fibra ottica</strong>, come si farebbe oggi. La cosa interessante è scoprire
+      <strong>quanto poco</strong> devi cambiare.
+    </div>
+
+    <h3>Prima di iniziare: annota un numero</h3>
+    <p>Apri la <strong>CLI</strong> di R1 e scrivi:</p>
+    <pre class="cli"><span class="kw">show ip ospf interface serial 0/0/0</span></pre>
+    <p>Cerca nella risposta la parola <strong>Cost</strong> e scrivi qui il numero che trovi:</p>
+    <p style="margin-top:6px;">Costo del link seriale: <span class="fill-empty" style="min-width:150px;"></span></p>
+
+    <h3>Passo 1 — Monta i due moduli (su R1 e poi su R2)</h3>
+    <ol class="steps">
+      <li>Clicca il router → scheda <strong>Physical</strong>.</li>
+      <li><strong>Spegni</strong> il router con l'interruttore, come hai fatto per la scheda seriale.</li>
+      <li>Trascina <strong><code>HWIC-1GE-SFP</code></strong> in uno <strong>slot libero</strong> del router.
+          Questa scheda non trasmette nulla da sola: porta soltanto uno <em>slot vuoto</em>.</li>
+      <li>Trascina <strong><code>GLC-LH-SMD</code></strong> <u>dentro lo slot</u> della scheda appena montata.
+          Questo è il pezzo che contiene il laser: è lui che trasmette davvero.</li>
+      <li><strong>Riaccendi</strong> il router.</li>
+      <li>Ripeti tutto su <strong>R2</strong>.</li>
+    </ol>
+
+    <div class="warn-box">
+      Il <code>GLC-LH-SMD</code> va dentro la <strong>fessura della scheda HWIC</strong>, non in uno
+      slot del router. Se non ci entra, hai mirato allo slot sbagliato.
+    </div>
+
+    <h3>Passo 2 — Controlla che la porta sia nata</h3>
+    <ol class="steps">
+      <li>Vai sulla scheda <strong>Config</strong> del router.</li>
+      <li>Nella colonna di sinistra, sotto <em>INTERFACE</em>, deve comparire una <strong>nuova voce</strong> che prima non c'era.</li>
+      <li>Scrivi qui come si chiama: <span class="fill-empty" style="min-width:190px;"></span></li>
+    </ol>
+
+    <h3>Passo 3 — Collega la fibra</h3>
+    <ol class="steps">
+      <li>Nella barra <strong>Connections</strong> scegli il cavo <strong>Fiber</strong> (arancione).</li>
+      <li>Collega la nuova porta di <strong>R1</strong> alla nuova porta di <strong>R2</strong>.</li>
+      <li>Su ogni router, scheda <strong>Config</strong> → nuova interfaccia: scrivi <strong>lo stesso indirizzo IP</strong> che avevi messo sulla porta seriale e metti <strong>Port Status: On</strong>.</li>
+      <li>Torna sull'interfaccia <strong>Serial</strong> di ogni router e mettila <strong>Off</strong>.</li>
+    </ol>
+
+    <div class="tip-box">
+      Non devi toccare <strong>niente</strong> in OSPF: gli indirizzi sono gli stessi, quindi i comandi
+      <code>network</code> che hai già scritto valgono ancora.
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 6</div>
+      <ul>
+        <li>Su R1 <code>show ip ospf neighbor</code> mostra di nuovo il vicino in stato <strong>FULL</strong></li>
+        <li>Il ping da <strong>PC-A a PC-E</strong> funziona come prima</li>
+        <li>Ho annotato il nuovo costo OSPF della porta in fibra: <span class="fill-empty" style="min-width:110px;"></span></li>
+      </ul>
+    </div>
+
+    <h3>Passo 4 — Ragiona su quello che è successo</h3>
+    <div class="warn-box">
+      <ol style="margin:0 0 0 18px; line-height:2.1;">
+        <li>Hai dovuto usare il <strong>clock rate</strong> sulla fibra? Perché sì o perché no?</li>
+        <li>Hai dovuto cambiare qualcosa in <strong>OSPF</strong>?</li>
+        <li>Il <strong>costo</strong> del collegamento è cambiato: è più alto o più basso di prima? Secondo te perché?</li>
+      </ol>
     </div>
   </div>
 
