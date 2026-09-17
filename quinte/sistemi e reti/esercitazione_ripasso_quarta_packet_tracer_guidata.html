@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione di laboratorio — Percorso guidato</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+      background: #f0f4f8; color: #1a202c;
+      padding: 30px 20px; font-size: 17px; line-height: 1.75;
+    }
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 30px 34px; margin-bottom: 30px;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 8px; line-height: 1.3; }
+    header p  { font-size: 1rem; opacity: 0.9; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 0.85rem; margin-top: 12px; margin-right: 5px;
+    }
+
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 26px 30px; margin-bottom: 26px;
+    }
+    .card h2 {
+      font-size: 1.3rem; color: #2b6cb0;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 12px; margin-bottom: 18px; line-height: 1.35;
+    }
+    .card h3 {
+      font-size: 1.02rem; color: #2d3748;
+      margin: 22px 0 10px; font-weight: 700;
+    }
+
+    /* numero grande della parte */
+    .part-num {
+      display: inline-block; background: #2b6cb0; color: white;
+      width: 38px; height: 38px; border-radius: 50%;
+      text-align: center; line-height: 38px; font-size: 1.1rem;
+      font-weight: 700; margin-right: 10px; vertical-align: middle;
+    }
+    .part-extra .part-num { background: #805ad5; }
+    .part-extra h2 { color: #805ad5; border-left-color: #805ad5; }
+
+    .topology {
+      background: #0d1117; border-radius: 8px;
+      padding: 22px; font-family: 'Courier New', monospace;
+      font-size: 0.85rem; color: #58a6ff;
+      line-height: 1.8; overflow-x: auto; white-space: pre;
+    }
+    .topology .label  { color: #ffa657; font-weight: bold; }
+    .topology .device { color: #7ee787; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+    .topology .srv    { color: #ff7b72; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 8px; }
+    th { background: #2b6cb0; color: white; padding: 11px 13px; text-align: left; font-weight: 600; }
+    td { padding: 11px 13px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+
+    .fill { background: #fffbeb !important; }
+    .fill-empty {
+      background: #fffbeb !important; min-width: 130px;
+      border-bottom: 2px dashed #d69e2e;
+      height: 26px; display: inline-block;
+    }
+    td.esempio { background: #e6fffa !important; font-family: 'Courier New', monospace;
+                 color: #234e52; font-weight: bold; }
+
+    .info-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .warn-box { background: #fffff0; border-left: 5px solid #d69e2e; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .tip-box  { background: #f0fff4; border-left: 5px solid #38a169; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+
+    /* passi operativi: uno per riga, ben spaziati */
+    ol.steps { list-style: none; counter-reset: st; margin: 10px 0 0 0; }
+    ol.steps li {
+      counter-increment: st; position: relative;
+      padding: 10px 0 10px 44px; border-bottom: 1px solid #edf2f7;
+    }
+    ol.steps li:last-child { border-bottom: none; }
+    ol.steps li::before {
+      content: counter(st); position: absolute; left: 0; top: 10px;
+      background: #bee3f8; color: #2a4365; font-weight: 700;
+      width: 30px; height: 30px; border-radius: 50%;
+      text-align: center; line-height: 30px; font-size: 0.9rem;
+    }
+
+    /* punto di controllo a fine parte */
+    .check {
+      background: #f0fff4; border: 2px solid #38a169; border-radius: 8px;
+      padding: 16px 20px; margin-top: 20px;
+    }
+    .check .title { font-weight: 700; color: #22543d; margin-bottom: 8px; font-size: 1.02rem; }
+    .check ul { list-style: none; margin: 0; }
+    .check li { padding: 6px 0 6px 34px; position: relative; }
+    .check li::before {
+      content: '☐'; position: absolute; left: 0; top: 4px;
+      font-size: 1.3rem; color: #38a169; line-height: 1;
+    }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 9px; font-size: 0.82rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-v10  { background: #fbd38d; color: #7b341e; }
+    .tag-v20  { background: #bee3f8; color: #2a4365; }
+    .tag-srv  { background: #fed7d7; color: #9b2c2c; }
+    .tag-fil  { background: #e9d8fd; color: #553c9a; }
+    .tag-wan  { background: #cbd5e0; color: #2d3748; }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+    .tag-core { background: #c6f6d5; color: #22543d; }
+    .tag-plus { background: #e9d8fd; color: #553c9a; }
+
+    code { background: #edf2f7; padding: 2px 7px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.92em; color: #2d3748; }
+    pre.cli {
+      background: #1a202c; color: #e2e8f0; border-radius: 6px;
+      padding: 18px 20px; font-family: 'Courier New', monospace;
+      font-size: 0.92rem; line-height: 2; overflow-x: auto; margin: 12px 0;
+    }
+    pre.cli .cmt { color: #a0aec0; font-style: italic; }
+    pre.cli .kw  { color: #f6ad55; }
+    pre.cli .gap { background: #4a5568; color: #fbd38d; padding: 1px 14px;
+                   border-radius: 3px; border-bottom: 2px dashed #fbd38d; }
+
+    .roadmap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .rm-item {
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px 16px;
+      background: #f7fafc;
+    }
+    .rm-item .n {
+      background: #2b6cb0; color: white; width: 32px; height: 32px;
+      border-radius: 50%; text-align: center; line-height: 32px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .rm-item.extra .n { background: #805ad5; }
+    .rm-item .txt { flex: 1; }
+    .rm-item .txt b { display: block; font-size: 1rem; }
+    .rm-item .txt span { font-size: 0.88rem; color: #718096; }
+
+    footer { text-align: center; font-size: 0.85rem; color: #a0aec0;
+             margin-top: 34px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+
+    @media print {
+      body { background: white; padding: 0; font-size: 12pt; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; page-break-inside: avoid; }
+      header { background: #1a365d !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercitazione di laboratorio — Percorso guidato</h1>
+    <p>Progetto di rete: VLSM, VLAN e trunk, indirizzamento, routing OSPF, DHCP e DNS</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT — Sistemi e Reti</span>
+    <span class="badge">Ripasso di inizio anno</span>
+  </header>
+
+  <!-- COME LAVORARE -->
+  <div class="card">
+    <h2>Come lavorare</h2>
+    <ol class="steps">
+      <li><strong>Apri il file già pronto</strong> <code>rete_base.pkt</code> che trovi sul desktop:
+          i dispositivi sono già posizionati e i cavi già collegati. Non devi costruire la topologia.</li>
+      <li><strong>Segui le parti in ordine</strong>, dalla 1 alla 4. Ogni parte si chiude con un
+          <em>punto di controllo</em>: se le caselle sono tutte spuntate, puoi andare avanti tranquillo.</li>
+      <li><strong>Salva spesso</strong> il file con <code>Ctrl+S</code>.</li>
+      <li><strong>Le parti 1-4 sono quelle che contano.</strong> La parte 5 è un'estensione: falla
+          solo se hai finito le altre.</li>
+      <li><strong>Non c'è fretta.</strong> I tempi indicati sono solo orientativi: la valutazione
+          guarda che cosa hai fatto bene, non quanto in fretta l'hai fatto. Se non finisci in una
+          lezione, si continua nella successiva.</li>
+    </ol>
+
+    <div class="warn-box">
+      <strong>L'unica parte da fare in CLI è OSPF</strong> <span class="tag tag-cli">CLI</span>
+      (Parte 4), e trovi già i comandi scritti: devi solo completarli.
+      Tutto il resto si fa dalle schede <em>Config</em>, <em>Services</em> e <em>Desktop</em>
+      <span class="tag tag-gui">GUI</span>.
+    </div>
+  </div>
+
+  <!-- MAPPA -->
+  <div class="card">
+    <h2>Le parti del lavoro</h2>
+    <div class="roadmap">
+      <div class="rm-item">
+        <div class="n">1</div>
+        <div class="txt"><b>Piano di indirizzamento VLSM <span class="tag tag-core">da fare</span></b>
+        <span>Dividi la rete in 5 sottoreti · su carta · ~30 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">2</div>
+        <div class="txt"><b>VLAN e trunk <span class="tag tag-core">da fare</span> <span class="tag tag-gui">GUI</span></b>
+        <span>Crea 2 VLAN sugli switch e assegna le porte · ~20 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">3</div>
+        <div class="txt"><b>Indirizzi IP <span class="tag tag-core">da fare</span> <span class="tag tag-gui">GUI</span></b>
+        <span>Configura router, server e PC · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">4</div>
+        <div class="txt"><b>Routing OSPF <span class="tag tag-core">da fare</span> <span class="tag tag-cli">CLI</span></b>
+        <span>Completa i comandi già scritti · ~20 min</span></div>
+      </div>
+      <div class="rm-item extra">
+        <div class="n">5</div>
+        <div class="txt"><b>DHCP e DNS <span class="tag tag-plus">se resta tempo</span> <span class="tag tag-gui">GUI</span></b>
+        <span>Servizi di rete sui server · ~20 min</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>La rete su cui lavori</h2>
+    <p>
+      La <strong>GammaTech S.r.l.</strong> ha due sedi: una <strong>Sede Centrale</strong> e una
+      <strong>Filiale</strong>, collegate da una linea seriale tra i router <strong>R1</strong> e
+      <strong>R2</strong>.
+    </p>
+    <p style="margin-top:10px;">
+      Nella Sede Centrale ci sono due reparti separati in due <strong>VLAN</strong>, più una piccola
+      <strong>server farm</strong>. Nella Filiale c'è una sola rete con un server.
+    </p>
+
+    <h3>Le 5 reti da creare</h3>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Rete</th><th>Dove</th><th>Host richiesti</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><span class="tag tag-v20">VLAN 20</span> TECNICI</td><td>Sede Centrale</td><td>120</td></tr>
+        <tr><td>2</td><td><span class="tag tag-v10">VLAN 10</span> AMMIN</td><td>Sede Centrale</td><td>60</td></tr>
+        <tr><td>3</td><td><span class="tag tag-fil">FILIALE</span></td><td>Filiale</td><td>25</td></tr>
+        <tr><td>4</td><td><span class="tag tag-srv">SERVER</span></td><td>Sede Centrale</td><td>10</td></tr>
+        <tr><td>5</td><td><span class="tag tag-wan">WAN</span></td><td>tra R1 e R2</td><td>2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <strong>Indirizzo di partenza:</strong> <code>192.168.10.0/24</code> — da dividere con
+      la tecnica <strong>VLSM</strong>.
+    </div>
+
+    <h3>Topologia (già pronta nel file)</h3>
+    <div class="topology">   <span class="label">SEDE CENTRALE</span>                                <span class="label">FILIALE</span>
+
+                <span class="srv">[SRV-DNS/WEB]</span>
+                      <span class="link">│</span>
+                   <span class="device">SW-SRV</span>   <span class="net">rete SERVER</span>
+                      <span class="link">│ Gig0/2</span>
+   <span class="device">[PC-A]</span> <span class="net">v10</span> ─┐     <span class="link">│</span>                             <span class="link">Gig0/0</span>
+   <span class="device">[PC-B]</span> <span class="net">v20</span> ─┤  <span class="device">┌───┴───┐</span> <span class="link">Se0/0/0        Se0/0/0</span>    <span class="link">│</span>
+            <span class="device">SW1</span>═══<span class="device">│  R1   │</span>═══ <span class="net">WAN</span> ═══<span class="device">│  R2  │</span>
+             <span class="link">║</span>       <span class="device">└───────┘</span>                 <span class="device">└───┬──┘</span>
+        <span class="link">trunk 802.1Q</span>                              <span class="link">│</span>
+             <span class="link">║</span>                                    <span class="device">SW3</span>
+            <span class="device">SW2</span>                             <span class="device">[PC-E]</span>  <span class="srv">[SRV-DHCP]</span>
+   <span class="device">[PC-D]</span> <span class="net">v10</span> ─┘
+                                            <span class="net">LAN FILIALE</span>
+</div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2><span class="part-num">1</span>Piano di indirizzamento VLSM</h2>
+
+    <div class="info-box">
+      Parti da <code>192.168.10.0/24</code>. Comincia dalla rete che ha <strong>più host</strong> e
+      vai verso quella più piccola, una dopo l'altra senza lasciare buchi.
+    </div>
+
+    <div class="tip-box">
+      <strong>Come si sceglie il prefisso:</strong> serve il numero di host più piccolo che basta.<br>
+      Numero di host di una sottorete = <strong>2<sup>(32 − prefisso)</sup> − 2</strong><br>
+      Esempio: <code>/25</code> → 2<sup>7</sup> − 2 = <strong>126 host</strong>
+    </div>
+
+    <h3>Tabella da completare</h3>
+    <p style="font-size:0.94rem; color:#4a5568;">
+      La <strong>prima riga è già svolta</strong>: usala come modello per le altre quattro.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Rete</th><th>Host<br>richiesti</th><th>Prefisso</th>
+          <th>Indirizzo di rete</th><th>Subnet mask</th><th>Broadcast</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-v20">VLAN 20</span></td>
+          <td>120</td>
+          <td class="esempio">/25</td>
+          <td class="esempio">192.168.10.0</td>
+          <td class="esempio">255.255.255.128</td>
+          <td class="esempio">192.168.10.127</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-v10">VLAN 10</span></td><td>60</td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-fil">FILIALE</span></td><td>25</td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-srv">SERVER</span></td><td>10</td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-wan">WAN</span></td><td>2</td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+          <td class="fill"><span class="fill-empty"></span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip-box">
+      <strong>Per trovare la rete successiva:</strong> parti dall'indirizzo di broadcast della rete
+      precedente e aggiungi 1.<br>
+      Esempio: VLAN 20 finisce con broadcast <code>192.168.10.127</code> → la VLAN 10 comincia da
+      <code>192.168.10.128</code>.
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 1</div>
+      <ul>
+        <li>Ho scritto 5 prefissi diversi, dal più grande al più piccolo</li>
+        <li>Ogni rete comincia dove finisce la precedente, senza salti</li>
+        <li>L'ultima rete (WAN) ha prefisso <code>/30</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2><span class="part-num">2</span>VLAN e trunk <span class="tag tag-gui">GUI</span></h2>
+
+    <div class="info-box">
+      Devi creare <strong>due VLAN</strong> su <strong>SW1</strong> e su <strong>SW2</strong>, poi
+      dire a ogni porta a quale VLAN appartiene.
+    </div>
+
+    <h3>Le VLAN da creare (su tutti e due gli switch)</h3>
+    <table>
+      <thead><tr><th>Numero</th><th>Nome</th></tr></thead>
+      <tbody>
+        <tr><td><code>10</code></td><td><code>AMMIN</code></td></tr>
+        <tr><td><code>20</code></td><td><code>TECNICI</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Come si fa, passo per passo</h3>
+    <ol class="steps">
+      <li>Clicca su <strong>SW1</strong> → scheda <strong>Config</strong> → voce
+          <strong>VLAN Database</strong> (colonna a sinistra).</li>
+      <li>Scrivi <code>10</code> in <em>VLAN Number</em> e <code>AMMIN</code> in <em>VLAN Name</em>,
+          poi premi <strong>Add</strong>.</li>
+      <li>Scrivi <code>20</code> e <code>TECNICI</code>, premi <strong>Add</strong>.</li>
+      <li>Ripeti gli stessi passi su <strong>SW2</strong>. Le VLAN vanno create su entrambi
+          gli switch, altrimenti non funzionano.</li>
+      <li>Sempre in <strong>Config</strong>, clicca una porta alla volta e assegnala secondo la
+          tabella qui sotto: scegli <em>Access</em> e poi la VLAN, oppure <em>Trunk</em>.</li>
+    </ol>
+
+    <h3>Che cosa assegnare a ogni porta</h3>
+    <table>
+      <thead><tr><th>Switch</th><th>Porta</th><th>Collegata a</th><th>Modalità</th><th>VLAN</th></tr></thead>
+      <tbody>
+        <tr><td>SW1</td><td>Fa0/1</td><td>PC-A</td><td>Access</td><td><code>10</code></td></tr>
+        <tr><td>SW1</td><td>Fa0/2</td><td>PC-B</td><td>Access</td><td><code>20</code></td></tr>
+        <tr><td>SW1</td><td>Gig0/1</td><td>R1 Gig0/0</td><td>Access</td><td><code>10</code></td></tr>
+        <tr><td>SW1</td><td>Gig0/2</td><td>R1 Gig0/1</td><td>Access</td><td><code>20</code></td></tr>
+        <tr><td>SW1</td><td>Fa0/24</td><td>SW2</td><td><strong>Trunk</strong></td><td>—</td></tr>
+        <tr><td>SW2</td><td>Fa0/1</td><td>PC-D</td><td>Access</td><td><code>10</code></td></tr>
+        <tr><td>SW2</td><td>Fa0/24</td><td>SW1</td><td><strong>Trunk</strong></td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn-box">
+      <strong>Attenzione:</strong> le porte verso il router R1 sono <strong>Access</strong>, non Trunk.
+      Solo il cavo tra SW1 e SW2 è un <strong>Trunk</strong>, perché su quello passano tutte e due
+      le VLAN.
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 2</div>
+      <ul>
+        <li>Nel VLAN Database di SW1 vedo le VLAN 10 e 20</li>
+        <li>Nel VLAN Database di SW2 vedo le VLAN 10 e 20</li>
+        <li>Ho assegnato tutte e 7 le porte della tabella</li>
+        <li>Solo Fa0/24 è in modalità Trunk</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2><span class="part-num">3</span>Indirizzi IP <span class="tag tag-gui">GUI</span></h2>
+
+    <div class="info-box">
+      Ora assegni gli indirizzi che hai calcolato nella Parte 1. La regola è sempre la stessa:
+      <strong>al router il primo indirizzo host</strong> della rete; agli altri dispositivi
+      gli indirizzi successivi.
+    </div>
+
+    <h3>Come si fa</h3>
+    <ol class="steps">
+      <li><strong>Router:</strong> clicca il router → scheda <strong>Config</strong> → scegli
+          l'interfaccia nella colonna a sinistra → scrivi <em>IP Address</em> e <em>Subnet Mask</em>
+          → metti la spunta su <strong>On</strong> in <em>Port Status</em>.</li>
+      <li><strong>Sul seriale di R1</strong> scrivi anche <em>Clock Rate</em> = <code>64000</code>
+          (serve solo su R1, non su R2).</li>
+      <li><strong>PC e server:</strong> clicca il dispositivo → scheda <strong>Desktop</strong> →
+          <strong>IP Configuration</strong> → scrivi indirizzo, maschera e gateway.</li>
+    </ol>
+
+    <h3>Tabella da completare</h3>
+    <table>
+      <thead><tr><th>Dispositivo</th><th>Interfaccia</th><th>Rete</th><th>Indirizzo IP</th><th>Subnet mask</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Gig0/2</td><td><span class="tag tag-srv">SERVER</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R1</td><td>Se0/0/0</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Se0/0/0</td><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-fil">FILIALE</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>PC e server</h3>
+    <p style="font-size:0.94rem; color:#4a5568;">
+      Il <strong>gateway</strong> di un PC è l'indirizzo dell'interfaccia del router della sua rete.
+    </p>
+    <table>
+      <thead><tr><th>Dispositivo</th><th>Rete</th><th>Indirizzo IP</th><th>Subnet mask</th><th>Gateway</th></tr></thead>
+      <tbody>
+        <tr><td>PC-A</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-D</td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-B</td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>SRV-DNS/WEB</td><td><span class="tag tag-srv">SERVER</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>SRV-DHCP</td><td><span class="tag tag-fil">FILIALE</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>PC-E</td><td><span class="tag tag-fil">FILIALE</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 3</div>
+      <ul>
+        <li>Tutte le interfacce dei router sono <strong>On</strong> e mostrano il triangolino verde</li>
+        <li>Il ping da <strong>PC-A a PC-D</strong> funziona (stessa VLAN, switch diversi)</li>
+        <li>Il ping da <strong>PC-A a PC-B</strong> funziona (VLAN diverse, passa dal router)</li>
+        <li>Il ping da <strong>PC-A a PC-E</strong> <em>non</em> funziona ancora: è normale, manca OSPF</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2><span class="part-num">4</span>Routing OSPF <span class="tag tag-cli">CLI</span></h2>
+
+    <div class="info-box">
+      Questa è l'unica parte da fare scrivendo i comandi. I comandi sono <strong>già scritti</strong>:
+      devi solo riempire gli spazi evidenziati con l'<strong>indirizzo di rete</strong> e la
+      <strong>wildcard mask</strong>.
+    </div>
+
+    <div class="tip-box">
+      <strong>Come si calcola la wildcard mask:</strong> si fa <code>255.255.255.255</code> meno la
+      subnet mask.<br>
+      Esempio: subnet mask <code>255.255.255.128</code> → wildcard <code>0.0.0.127</code>
+    </div>
+
+    <h3>Calcola prima le wildcard</h3>
+    <table>
+      <thead><tr><th>Rete</th><th>Subnet mask (dalla Parte 1)</th><th>Wildcard mask</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-v20">VLAN 20</span></td><td class="esempio">255.255.255.128</td><td class="esempio">0.0.0.127</td></tr>
+        <tr><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-fil">FILIALE</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-srv">SERVER</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td><span class="tag tag-wan">WAN</span></td><td class="fill"><span class="fill-empty"></span></td><td class="fill"><span class="fill-empty"></span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Comandi per R1 — completa gli spazi</h3>
+    <p style="font-size:0.94rem; color:#4a5568;">
+      Clicca R1 → scheda <strong>CLI</strong> → scrivi i comandi uno per riga.
+      La prima riga <code>network</code> è già completa come esempio.
+    </p>
+<pre class="cli">enable
+configure terminal
+<span class="kw">router ospf 1</span>
+ network <span class="cmt">192.168.10.0   0.0.0.127</span> area 0   <span class="cmt">! VLAN 20 (esempio)</span>
+ network <span class="gap">          </span> <span class="gap">          </span> area 0   <span class="cmt">! VLAN 10</span>
+ network <span class="gap">          </span> <span class="gap">          </span> area 0   <span class="cmt">! SERVER</span>
+ network <span class="gap">          </span> <span class="gap">          </span> area 0   <span class="cmt">! WAN</span>
+end
+<span class="kw">copy running-config startup-config</span></pre>
+
+    <h3>Comandi per R2 — completa gli spazi</h3>
+<pre class="cli">enable
+configure terminal
+<span class="kw">router ospf 1</span>
+ network <span class="gap">          </span> <span class="gap">          </span> area 0   <span class="cmt">! FILIALE</span>
+ network <span class="gap">          </span> <span class="gap">          </span> area 0   <span class="cmt">! WAN</span>
+end
+<span class="kw">copy running-config startup-config</span></pre>
+
+    <div class="warn-box">
+      Quando premi <strong>Invio</strong> dopo <code>copy running-config startup-config</code>,
+      Packet Tracer chiede conferma del nome del file: premi <strong>Invio</strong> di nuovo.
+    </div>
+
+    <h3>Come controllare che funzioni</h3>
+<pre class="cli"><span class="kw">show ip ospf neighbor</span>    <span class="cmt">! deve comparire l'altro router in stato FULL</span>
+<span class="kw">show ip route</span>            <span class="cmt">! devono comparire righe che iniziano con O</span></pre>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 4</div>
+      <ul>
+        <li>Su R1 <code>show ip ospf neighbor</code> mostra un vicino in stato <strong>FULL</strong></li>
+        <li>Su R2 <code>show ip route</code> mostra righe che cominciano con <strong>O</strong></li>
+        <li>Il ping da <strong>PC-A a PC-E</strong> adesso funziona</li>
+      </ul>
+    </div>
+
+    <div class="tip-box">
+      <strong>Se sei arrivato fin qui, il lavoro principale è finito.</strong>
+      Salva il file e avvisa l'insegnante. La parte 5 è un'aggiunta facoltativa.
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card part-extra">
+    <h2><span class="part-num">5</span>DHCP e DNS <span class="tag tag-plus">se resta tempo</span> <span class="tag tag-gui">GUI</span></h2>
+
+    <h3>DHCP sul server della Filiale</h3>
+    <ol class="steps">
+      <li>Clicca <strong>SRV-DHCP</strong> → scheda <strong>Services</strong> → voce <strong>DHCP</strong>.</li>
+      <li>Metti il servizio su <strong>On</strong>.</li>
+      <li>Compila i campi come nella tabella qui sotto e premi <strong>Add</strong>
+          (se non premi Add, il pool non viene salvato).</li>
+      <li>Clicca <strong>PC-E</strong> → <em>Desktop → IP Configuration</em> → scegli
+          <strong>DHCP</strong> al posto di Static.</li>
+    </ol>
+
+    <table>
+      <thead><tr><th>Campo</th><th>Valore</th></tr></thead>
+      <tbody>
+        <tr><td>Pool Name</td><td><code>POOL_FILIALE</code></td></tr>
+        <tr><td>Default Gateway</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>DNS Server</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Start IP Address</td><td><code>192.168.10.200</code></td></tr>
+        <tr><td>Subnet Mask</td><td class="fill"><span class="fill-empty"></span></td></tr>
+        <tr><td>Maximum Number of Users</td><td><code>20</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>DNS sul server della Sede Centrale</h3>
+    <ol class="steps">
+      <li>Clicca <strong>SRV-DNS/WEB</strong> → scheda <strong>Services</strong> → voce <strong>DNS</strong>.</li>
+      <li>Metti il servizio su <strong>On</strong>.</li>
+      <li>In <em>Name</em> scrivi <code>www.gammatech.local</code>, in <em>Type</em> lascia
+          <strong>A Record</strong>, in <em>Address</em> scrivi l'indirizzo di questo stesso server,
+          poi premi <strong>Add</strong>.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 5</div>
+      <ul>
+        <li>Su PC-E il comando <code>ipconfig</code> mostra un indirizzo che comincia per <code>192.168.10.2</code></li>
+        <li>Su PC-E il comando <code>nslookup www.gammatech.local</code> risponde con un indirizzo</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Quando hai finito</h2>
+    <ol class="steps">
+      <li>Salva il file con il nome <code>Cognome_Nome_ripasso.pkt</code>.</li>
+      <li>Consegna anche questo foglio con le tabelle compilate.</li>
+      <li>Se qualche punto di controllo è rimasto senza spunta, scrivi qui sotto quale e che cosa
+          non tornava: serve a capire insieme dove intervenire, e conta come parte del lavoro.</li>
+    </ol>
+    <div style="border:2px dashed #cbd5e0; border-radius:8px; height:110px; margin-top:14px;
+                background:#fffbeb;"></div>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — Percorso guidato — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
