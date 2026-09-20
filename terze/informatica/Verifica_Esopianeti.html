@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Caccia agli Esopianeti</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>CACCIA AGLI ESOPIANETI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, funzioni,<br>if/else, cicli for e while</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    L'osservatorio astronomico della scuola partecipa a un progetto di <strong>ricerca di
+    esopianeti</strong>, cioè pianeti che orbitano attorno ad altre stelle. Ogni notte i telescopi
+    misurano la luminosità delle stelle: quando un pianeta passa davanti alla sua stella la
+    luminosità cala leggermente e si registra un <strong>transito</strong>.
+    Il tuo compito è realizzare un programma C++ che permetta di <strong>catalogare gli esopianeti
+    scoperti</strong>, classificarli in base alle loro dimensioni, analizzare i transiti osservati
+    nelle <strong>ultime 5 notti</strong> di monitoraggio e individuare i candidati
+    potenzialmente abitabili. Ogni esopianeta è associato alla stella attorno a cui orbita,
+    rappresentata tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Stella</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome della stella (es. "Proxima Centauri", "Kepler 186")</td></tr>
+      <tr><td><code>tipo_spettrale</code></td><td>classe della stella: "O", "B", "A", "F", "G", "K", "M"</td></tr>
+      <tr><td><code>distanza_al</code></td><td>distanza dalla Terra in anni luce (numero con virgola)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Esopianeta</strong>, che contiene <strong>Stella</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dell'esopianeta (es. "Kepler 186 f")</td></tr>
+      <tr><td><code>metodo</code></td><td>metodo di scoperta: "transito", "velocita radiale", "imaging"</td></tr>
+      <tr><td><code>raggio</code></td><td>raggio del pianeta misurato in raggi terrestri (numero con virgola, es. 1.2)</td></tr>
+      <tr><td><code>temperatura</code></td><td>temperatura media stimata in gradi Celsius (intero, può essere negativo)</td></tr>
+      <tr><td><code>transiti</code></td><td>numero di transiti osservati in ciascuna delle ultime 5 notti</td></tr>
+      <tr><td><code>stella</code></td><td>Dati della stella attorno a cui orbita</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Le voci contrassegnate con <span class="star">&#9733;</span> sono <strong>facoltative</strong>: affrontale solo dopo aver completato tutte le altre, danno punteggio aggiuntivo.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>mediaTransiti(Esopianeta p)</code></td>
+        <td>Calcola e restituisce la media aritmetica dei 5 valori notturni di transito (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>notteMigliore(Esopianeta p)</code></td>
+        <td>Restituisce il <strong>numero della notte</strong> (da 1 a 5) in cui si sono registrati più transiti</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>nottiSopraMedia(Esopianeta p)</code></td>
+        <td>Restituisce <strong>quante</strong> delle 5 notti hanno un numero di transiti <em>strettamente maggiore</em> della media calcolata da <code>mediaTransiti</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>primoAvvistamento(Esopianeta p)</code></td>
+        <td>Usando un ciclo <code>while</code>, restituisce il numero della <strong>prima notte</strong> (da 1 a 5) con almeno un transito; restituisce <code>-1</code> se in nessuna notte è stato osservato un transito</td>
+      </tr>
+      <tr>
+        <td><code>classificaPianeta(Esopianeta p)</code></td>
+        <td>Restituisce una <code>string</code> con la classe dimensionale del pianeta, secondo la tabella della Parte 3</td>
+      </tr>
+      <tr>
+        <td><code>candidatoAbitabile(Esopianeta p)</code></td>
+        <td>Restituisce <code>true</code> se il pianeta rispetta <strong>tutte e tre</strong> le condizioni di abitabilità (vedi Parte 3), <code>false</code> altrimenti</td>
+      </tr>
+      <tr>
+        <td><code>stampaEsopianeta(Esopianeta p)</code></td>
+        <td>Funzione <strong>senza valore di ritorno</strong> (<code>void</code>): stampa tutti i campi del pianeta, inclusi quelli della stella annidata, più la classe dimensionale e l'esito del controllo di abitabilità</td>
+      </tr>
+      <tr>
+        <td><code>inserisciEsopianeta()</code></td>
+        <td>Legge da tastiera tutti i campi di Esopianeta e di Stella, restituisce l'Esopianeta compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaPerStella(Esopianeta cat[], int n, string nomeStella)</code></td>
+        <td>Restituisce l'indice del <strong>primo esopianeta</strong> il cui campo <code>stella.nome</code> corrisponde alla stringa cercata; restituisce <code>-1</code> se non trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Regole di classificazione e di abitabilità</h2>
+
+  <h3>3a. Classe dimensionale (in base al campo <code>raggio</code>, in raggi terrestri):</h3>
+  <table>
+    <thead>
+      <tr><th>Condizione sul raggio</th><th>Classe restituita</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>minore di 0.8</td><td><code>"Sub-Terra"</code></td></tr>
+      <tr><td>da 0.8 (incluso) a 1.5 (escluso)</td><td><code>"Simil-Terra"</code></td></tr>
+      <tr><td>da 1.5 (incluso) a 2.5 (escluso)</td><td><code>"Super-Terra"</code></td></tr>
+      <tr><td>da 2.5 (incluso) a 6.0 (escluso)</td><td><code>"Mini-Nettuno"</code></td></tr>
+      <tr><td>maggiore o uguale a 6.0</td><td><code>"Gigante gassoso"</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3b. Condizioni di abitabilità (devono valere <strong>tutte insieme</strong>):</h3>
+  <table>
+    <thead>
+      <tr><th>Condizione</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Dimensione</td><td><code>raggio</code> compreso fra 0.8 e 2.5 (cioè classe "Simil-Terra" o "Super-Terra")</td></tr>
+      <tr><td>Temperatura</td><td><code>temperatura</code> compresa fra -20 e 60 gradi Celsius (estremi inclusi)</td></tr>
+      <tr><td>Distanza</td><td>la stella dista meno di 100 anni luce dalla Terra</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>25 esopianeti</strong> e implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Registra esopianeta</td>
+        <td>chiama <code>inserisciEsopianeta</code>, salva il risultato nell'array e incrementa il contatore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Visualizza catalogo</td>
+        <td>stampa tutti gli esopianeti registrati con <code>stampaEsopianeta</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cerca per stella</td>
+        <td>chiede il nome della stella, usa <code>cercaPerStella</code> e, se trovato, mostra la scheda completa del pianeta con <code>stampaEsopianeta</code> e visualizza anche la media dei transiti e la notte di maggiore attività; <span class="star">&#9733;</span> se hai svolto <code>primoAvvistamento</code>, mostra anche la prima notte di avvistamento</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Report candidati abitabili</td>
+        <td>scorre tutto l'array e stampa con <code>stampaEsopianeta</code> <strong>solo</strong> i pianeti per cui <code>candidatoAbitabile</code> restituisce <code>true</code>; alla fine mostra il messaggio "Trovati X candidati su Y pianeti catalogati"</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> Per leggere una stringa con spazi usa <code>getline(cin, variabile)</code>.
+    Ricorda <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>.
+    Vale anche per i campi di Stella dentro <code>inserisciEsopianeta</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 5.
+    Dentro <code>inserisciEsopianeta</code> usa invece un <code>while</code> di controllo per
+    <strong>rileggere il raggio</strong> finché l'utente non inserisce un valore maggiore di zero.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Transiti</td>
+        <td>Sempre 5 valori per pianeta, tutti &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Raggio</td>
+        <td>Valore con virgola strettamente maggiore di 0 (es. 1.15)</td>
+      </tr>
+      <tr>
+        <td>Temperatura</td>
+        <td>Valore intero, può essere negativo (es. -35)</td>
+      </tr>
+      <tr>
+        <td>Distanza stella</td>
+        <td>Valore con virgola maggiore di 0, espresso in anni luce</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Stella deve essere dichiarata <em>prima</em> di Esopianeta</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 25 esopianeti; usa una variabile per contare quanti sono inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le funzioni <code>notteMigliore</code> e <code>primoAvvistamento</code>
+    devono restituire un numero da <strong>1 a 5</strong> (non l'indice 0–4 dell'array).
+    Se svolgi la funzione facoltativa <code>nottiSopraMedia</code>, deve <em>richiamare</em>
+    <code>mediaTransiti</code> invece di ricalcolare la media da zero.
+    Nella voce di menu 4, se nessun pianeta soddisfa le condizioni, stampa comunque il messaggio
+    riepilogativo con X uguale a 0.
+  </div>
+
+  <div class="nota">
+    <strong>Nota:</strong> per stampare i valori con la virgola usa due decimali
+    (<code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code>, libreria <code>&lt;iomanip&gt;</code>).
+    La media dei transiti e il raggio vanno mostrati in questo formato.
+  </div>
+
+</body>
+</html>
