@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Workspace a scuola — Gmail, Classroom, Drive e gli editor</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 24px 44px;
+    display: flex; flex-direction: column;
+    justify-content: center; justify-content: safe center;
+    overflow-y: auto; scrollbar-width: thin;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.25rem, 2.1vw, 1.9rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 15px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 13px;
+  }
+  .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.86rem; color: var(--ct); line-height: 1.48; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 11px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+    line-height: 1.5; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+
+  .callout {
+    border-radius: 8px; padding: 8px 11px; font-size: 0.85rem; line-height: 1.45;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  .ad-table { border-collapse: collapse; width: 100%; font-size: 0.73rem; margin-top: 5px; }
+  .ad-table th, .ad-table td { border: 1px solid var(--border); padding: 3px 6px; text-align: center; }
+  .ad-table th { background: rgba(37,99,235,0.1); color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .ad-table td { color: var(--ct); font-family: 'JetBrains Mono', monospace; }
+  .ad-table .best { color: var(--accent1); font-weight: 700; }
+  .ad-table .mid  { color: var(--accent3); font-weight: 700; }
+  .ad-table .bad  { color: var(--accent2); font-weight: 700; }
+  .ad-table td.lbl { text-align: left; font-family: 'Syne', sans-serif; }
+
+  /* catena di blocchi (input → elaborazione → output) */
+  .chain { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chain .blk {
+    flex: 1; min-width: 90px; text-align: center;
+    border: 1px solid var(--border); border-radius: 6px; padding: 8px 6px;
+    background: var(--code-bg);
+  }
+  .chain .blk .bt { font-size: 0.84rem; font-weight: 700; }
+  .chain .blk .bs { font-size: 0.72rem; color: var(--muted); }
+  .chain .arw { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 1rem; flex: 0 0 auto; }
+
+  .qa-list { list-style: none; padding-left: 0; }
+  .qa-list li { margin-bottom: 4px; font-size: 0.82rem; }
+  .sol { color: var(--accent1); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .sol-f { color: var(--accent2); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  /* elenco di app con pastiglia colorata */
+  .app-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
+  .app-chip {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--code-bg);
+    border-radius: 6px; padding: 5px 9px; font-size: 0.79rem; color: var(--ct);
+  }
+  .app-chip .ico { font-size: 0.95rem; }
+  .app-chip strong { color: var(--text); font-weight: 700; }
+
+  /* tasti della tastiera */
+  .kbd {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    border: 1px solid var(--border); background: var(--code-bg);
+    border-radius: 4px; padding: 1px 5px; color: var(--ct); white-space: nowrap;
+  }
+
+  /* procedura numerata */
+  .steps { counter-reset: st; list-style: none; padding-left: 0 !important; }
+  .steps li { position: relative; padding-left: 27px; margin-bottom: 5px; font-size: 0.85rem; color: var(--ct); line-height: 1.45; }
+  .steps li::before {
+    counter-increment: st; content: counter(st);
+    position: absolute; left: 0; top: 1px; width: 19px; height: 19px;
+    border-radius: 50%; background: var(--code-bg); border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; color: var(--accent4);
+  }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.68rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    .chain .blk { min-width: 70px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div class="course">Primo Biennio · Tecnologie Informatiche</div>
+    <div class="title-bar">Google Workspace a scuola — guida pratica</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 26</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Google Workspace</div>
+  <div class="big" style="color:var(--accent1);">a scuola</div>
+  <div class="sub" style="font-size:1.0rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Gmail · Drive · Classroom · Documenti, Fogli, Presentazioni · Meet
+  </div>
+  <div class="sub">Classe prima · Istituto Tecnico Tecnologico</div>
+  <div class="tag-row">
+    <span class="tag tag-red">Account e Gmail</span>
+    <span class="tag tag-yellow">Drive e condivisione</span>
+    <span class="tag tag-green">Classroom</span>
+    <span class="tag tag-blue">Editor collaborativi</span>
+  </div>
+</div>
+
+<!-- ═══ 2 — SOMMARIO ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa lezione</h2>
+    <span class="section-num">clicca una voce per andare alla parte che ti serve</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="l1">
+      <div class="ov-num" style="color:var(--accent2)">L1</div>
+      <div class="ov-content">
+        <h4>L'account scolastico e Gmail</h4>
+        <p>Che cos'è Workspace · Accedere in sicurezza · Scrivere, rispondere, allegare · Spam e phishing</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="l2">
+      <div class="ov-num" style="color:var(--accent3)">L2</div>
+      <div class="ov-content">
+        <h4>Google Drive</h4>
+        <p>Il cloud · La mia unità · Organizzare cartelle e nomi · Condividere e permessi</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="l3">
+      <div class="ov-num" style="color:var(--accent1)">L3</div>
+      <div class="ov-content">
+        <h4>Google Classroom</h4>
+        <p>Iscriversi a un corso · Stream, Lavori, Persone, Voti · Consegnare un compito</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="l4">
+      <div class="ov-num" style="color:var(--accent4)">L4</div>
+      <div class="ov-content">
+        <h4>Documenti, Fogli, Presentazioni</h4>
+        <p>Scrivere insieme · Commenti e cronologia · Formule e grafici · Slide leggibili</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="l5">
+      <div class="ov-num" style="color:var(--accent1)">L5</div>
+      <div class="ov-content">
+        <h4>Meet e gli altri strumenti</h4>
+        <p>Videolezioni · Calendar · Moduli · Keep, Chat, Sites · Sicurezza e netiquette</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="ripasso">
+      <div class="ov-num" style="color:var(--accent1)">✓</div>
+      <div class="ov-content">
+        <h4>Abbiamo imparato che…</h4>
+        <p>La sintesi delle cinque parti in un colpo d'occhio</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="verifica">
+      <div class="ov-num" style="color:var(--accent4)">?</div>
+      <div class="ov-content">
+        <h4>Verifica le tue conoscenze</h4>
+        <p>Risposta multipla e Vero/Falso, con le soluzioni</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="lab">
+      <div class="ov-num" style="color:var(--accent3)">🧪</div>
+      <div class="ov-content">
+        <h4>Laboratorio guidato</h4>
+        <p>Un'esercitazione da svolgere al PC, passo per passo</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout callout-green" style="margin-top:12px;">
+    <span class="callout-icon">🎯</span>
+    <span><strong>Obiettivi:</strong> usare in modo corretto l'account scolastico, scrivere un'email formale, archiviare e condividere file su Drive scegliendo il permesso giusto, iscriversi a un corso di Classroom e consegnare un compito, produrre un documento, un foglio di calcolo e una presentazione lavorando anche in gruppo, partecipare correttamente a una videolezione su Meet, riconoscere i rischi per la propria sicurezza e privacy.</span>
+  </div>
+</div>
+
+<!-- ═══ 3 — L1: CHE COS'È GOOGLE WORKSPACE ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Che cos'è Google Workspace</h2>
+    <span class="section-num">L1 · 03/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Da G Suite a Workspace</h3>
+        <p><strong>Google Workspace</strong> è una <strong>suite</strong>, cioè un insieme di programmi che lavorano insieme. Fino al 2020 si chiamava <strong>G Suite</strong>: molti la chiamano ancora così.</p>
+        <p style="margin-top:6px;">La versione per le scuole si chiama <strong>Google Workspace for Education</strong>: l'istituto la attiva su un proprio dominio e la fornisce gratuitamente a studenti e docenti.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Applicazioni web, non programmi</h3>
+        <ul>
+          <li>Girano dentro il <strong>browser</strong> (Chrome, Edge, Firefox…): non si installa nulla</li>
+          <li>I file non stanno sul tuo PC ma sui <strong>server di Google</strong>, cioè nel <strong>cloud</strong></li>
+          <li>Ti servono <strong>credenziali</strong> (indirizzo + password) e una <strong>connessione</strong></li>
+          <li>Lo stesso lavoro si riprende da PC, tablet o smartphone</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">☁️</span>
+        <span><strong>Cloud</strong> non significa "nell'aria": significa che i tuoi dati sono su <strong>computer di qualcun altro</strong>, raggiungibili via Internet. Comodo, ma è un motivo in più per ragionare su che cosa ci metti dentro.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Le app che useremo</h3>
+        <div class="app-row">
+          <span class="app-chip"><span class="ico">✉️</span><strong>Gmail</strong> posta</span>
+          <span class="app-chip"><span class="ico">📁</span><strong>Drive</strong> archivio</span>
+          <span class="app-chip"><span class="ico">🎓</span><strong>Classroom</strong> aula</span>
+          <span class="app-chip"><span class="ico">📄</span><strong>Documenti</strong> testi</span>
+          <span class="app-chip"><span class="ico">📊</span><strong>Fogli</strong> calcolo</span>
+          <span class="app-chip"><span class="ico">🖥️</span><strong>Presentazioni</strong> slide</span>
+          <span class="app-chip"><span class="ico">🎥</span><strong>Meet</strong> videolezioni</span>
+          <span class="app-chip"><span class="ico">📅</span><strong>Calendar</strong> agenda</span>
+          <span class="app-chip"><span class="ico">📝</span><strong>Moduli</strong> quiz</span>
+          <span class="app-chip"><span class="ico">💬</span><strong>Chat</strong> messaggi</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Un solo account, tutte le app</h3>
+        <p>Fai l'accesso <strong>una volta sola</strong>: in alto a destra trovi la <strong>griglia dei nove puntini</strong> (⋮⋮⋮), il <em>launcher</em>, che apre tutte le applicazioni senza richiedere di nuovo la password.</p>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent2);"><div class="bt" style="color:var(--accent2)">ACCESSO</div><div class="bs">account @scuola</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">LAUNCHER</div><div class="bs">i nove puntini</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">APP</div><div class="bs">Gmail, Drive, …</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Perché la scuola la usa</h3>
+        <ul>
+          <li>Stessi strumenti per tutte le classi, senza costi di licenza</li>
+          <li>I compiti non si perdono: sono nel cloud, non su una chiavetta</li>
+          <li>Più persone possono lavorare sullo <strong>stesso file</strong> insieme</li>
+          <li>L'istituto può <strong>gestire</strong> gli account (password, permessi, sicurezza)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4 — L1: L'ACCOUNT SCOLASTICO ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">L'account scolastico: accesso e sicurezza</h2>
+    <span class="section-num">L1 · 04/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Com'è fatto il tuo indirizzo</h3>
+<pre><span class="cmd">nome.cognome</span>@<span class="arg">nomeistituto.edu.it</span>
+     <span class="cmt">↑</span>                <span class="cmt">↑</span>
+  <span class="cmt">nome utente</span>       <span class="cmt">dominio della scuola</span></pre>
+        <p style="margin-top:6px;">Il <strong>dominio</strong> è "di proprietà" dell'istituto: chi lo amministra (l'<strong>animatore digitale</strong> o il tecnico) può creare, bloccare e cancellare gli account.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Non è un account come gli altri</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell w2">CONFRONTO</div>
+            <div class="proto-cell hl-blue w3">@gmail.com personale</div>
+            <div class="proto-cell hl-red w3">@istituto.edu.it</div>
+          </div>
+          <div class="proto-row"><div class="proto-cell w2">chi lo crea</div><div class="proto-cell w3">tu</div><div class="proto-cell w3">la scuola</div></div>
+          <div class="proto-row"><div class="proto-cell w2">durata</div><div class="proto-cell w3">finché vuoi</div><div class="proto-cell w3">finché frequenti</div></div>
+          <div class="proto-row"><div class="proto-cell w2">uso</div><div class="proto-cell w3">privato</div><div class="proto-cell w3">didattico</div></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🎓</span>
+        <span>Quando finisci il percorso di studi l'account viene <strong>disattivato</strong>: prima di diplomarti ricordati di <strong>scaricare</strong> i tuoi file (Google Takeout) o di trasferirli su un account personale.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Come si accede</h3>
+        <ol class="steps">
+          <li>Apri il browser e vai su <strong>google.com</strong> (oppure <strong>accounts.google.com</strong>)</li>
+          <li>Clicca su <strong>Accedi</strong> e scrivi l'indirizzo <strong>completo</strong>, compreso <code>@istituto.edu.it</code></li>
+          <li>Inserisci la password; al primo accesso ti verrà chiesto di <strong>cambiarla</strong></li>
+          <li>Controlla in alto a destra l'iniziale o la foto: è l'account <strong>giusto</strong>?</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Password: le regole minime</h3>
+        <ul>
+          <li>Almeno <strong>12 caratteri</strong>, con maiuscole, minuscole, cifre e simboli</li>
+          <li>Niente nomi, date di nascita, nomi di squadre o del cane</li>
+          <li>Una password <strong>diversa</strong> da quella dei social</li>
+          <li>Non si presta a nessuno, nemmeno al migliore amico</li>
+          <li>Se la scuola la consente, attiva la <strong>verifica in due passaggi</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🚪</span>
+        <span>Sui PC del <strong>laboratorio</strong>, che sono condivisi, <strong>esci sempre</strong> dall'account a fine ora (foto in alto a destra → <em>Esci</em>) e chiudi il browser. Chi entra dopo di te userebbe il tuo profilo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 5 — L1: GMAIL, COM'È FATTA ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Gmail: com'è fatta la casella di posta</h2>
+    <span class="section-num">L1 · 05/26</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le tre zone dello schermo</h3>
+<pre>┌───────────────────────────────────────────────┐
+│ <span class="cmd">☰ Gmail</span>   <span class="arg">🔍 cerca nella posta</span>        <span class="ok">⋮⋮⋮ 👤</span> │
+├──────────────┬────────────────────────────────┤
+│ <span class="kw">✎ Scrivi</span>     │  <span class="cmt">elenco dei messaggi</span>           │
+│              │                                │
+│ Posta arrivo │  ● Prof. Rossi   Verifica…  9:14│
+│ ★ Speciali   │    Segreteria    Circolare  8:02│
+│ 🕐 Posticipati│    Mario Bianchi Gruppo…   ieri │
+│ ➤ Inviati    │                                │
+│ 📄 Bozze     │                                │
+│ 🏷 Etichette  │                                │
+└──────────────┴────────────────────────────────┘
+ <span class="cmt">sinistra: cartelle   centro: messaggi   alto: ricerca</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le conversazioni</h3>
+        <p>Gmail non mostra i messaggi uno per uno: raggruppa domanda e risposte in un'unica <strong>conversazione</strong> (in inglese <em>thread</em>). Il numero fra parentesi accanto al mittente indica <strong>quanti messaggi</strong> contiene.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Che cosa contiene ogni cartella</h3>
+        <ul>
+          <li><strong>Posta in arrivo</strong>: i messaggi ricevuti e non archiviati</li>
+          <li><strong>Speciali</strong> ★: quelli che hai marcato come importanti</li>
+          <li><strong>Posticipati</strong>: ricompaiono alla data che scegli</li>
+          <li><strong>Inviati</strong>: copia di tutto ciò che hai spedito</li>
+          <li><strong>Bozze</strong>: iniziati e non ancora inviati</li>
+          <li><strong>Spam</strong>: posta indesiderata, svuotata dopo 30 giorni</li>
+          <li><strong>Cestino</strong>: cancellati, recuperabili per 30 giorni</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Tre pulsanti da non confondere</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">Rispondi</div>
+            <div class="proto-cell hl-red">Rispondi a tutti</div>
+            <div class="proto-cell hl-yel">Inoltra</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">solo al mittente</div>
+            <div class="proto-cell">a tutti i destinatari</div>
+            <div class="proto-cell">a qualcuno di nuovo</div>
+          </div>
+        </div>
+        <p style="margin-top:6px;">Il <em>Rispondi a tutti</em> usato a sproposito riempie le caselle di trenta compagni: usalo solo se la risposta serve davvero a tutti.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📦</span>
+        <span><strong>Archivia</strong> non è <strong>Elimina</strong>: archiviare toglie il messaggio dalla posta in arrivo ma lo lascia in "Tutti i messaggi", dove la ricerca lo ritrova sempre.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6 — L1: SCRIVERE UN'EMAIL ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Scrivere un'email fatta bene</h2>
+    <span class="section-num">L1 · 06/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le parti del messaggio</h3>
+        <ul>
+          <li><strong>A</strong> — il destinatario principale</li>
+          <li><strong>Cc</strong> (copia conoscenza) — chi deve solo essere informato; tutti vedono il suo indirizzo</li>
+          <li><strong>Ccn</strong> (copia conoscenza nascosta) — come Cc, ma gli altri <strong>non</strong> vedono chi è; si usa per non diffondere gli indirizzi altrui</li>
+          <li><strong>Oggetto</strong> — di che cosa si parla, in poche parole</li>
+          <li><strong>Corpo</strong> — saluto, messaggio, chiusura</li>
+          <li><strong>Firma</strong> — nome, cognome, classe</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Un esempio da imitare</h3>
+<pre><span class="cmd">A:</span>       <span class="arg">mario.rossi@istituto.edu.it</span>
+<span class="cmd">Oggetto:</span> <span class="arg">1A INF - richiesta chiarimento relazione di lab</span>
+
+Gentile professor Rossi,
+
+sono Luca Verdi della classe 1A. Sto preparando la
+relazione sull'esperienza di laboratorio del 18/09 e
+non ho capito se la tabella dei dati va inserita
+prima o dopo le conclusioni.
+
+La ringrazio per la disponibilità.
+Cordiali saluti,
+
+<span class="ok">Luca Verdi - classe 1A INF</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le regole d'oro (netiquette)</h3>
+        <ul>
+          <li><strong>Oggetto sempre compilato</strong> e specifico: "Aiuto" non dice nulla</li>
+          <li>Rivolgiti al docente con il <strong>Lei</strong>: è una comunicazione formale, non un messaggio in chat</li>
+          <li>Niente <strong>MAIUSCOLO</strong>: online equivale a urlare</li>
+          <li>Niente abbreviazioni da chat (<em>xké, cmq, tvb</em>) né catene di emoji</li>
+          <li><strong>Firmati</strong>: il docente ha centinaia di studenti</li>
+          <li>Rileggi prima di inviare: l'email inviata <strong>non si riprende</strong> (se non entro pochi secondi con "Annulla")</li>
+          <li>Non pretendere una risposta immediata di sera o nel fine settimana</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">✋</span>
+        <span>Un'email senza oggetto, senza saluto e senza firma spesso <strong>non riceve risposta</strong>: non perché il docente sia scortese, ma perché non capisce chi scrive e che cosa chiede.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span>In <em>Impostazioni → Generali → Firma</em> puoi creare la tua firma una volta sola: verrà aggiunta automaticamente in fondo a ogni messaggio.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 7 — L1: ALLEGATI, RICERCA, SPAM ═══ -->
+<div class="slide" data-section="l1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Allegati, etichette, ricerca e phishing</h2>
+    <span class="section-num">L1 · 07/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Gli allegati 📎</h3>
+        <ul>
+          <li>Si aggiungono con la <strong>graffetta</strong>; il limite è di circa <strong>25 MB</strong> per messaggio</li>
+          <li>Oltre quella soglia Gmail carica il file su <strong>Drive</strong> e invia un <strong>link</strong>: attenzione, allora, a dare anche il <strong>permesso</strong> di accesso</li>
+          <li>Prima di allegare, dai al file un <strong>nome sensato</strong></li>
+          <li>Non aprire allegati <code>.exe</code>, <code>.zip</code> o documenti con macro da mittenti sconosciuti</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Etichette e filtri</h3>
+        <p>Le <strong>etichette</strong> sono come cartelle, ma un messaggio può averne <strong>più di una</strong> contemporaneamente (es. <em>Informatica</em> + <em>Da fare</em>). Un <strong>filtro</strong> applica automaticamente un'etichetta ai messaggi che rispettano una regola: per esempio tutti quelli della segreteria.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Cercare invece di frugare</h3>
+<pre><span class="cmd">from:</span><span class="arg">rossi</span>              <span class="cmt">// di un mittente</span>
+<span class="cmd">to:</span><span class="arg">me</span>                   <span class="cmt">// indirizzati a te</span>
+<span class="cmd">subject:</span><span class="arg">relazione</span>       <span class="cmt">// nell'oggetto</span>
+<span class="cmd">has:</span><span class="arg">attachment</span>         <span class="cmt">// con allegato</span>
+<span class="cmd">is:</span><span class="arg">unread</span>               <span class="cmt">// non letti</span>
+<span class="cmd">after:</span><span class="arg">2026/09/01</span>       <span class="cmt">// dopo una data</span>
+
+<span class="cmt">si combinano:</span> <span class="cmd">from:</span><span class="arg">rossi</span> <span class="cmd">has:</span><span class="arg">attachment</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Spam e phishing</h3>
+        <p><strong>Spam</strong> = posta indesiderata, di solito pubblicità. <strong>Phishing</strong> = truffa: un messaggio che <strong>finge</strong> di venire da una fonte fidata (la scuola, la banca, Google) per farti consegnare password o dati.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Come si riconosce un tentativo di phishing</h3>
+        <ul>
+          <li>Crea <strong>urgenza</strong>: "il tuo account sarà chiuso entro 24 ore"</li>
+          <li>L'indirizzo del mittente è <strong>quasi</strong> giusto: <code>g00gle-support.net</code></li>
+          <li>Errori di grammatica e traduzioni approssimative</li>
+          <li>Ti chiede di <strong>cliccare un link</strong> e di reinserire la password</li>
+          <li>Passa il mouse sul link senza cliccare: in basso vedi l'indirizzo <strong>reale</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🎣</span>
+        <span><strong>Nessuna organizzazione seria ti chiede la password via email.</strong> Se hai un dubbio non cliccare: segnala il messaggio con <em>Segnala phishing</em> e avvisa un docente o il tecnico.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔎</span>
+        <span>Il filtro antispam di Gmail è molto buono, ma non è perfetto: ogni tanto controlla la cartella <strong>Spam</strong>, potrebbe esserci finito un messaggio vero.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 8 — L2: DRIVE, IL CLOUD ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Google Drive: il tuo archivio nel cloud</h2>
+    <span class="section-num">L2 · 08/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Che cos'è</h3>
+        <p><strong>Drive</strong> è un disco fisso che non sta dentro al tuo computer ma in un <strong>data center</strong>. Ci accedi da <code>drive.google.com</code> con il tuo account: i file ti seguono su qualunque dispositivo e non si perdono se il PC si rompe.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le sezioni del menu a sinistra</h3>
+        <ul>
+          <li><strong>La mia unità</strong> — tutto ciò che hai creato o caricato tu</li>
+          <li><strong>Computer</strong> — le cartelle sincronizzate con <em>Drive per desktop</em></li>
+          <li><strong>Condivisi con me</strong> — i file che <strong>altri</strong> hanno condiviso con te (non sono tuoi!)</li>
+          <li><strong>Recenti</strong> — gli ultimi file aperti: utilissimo</li>
+          <li><strong>Speciali</strong> ★ — quelli che hai marcato a mano</li>
+          <li><strong>Cestino</strong> — svuotato automaticamente dopo <strong>30 giorni</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Un file che sta solo in <strong>Condivisi con me</strong> può sparire se il proprietario lo cancella. Se ti serve davvero, fanne una <strong>copia</strong> nella tua unità (<em>File → Crea una copia</em>).</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Due cose diverse dentro Drive</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl">FILE GOOGLE</div>
+            <div class="proto-cell hl-blue">FILE CARICATI</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">Documenti, Fogli, Presentazioni, Moduli — si creano e si modificano nel browser</div>
+            <div class="proto-cell">.pdf .docx .jpg .mp4 .zip — si caricano da PC con trascinamento o "+ Nuovo"</div>
+          </div>
+        </div>
+        <p style="margin-top:6px;">Entrambi <strong>occupano spazio</strong> nella quota dell'istituto: dal 2021 anche i file nativi Google vengono conteggiati.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il salvataggio non esiste più</h3>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">SCRIVI</div><div class="bs">nel browser</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">SALVA DA SÉ</div><div class="bs">ogni pochi secondi</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent3);"><div class="bt" style="color:var(--accent3)">RITROVI</div><div class="bs">ovunque, aggiornato</div></div>
+        </div>
+        <p style="margin-top:7px;">Nei file Google non c'è il pulsante <em>Salva</em>: accanto al titolo compare la scritta <strong>"Tutte le modifiche sono state salvate in Drive"</strong>. Se manca la connessione, il lavoro resta in memoria e viene sincronizzato appena torna la rete.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📡</span>
+        <span>Con l'estensione <strong>Documenti offline</strong> di Chrome puoi continuare a lavorare anche senza Internet: le modifiche partono da sole quando ti ricolleghi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 9 — L2: ORGANIZZARE ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Organizzare i file: cartelle e nomi</h2>
+    <span class="section-num">L2 · 09/26</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Una struttura ad albero, come sul PC</h3>
+<pre><span class="cmd">La mia unità/</span>
+├── <span class="arg">Scuola 2026-27/</span>
+│   ├── <span class="arg">Tecnologie informatiche/</span>
+│   │   ├── <span class="ok">01_appunti/</span>
+│   │   ├── <span class="ok">02_laboratorio/</span>
+│   │   └── <span class="ok">03_verifiche/</span>
+│   ├── <span class="arg">Matematica/</span>
+│   └── <span class="arg">Italiano/</span>
+└── <span class="arg">Personale/</span>
+
+<span class="cmt">+ Nuovo → Cartella   ·   trascina per spostare</span>
+<span class="cmt">tasto destro → Organizza → Sposta / Cambia colore</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Dare un nome sensato ai file</h3>
+        <p>Il nome <code>documento senza titolo (3)</code> fra due mesi non dirà nulla a nessuno. Usa uno schema costante:</p>
+<pre><span class="kw">AAAA-MM-GG_cognome_argomento</span>
+
+<span class="ok">2026-09-21_verdi_relazione-lab1.pdf</span>
+<span class="ok">2026-10-05_1A_presentazione-gruppo3</span>
+
+<span class="cmt">la data all'inizio in formato ISO fa sì che</span>
+<span class="cmt">l'ordine alfabetico coincida con quello cronologico</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Cercare in Drive</h3>
+<pre><span class="cmd">type:</span><span class="arg">document</span>     <span class="cmt">// solo Documenti</span>
+<span class="cmd">type:</span><span class="arg">spreadsheet</span>  <span class="cmt">// solo Fogli</span>
+<span class="cmd">type:</span><span class="arg">pdf</span>          <span class="cmt">// solo PDF</span>
+<span class="cmd">owner:</span><span class="arg">me</span>         <span class="cmt">// di cui sei proprietario</span>
+<span class="cmd">before:</span><span class="arg">2026/10/01</span></pre>
+        <p style="margin-top:6px;">Drive cerca anche <strong>dentro</strong> ai documenti e, grazie all'OCR, perfino nel testo delle immagini e dei PDF scansionati.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Piccoli trucchi che fanno risparmiare tempo</h3>
+        <ul>
+          <li><strong>Colora</strong> le cartelle per materia: l'occhio le trova prima</li>
+          <li>Metti fra gli <strong>Speciali</strong> la cartella su cui stai lavorando in questo periodo</li>
+          <li>Scrivi <code>doc.new</code>, <code>sheet.new</code>, <code>slide.new</code> nella barra degli indirizzi per creare al volo un file nuovo</li>
+          <li>Dal Cestino puoi <strong>ripristinare</strong> entro 30 giorni</li>
+          <li>Da <em>Dettagli → Attività</em> vedi chi ha toccato il file e quando</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🗂️</span>
+        <span>Regola pratica: <strong>una cartella per materia</strong>, dentro <strong>una sottocartella per quadrimestre o per tipo di lavoro</strong>. Più di tre o quattro livelli di profondità diventano scomodi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 10 — L2: CONDIVISIONE E PERMESSI ═══ -->
+<div class="slide" data-section="l2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Condividere: i tre livelli di permesso</h2>
+    <span class="section-num">L2 · 10/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Chi può fare che cosa</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-blue">VISUALIZZATORE</div>
+            <div class="proto-cell hl-yel">COMMENTATORE</div>
+            <div class="proto-cell hl">EDITOR</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">legge e scarica</div>
+            <div class="proto-cell">legge e commenta</div>
+            <div class="proto-cell">modifica tutto</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">non tocca il contenuto</div>
+            <div class="proto-cell">suggerisce, non cambia</div>
+            <div class="proto-cell">può anche ricondividere</div>
+          </div>
+        </div>
+        <p style="margin-top:7px;">Sopra a tutti c'è il <strong>proprietario</strong>: chi ha creato il file. È l'unico che può eliminarlo definitivamente o trasferire la proprietà.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Due modi di condividere</h3>
+        <ol class="steps">
+          <li><strong>A persone specifiche</strong>: pulsante <em>Condividi</em> → scrivi gli indirizzi → scegli il permesso → <em>Invia</em>. È il modo più sicuro.</li>
+          <li><strong>Tramite link</strong>: <em>Accesso generale</em> → <em>Chiunque abbia il link</em>. Comodo, ma il link può essere inoltrato a chiunque.</li>
+        </ol>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Le opzioni dell'accesso generale</h3>
+        <ul>
+          <li><strong>Limitato</strong> — solo le persone che hai elencato (impostazione predefinita e consigliata)</li>
+          <li><strong>Istituto ...edu.it</strong> — chiunque nella scuola con il link</li>
+          <li><strong>Chiunque abbia il link</strong> — tutto il web, anche senza account</li>
+        </ul>
+        <p style="margin-top:6px;">Puoi sempre <strong>revocare</strong>: riapri <em>Condividi</em>, clicca sul permesso accanto al nome e scegli <em>Rimuovi accesso</em>.</p>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🔐</span>
+        <span><strong>Condividere non è consegnare.</strong> Se il docente chiede il compito su Classroom, mandargli il link del file non basta: il lavoro va allegato e consegnato dalla piattaforma.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">I Drive condivisi</h3>
+        <p>Oltre a "La mia unità" l'istituto può attivare i <strong>Drive condivisi</strong>: cartelle che appartengono al <strong>gruppo</strong> e non a una persona. Se uno studente lascia la scuola, i file restano al gruppo. Sono l'ideale per i lavori di classe e per i progetti lunghi.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🧐</span>
+        <span>Prima di inviare un link, apri il file in <strong>finestra di navigazione in incognito</strong>: vedrai esattamente quello che vede l'altra persona. È il modo più rapido per accorgersi di un permesso sbagliato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 11 — L3: CLASSROOM, COS'È ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Google Classroom: l'aula virtuale</h2>
+    <span class="section-num">L3 · 11/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Che cos'è</h3>
+        <p><strong>Classroom</strong> è il luogo in cui il docente pubblica materiali, assegna compiti e raccoglie le consegne. Non è un'altra app di archiviazione: è il <strong>collante</strong> fra Drive, Documenti, Calendar e Meet.</p>
+        <p style="margin-top:6px;">Ogni materia ha il suo <strong>corso</strong>, con un colore e un'immagine di intestazione. Nella schermata iniziale vedi tutte le schede dei corsi a cui sei iscritto.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">I due ruoli</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl">INSEGNANTE</div>
+            <div class="proto-cell hl-blue">STUDENTE</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">crea il corso, assegna, valuta, vede tutte le consegne</div>
+            <div class="proto-cell">si iscrive, svolge, consegna, vede solo il proprio lavoro</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Come ci si iscrive a un corso</h3>
+        <ol class="steps">
+          <li>Vai su <strong>classroom.google.com</strong> con l'account <strong>scolastico</strong></li>
+          <li>Clicca il <strong>+</strong> in alto a destra → <em>Iscriviti al corso</em></li>
+          <li>Digita il <strong>codice</strong> dato dal docente (lettere e cifre, senza spazi)</li>
+          <li>In alternativa accetta l'<strong>invito</strong> che trovi via email</li>
+        </ol>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Che cosa succede dietro le quinte</h3>
+        <ul>
+          <li>Classroom crea in Drive la cartella <strong>Classroom / Nome del corso</strong> con tutti i tuoi elaborati</li>
+          <li>Le scadenze compaiono in automatico nel tuo <strong>Calendar</strong></li>
+          <li>Il docente può generare un link <strong>Meet</strong> legato al corso</li>
+          <li>Le notifiche arrivano su <strong>Gmail</strong> e sull'app per smartphone</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔗</span>
+        <span>Ecco perché è tutto collegato: un compito assegnato su Classroom è un file su Drive, si apre con Documenti, ha la scadenza su Calendar e ti avvisa via Gmail. <strong>Una sola suite, un solo account.</strong></span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">La schermata "Da fare"</h3>
+        <p>Nel menu ☰ trovi <strong>Da fare</strong>: raccoglie i compiti di <strong>tutti</strong> i corsi divisi in <em>Assegnati</em>, <em>Mancanti</em> e <em>Completati</em>. È il posto giusto da controllare ogni pomeriggio.</p>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🙅</span>
+        <span>Se provi a iscriverti con il tuo indirizzo <strong>@gmail.com</strong> personale il codice non funzionerà: i corsi dell'istituto accettano solo account del <strong>dominio della scuola</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 12 — L3: LE SCHEDE ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Le schede di un corso</h2>
+    <span class="section-num">L3 · 12/26</span>
+  </div>
+  <div class="one-col">
+    <div class="proto-header">
+      <div class="proto-row">
+        <div class="proto-cell hl">STREAM</div>
+        <div class="proto-cell hl-blue">LAVORI DEL CORSO</div>
+        <div class="proto-cell hl-yel">PERSONE</div>
+        <div class="proto-cell hl-red">VOTI</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell">la bacheca del corso</div>
+        <div class="proto-cell">compiti e materiali</div>
+        <div class="proto-cell">docenti e compagni</div>
+        <div class="proto-cell">i tuoi risultati</div>
+      </div>
+    </div>
+    <div class="three-col" style="margin-top:4px;">
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card">
+          <h3 style="color:var(--accent1);">📢 Stream</h3>
+          <ul>
+            <li>Gli <strong>annunci</strong> del docente in ordine cronologico, dal più recente</li>
+            <li>Compaiono anche le notifiche dei nuovi compiti</li>
+            <li>Puoi scrivere un commento visibile a <strong>tutta la classe</strong>: usalo per domande di interesse generale, non per i fatti tuoi</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--accent3);">👥 Persone</h3>
+          <p>L'elenco di insegnanti e compagni. Cliccando su un nome puoi inviare un'email: è utile per i lavori di gruppo, ma vale sempre la buona educazione.</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card">
+          <h3 style="color:var(--accent4);">📚 Lavori del corso</h3>
+          <p style="margin-bottom:5px;">La parte più importante. Il docente può pubblicare:</p>
+          <ul>
+            <li><strong>Compito</strong> — da svolgere e consegnare, con punteggio e scadenza</li>
+            <li><strong>Compito con quiz</strong> — un Modulo Google allegato</li>
+            <li><strong>Domanda</strong> — risposta breve o a scelta multipla</li>
+            <li><strong>Materiale</strong> — dispense, link, video: niente da consegnare</li>
+            <li><strong>Argomenti</strong> — le "cartelle" che raggruppano i lavori per unità didattica</li>
+          </ul>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="card">
+          <h3 style="color:var(--accent2);">📈 Voti</h3>
+          <p>Il riepilogo dei punteggi che il docente ha restituito. Attenzione: il voto di Classroom è un <strong>punteggio didattico</strong> (per esempio 17/20) e non sostituisce il voto sul registro elettronico.</p>
+        </div>
+        <div class="callout callout-blue">
+          <span class="callout-icon">🔔</span>
+          <span>Attiva le <strong>notifiche</strong> dall'app Classroom sullo smartphone: ti avvisa quando viene assegnato un compito e quando la scadenza si avvicina.</span>
+        </div>
+        <div class="callout callout-green">
+          <span class="callout-icon">💬</span>
+          <span>Per una domanda che riguarda solo te, usa il <strong>commento privato</strong> dentro al compito: lo leggono solo tu e il docente.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 13 — L3: CONSEGNARE ═══ -->
+<div class="slide" data-section="l3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Svolgere e consegnare un compito</h2>
+    <span class="section-num">L3 · 13/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">La procedura, passo per passo</h3>
+        <ol class="steps">
+          <li>Apri <em>Lavori del corso</em> e clicca sul compito: leggi <strong>consegna, punteggio e scadenza</strong></li>
+          <li>Nel riquadro <strong>Il tuo lavoro</strong> scegli <em>+ Aggiungi o crea</em></li>
+          <li>Allega un file da Drive, dal PC, un link, oppure crea al volo un Documento/Foglio/Presentazione</li>
+          <li>Svolgi il lavoro: si salva da solo</li>
+          <li>Torna al compito e premi <strong>Consegna</strong>, poi conferma</li>
+          <li>Verifica che lo stato sia diventato <strong>"Consegnato"</strong></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Copia per ogni studente</h3>
+        <p>Se il docente allega un file con l'opzione <em>Crea una copia per ogni studente</em>, Classroom ti prepara un file <strong>personale</strong> già intestato con il tuo nome: lavora su quello, non chiederne un altro.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Gli stati di un compito</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-blue">Assegnato</div><div class="proto-cell">da fare, non ancora consegnato</div></div>
+          <div class="proto-row"><div class="proto-cell hl">Consegnato</div><div class="proto-cell">inviato al docente, in attesa</div></div>
+          <div class="proto-row"><div class="proto-cell hl-yel">Restituito</div><div class="proto-cell">corretto, con punteggio e commenti</div></div>
+          <div class="proto-row"><div class="proto-cell hl-red">Mancante / In ritardo</div><div class="proto-cell">scadenza superata</div></div>
+        </div>
+        <p style="margin-top:6px;">Finché il docente non corregge puoi premere <strong>Ritira consegna</strong>, modificare e riconsegnare: il ritardo però resterà registrato.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">I tre errori più comuni</h3>
+        <ul>
+          <li><strong>Allegare senza consegnare</strong>: il file c'è ma lo stato resta "Assegnato" e il docente non lo vede come consegnato</li>
+          <li><strong>Allegare un link non condiviso</strong>: il docente apre e legge "Devi richiedere l'accesso"</li>
+          <li><strong>Consegnare il file sbagliato</strong>: controlla sempre il nome prima di premere il pulsante</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⏰</span>
+        <span>Dopo la consegna, Classroom toglie all'autore il permesso di modifica e lo restituisce solo se ritiri la consegna: è il modo in cui la piattaforma "congela" il lavoro alla scadenza. <strong>Non ridurti all'ultimo minuto</strong>: un caricamento lento non è una giustificazione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 14 — L4: DOCUMENTI ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Documenti: il word processor nel browser</h2>
+    <span class="section-num">L4 · 14/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Come si crea</h3>
+        <p>Da Drive con <em>+ Nuovo → Documenti Google</em>, dal launcher ⋮⋮⋮, oppure scrivendo <code>doc.new</code> nella barra degli indirizzi. Il file nasce in "La mia unità" con il nome <em>Documento senza titolo</em>: <strong>rinominalo subito</strong> cliccando sul titolo in alto a sinistra.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Stili: non basta "fare grande e grassetto"</h3>
+        <p>Nel menu a tendina degli stili scegli <strong>Titolo 1</strong>, <strong>Titolo 2</strong>, <strong>Titolo 3</strong> per i capitoli e i paragrafi, e <strong>Testo normale</strong> per il corpo. In cambio ottieni:</p>
+        <ul style="margin-top:5px;">
+          <li>un <strong>sommario automatico</strong> (<em>Inserisci → Sommario</em>) che si aggiorna da solo</li>
+          <li>la <strong>struttura</strong> laterale per spostarti fra le sezioni in un clic</li>
+          <li>un aspetto <strong>uniforme</strong> in tutto il documento</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🧭</span>
+        <span>Regola da tenere a mente per tutta la scuola: <strong>si separa il contenuto dalla formattazione</strong>. Tu scrivi che quella riga è un titolo, il programma decide come disegnarlo.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Strumenti che servono davvero in una relazione</h3>
+        <ul>
+          <li><strong>Inserisci → Immagine</strong> (da Drive, dal PC, dalla fotocamera) e <strong>Tabella</strong></li>
+          <li><strong>Inserisci → Nota a piè di pagina</strong> per le fonti</li>
+          <li><strong>Inserisci → Intestazione e numeri di pagina</strong></li>
+          <li><strong>Formato → Colonne</strong> e <strong>Interruzione di pagina</strong></li>
+          <li><strong>Strumenti → Digitazione vocale</strong> (<span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">S</span>)</li>
+          <li><strong>Strumenti → Controllo ortografico</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Scorciatoie da imparare subito</h3>
+<pre><span class="cmd">Ctrl</span>+<span class="arg">B</span> / <span class="arg">I</span> / <span class="arg">U</span>   <span class="cmt">grassetto, corsivo, sottolineato</span>
+<span class="cmd">Ctrl</span>+<span class="arg">K</span>           <span class="cmt">inserisci collegamento</span>
+<span class="cmd">Ctrl</span>+<span class="arg">Shift</span>+<span class="arg">V</span>     <span class="cmt">incolla SENZA formattazione</span>
+<span class="cmd">Ctrl</span>+<span class="arg">Alt</span>+<span class="arg">M</span>       <span class="cmt">nuovo commento</span>
+<span class="cmd">Ctrl</span>+<span class="arg">F</span>           <span class="cmt">trova nel documento</span>
+<span class="cmd">Ctrl</span>+<span class="arg">/</span>           <span class="cmt">elenco di tutte le scorciatoie</span></pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">📋</span>
+        <span>Quando copi del testo da una pagina web, incolla con <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">V</span>: eviti di portarti dietro font e colori del sito. E naturalmente <strong>cita la fonte</strong>: copiare e incollare senza citare è plagio.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 15 — L4: COLLABORARE ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Lavorare in gruppo sullo stesso file</h2>
+    <span class="section-num">L4 · 15/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Le tre modalità (in alto a destra)</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl">✏️ MODIFICA</div>
+            <div class="proto-cell hl-yel">💡 SUGGERIMENTI</div>
+            <div class="proto-cell hl-blue">👁 VISUALIZZAZIONE</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell">cambi direttamente il testo</div>
+            <div class="proto-cell">le modifiche restano in verde, da accettare o rifiutare</div>
+            <div class="proto-cell">leggi e basta</div>
+          </div>
+        </div>
+        <p style="margin-top:7px;">La modalità <strong>Suggerimenti</strong> è quella giusta quando correggi il lavoro di un compagno: proponi, non imponi.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Commenti e menzioni</h3>
+        <ul>
+          <li>Seleziona il testo → icona <strong>💬</strong> o <span class="kbd">Ctrl</span>+<span class="kbd">Alt</span>+<span class="kbd">M</span></li>
+          <li>Scrivi <strong>@</strong> seguito dall'indirizzo di un compagno: gli arriva una notifica via email</li>
+          <li>Chi ha risolto il problema clicca <strong>Risolvi</strong> ✓: il commento si archivia ma resta consultabile</li>
+          <li>Con <strong>Assegna a</strong> il commento diventa un compito con un responsabile</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Modifiche simultanee</h3>
+        <p>Chi sta lavorando in questo momento compare con un <strong>cursore colorato</strong> e la propria iniziale. Non si "blocca" il file: si scrive tutti insieme e ognuno vede le modifiche degli altri in tempo reale, in genere entro un secondo.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">La cronologia versioni</h3>
+        <p><em>File → Cronologia versioni → Mostra cronologia versioni</em> (<span class="kbd">Ctrl</span>+<span class="kbd">Alt</span>+<span class="kbd">Shift</span>+<span class="kbd">H</span>) mostra a destra la lista di <strong>tutte</strong> le revisioni, con data, ora e autore. Puoi:</p>
+        <ul style="margin-top:5px;">
+          <li>vedere il documento com'era in un certo momento</li>
+          <li><strong>ripristinare</strong> una versione precedente</li>
+          <li>dare un nome a una versione importante ("consegna del 20/10")</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🕵️</span>
+        <span>La cronologia registra <strong>chi ha scritto che cosa e quando</strong>. In un lavoro di gruppo serve a dimostrare il proprio contributo — ed è anche il motivo per cui "ho fatto tutto io" e "l'ho scritto da solo" sono affermazioni facilmente verificabili.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span>Un <strong>Editor</strong> può cancellare l'intero contenuto. In un lavoro di gruppo va bene, ma non dare mai il permesso di modifica a chi non deve modificare: per lui esistono <em>Commentatore</em> e <em>Visualizzatore</em>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 16 — L4: FOGLI ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Fogli: la tabella che calcola da sola</h2>
+    <span class="section-num">L4 · 16/26</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Celle, righe, colonne</h3>
+        <p>Le <strong>colonne</strong> hanno lettere, le <strong>righe</strong> numeri: l'incrocio è la <strong>cella</strong>, identificata dal suo <strong>riferimento</strong> (<code>B3</code>). Un file può contenere più <strong>schede</strong> (i "fogli" in basso). Ogni formula comincia con il segno <strong>=</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Un esempio: la media dei voti</h3>
+        <table class="ad-table">
+          <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+          <tr><td><strong>1</strong></td><td class="lbl">Materia</td><td>1ª prova</td><td>2ª prova</td><td>Media</td></tr>
+          <tr><td><strong>2</strong></td><td class="lbl">Informatica</td><td>7</td><td>8</td><td class="best">7,5</td></tr>
+          <tr><td><strong>3</strong></td><td class="lbl">Matematica</td><td>6</td><td>5</td><td class="mid">5,5</td></tr>
+          <tr><td><strong>4</strong></td><td class="lbl">Italiano</td><td>8</td><td>7</td><td class="best">7,5</td></tr>
+          <tr><td><strong>5</strong></td><td class="lbl"><strong>Media generale</strong></td><td>7</td><td>6,67</td><td class="best">6,83</td></tr>
+        </table>
+        <p style="margin-top:6px;">In <code>D2</code> si scrive <code>=MEDIA(B2:C2)</code> e poi si <strong>trascina</strong> l'angolino in basso a destra: la formula si copia adattando i riferimenti.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Le formule da sapere in prima</h3>
+<pre><span class="cmd">=SOMMA(</span><span class="arg">B2:B10</span><span class="cmd">)</span>      <span class="cmt">somma un intervallo</span>
+<span class="cmd">=MEDIA(</span><span class="arg">B2:B10</span><span class="cmd">)</span>      <span class="cmt">media aritmetica</span>
+<span class="cmd">=MAX(</span><span class="arg">B2:B10</span><span class="cmd">)</span>        <span class="cmt">valore più alto</span>
+<span class="cmd">=MIN(</span><span class="arg">B2:B10</span><span class="cmd">)</span>        <span class="cmt">valore più basso</span>
+<span class="cmd">=CONTA.NUMERI(</span><span class="arg">B2:B10</span><span class="cmd">)</span><span class="cmt"> quante celle</span>
+<span class="cmd">=SE(</span><span class="arg">D2&gt;=6</span>;<span class="arg">"Sufficiente"</span>;<span class="arg">"Insuff."</span><span class="cmd">)</span>
+<span class="cmd">=OGGI()</span>               <span class="cmt">la data di oggi</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Riferimenti relativi e assoluti</h3>
+<pre><span class="arg">B2</span>     <span class="cmt">relativo: copiando si sposta</span>
+<span class="kw">$B$2</span>   <span class="cmt">assoluto: resta sempre su B2</span>
+<span class="arg">B$2</span>    <span class="cmt">misto: blocca solo la riga</span>
+
+<span class="cmt">il tasto</span> <span class="ok">F4</span> <span class="cmt">aggiunge e toglie i $</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Rendere leggibili i dati</h3>
+        <ul>
+          <li><strong>Inserisci → Grafico</strong>: istogramma per confrontare, linea per l'andamento nel tempo, torta per le percentuali</li>
+          <li><strong>Formato → Formattazione condizionale</strong>: colora in rosso le insufficienze</li>
+          <li><strong>Dati → Crea un filtro</strong> per ordinare e filtrare</li>
+          <li><strong>Visualizza → Blocca</strong> la prima riga così l'intestazione resta ferma</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 17 — L4: PRESENTAZIONI ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Presentazioni: raccontare con le slide</h2>
+    <span class="section-num">L4 · 17/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Gli strumenti principali</h3>
+        <ul>
+          <li><strong>Layout</strong>: la disposizione dei riquadri (titolo, titolo e corpo, due colonne, immagine…)</li>
+          <li><strong>Tema</strong>: colori e caratteri coerenti su tutte le slide, scelti una volta sola</li>
+          <li><strong>Diapositiva → Cambia sfondo / Transizione</strong></li>
+          <li><strong>Inserisci</strong>: immagini, video di YouTube, forme, diagrammi, tabelle</li>
+          <li><strong>Note del relatore</strong> (in basso): quello che dirai a voce, che il pubblico non vede</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Presentare</h3>
+        <ul>
+          <li>Pulsante <strong>Presenta</strong> in alto a destra (schermo intero)</li>
+          <li><strong>Visualizzatore del relatore</strong>: su un monitor le slide, sull'altro le note e il timer</li>
+          <li>Con <strong>Strumenti per il pubblico</strong> si raccolgono le domande durante l'esposizione</li>
+          <li><span class="kbd">Esc</span> esce, le frecce scorrono, <span class="kbd">B</span> annerisce lo schermo per riportare l'attenzione su di te</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Regole per slide che si capiscono</h3>
+        <ul>
+          <li><strong>Un'idea per slide.</strong> Se ne hai due, fai due slide</li>
+          <li>Poche righe, poche parole per riga: la slide è un <strong>appoggio</strong>, non il testo della relazione</li>
+          <li>Carattere grande (titoli ≥ 28 pt, testo ≥ 18 pt): l'ultimo banco deve leggere</li>
+          <li><strong>Contrasto</strong> alto fra testo e sfondo; niente giallo su bianco</li>
+          <li>Immagini nitide e pertinenti, non decorazioni a caso</li>
+          <li>Animazioni e transizioni con moderazione: distraggono</li>
+          <li>Ultima slide: le <strong>fonti</strong> che hai usato</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🗣️</span>
+        <span><strong>La slide non è la relazione.</strong> Se leggi quello che è scritto sullo schermo, il pubblico lo ha già letto prima di te e smette di ascoltarti.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🤝</span>
+        <span>Anche qui vale la collaborazione: in un lavoro di gruppo assegnate a ciascuno <strong>slide diverse</strong> e lavorate contemporaneamente sullo stesso file, invece di scambiarvi cinque versioni per email.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 18 — L4: FORMATI E CONVERSIONI ═══ -->
+<div class="slide" data-section="l4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Formati: Workspace, Office e PDF</h2>
+    <span class="section-num">L4 · 18/26</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">A ogni app il suo corrispondente</h3>
+        <table class="ad-table">
+          <tr><th>Google</th><th>Microsoft</th><th>Estensione</th><th>Libero</th></tr>
+          <tr><td class="lbl">Documenti</td><td>Word</td><td class="best">.docx</td><td>.odt</td></tr>
+          <tr><td class="lbl">Fogli</td><td>Excel</td><td class="best">.xlsx</td><td>.ods</td></tr>
+          <tr><td class="lbl">Presentazioni</td><td>PowerPoint</td><td class="best">.pptx</td><td>.odp</td></tr>
+          <tr><td class="lbl">Moduli</td><td>Forms</td><td class="mid">—</td><td>—</td></tr>
+        </table>
+        <p style="margin-top:6px;">I file nativi di Google <strong>non hanno un'estensione</strong> sul tuo disco: esistono solo dentro Drive. Per averne una copia sul PC devi <strong>esportarli</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Importare ed esportare</h3>
+        <ul>
+          <li><strong>Importare</strong>: trascina un <code>.docx</code> in Drive, poi <em>Apri con → Documenti Google</em> per convertirlo</li>
+          <li><strong>Esportare</strong>: <em>File → Scarica</em> e scegli il formato</li>
+          <li><strong>Inviare per email</strong>: <em>File → Email → Invia questo file</em>, con conversione automatica</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Perché il PDF</h3>
+        <p>Il <strong>PDF</strong> (<em>Portable Document Format</em>) fissa l'impaginazione: si vede identico su qualunque computer, telefono o stampante, e non si modifica per sbaglio. È il formato giusto per <strong>consegnare</strong> un elaborato finito.</p>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">SCRIVI</div><div class="bs">Documenti</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">RILEGGI</div><div class="bs">correggi</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent2);"><div class="bt" style="color:var(--accent2)">PDF</div><div class="bs">File → Scarica</div></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🔄</span>
+        <span>La conversione fra formati diversi <strong>non è mai perfetta</strong>: caratteri insoliti, caselle di testo e formule complesse possono spostarsi. Dopo ogni conversione <strong>ricontrolla l'impaginazione</strong>.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Regola pratica per le consegne: lavora in <strong>formato Google</strong> (così hai salvataggio automatico e cronologia), consegna in <strong>PDF</strong> se il docente non chiede diversamente.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 19 — L5: MEET ═══ -->
+<div class="slide" data-section="l5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Meet: la videolezione</h2>
+    <span class="section-num">L5 · 19/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Come si entra in una riunione</h3>
+        <ul>
+          <li>Dal <strong>link</strong> del docente: <code>meet.google.com/abc-defg-hij</code></li>
+          <li>Dall'evento di <strong>Calendar</strong>, cliccando "Partecipa con Google Meet"</li>
+          <li>Dal banner in cima allo <strong>Stream</strong> di Classroom</li>
+          <li>Da <code>meet.google.com</code> inserendo il <strong>codice</strong> della riunione</li>
+        </ul>
+        <p style="margin-top:6px;">Prima di entrare vedi l'anteprima: è il momento per <strong>controllare microfono e webcam</strong>. Di solito puoi entrare solo con l'account della scuola e solo se il docente ha già aperto la stanza.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">La barra dei comandi</h3>
+<pre>  <span class="cmd">🎤</span>      <span class="cmd">📷</span>      <span class="kw">☎</span>      <span class="arg">🖥</span>      <span class="arg">✋</span>      <span class="arg">💬</span>
+ micro   video   esci  presenta  mano   chat
+
+<span class="cmt">Ctrl+D</span> attiva/disattiva il microfono
+<span class="cmt">Ctrl+E</span> attiva/disattiva la videocamera
+<span class="cmt">CC</span>     sottotitoli automatici in tempo reale</pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🖥️</span>
+        <span>Con <strong>Presenta ora</strong> puoi condividere <em>tutto lo schermo</em>, <em>una finestra</em> o <em>una scheda</em> del browser. Scegli sempre <strong>una finestra sola</strong>: eviti di mostrare notifiche, chat personali e tutto ciò che hai aperto.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Netiquette della videolezione</h3>
+        <ul>
+          <li>Entra <strong>puntuale</strong> e con il tuo <strong>nome e cognome</strong> veri</li>
+          <li><strong>Microfono spento</strong> quando non parli: i rumori di fondo si sommano</li>
+          <li>Per intervenire usa <strong>Alza la mano</strong> ✋ o la chat, e aspetta il turno</li>
+          <li>Segui le indicazioni del docente sulla <strong>webcam</strong>; scegli un'inquadratura sobria o uno sfondo sfocato</li>
+          <li>Siediti in un posto tranquillo e vestiti come andresti a scuola</li>
+          <li>La chat serve per la lezione, non per i commenti fra compagni</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🎥</span>
+        <span><strong>Registrare o fotografare la lezione e i compagni senza autorizzazione è vietato.</strong> Diffondere quelle immagini è una violazione della privacy con conseguenze disciplinari e, nei casi più gravi, penali. Le registrazioni, quando servono, le fa il docente.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🛠️</span>
+        <span>Se non ti sentono: controlla di non essere in muto, verifica il <strong>microfono giusto</strong> in <em>Impostazioni → Audio</em>, chiudi le altre applicazioni che usano il microfono, prova a uscire e rientrare. Se il video scatta, spegni la webcam: la voce è più importante.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 20 — L5: CALENDAR E MODULI ═══ -->
+<div class="slide" data-section="l5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Calendar e Moduli</h2>
+    <span class="section-num">L5 · 20/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">📅 Google Calendar</h3>
+        <ul>
+          <li>Viste <strong>Giorno / Settimana / Mese / Agenda</strong>: la settimana è la più utile per organizzarsi</li>
+          <li>Per creare un evento: clicca su un'ora libera, oppure <strong>+ Crea</strong></li>
+          <li>Un evento ha titolo, orario, luogo, descrizione, <strong>invitati</strong> e <strong>notifiche</strong></li>
+          <li>Invitando qualcuno gli arriva un'email con <em>Sì / Forse / No</em></li>
+          <li>Puoi tenere <strong>più calendari</strong> (scuola, sport, famiglia) e accenderli o spegnerli</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Calendar e Classroom insieme</h3>
+        <p>Ogni compito con scadenza compare <strong>automaticamente</strong> nel calendario del corso. Aggiungi tu un promemoria <strong>due giorni prima</strong> della consegna: è la differenza fra "consegnato" e "in ritardo".</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">⏳</span>
+        <span>Bloccare in calendario un'ora di studio, come fosse un appuntamento, è una delle tecniche di organizzazione più efficaci — e funziona anche in prima superiore.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">📝 Google Moduli (Forms)</h3>
+        <p>Serve a creare <strong>questionari, sondaggi e quiz</strong>. Il docente lo usa per le verifiche a risposta chiusa; tu lo userai nei progetti per raccogliere dati.</p>
+        <ul style="margin-top:5px;">
+          <li>Tipi di domanda: risposta breve, paragrafo, <strong>scelta multipla</strong>, caselle, elenco a discesa, scala lineare, data, caricamento di file</li>
+          <li>Opzione <strong>Obbligatoria</strong> per le domande a cui si deve rispondere</li>
+          <li>In <em>Impostazioni → Quiz</em> si attivano <strong>punteggio e correzione automatica</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Le risposte</h3>
+        <div class="chain">
+          <div class="blk" style="border-color:var(--accent3);"><div class="bt" style="color:var(--accent3)">MODULO</div><div class="bs">domande</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent4);"><div class="bt" style="color:var(--accent4)">RISPOSTE</div><div class="bs">riepilogo e grafici</div></div>
+          <span class="arw">→</span>
+          <div class="blk" style="border-color:var(--accent1);"><div class="bt" style="color:var(--accent1)">FOGLI</div><div class="bs">tabella da elaborare</div></div>
+        </div>
+        <p style="margin-top:7px;">Con un clic le risposte finiscono in un <strong>foglio di calcolo</strong>: da lì puoi calcolare medie, percentuali e costruire grafici. È il tuo primo, piccolo esempio di <strong>raccolta ed elaborazione dei dati</strong>.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🕵️</span>
+        <span>Se raccogli dati con un modulo, chiedi solo le informazioni che ti servono davvero e <strong>non raccogliere dati personali</strong> di altre persone senza una ragione e senza dirlo chiaramente: è il principio di <em>minimizzazione</em> del GDPR.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 21 — L5: ALTRI STRUMENTI ═══ -->
+<div class="slide" data-section="l5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Gli altri strumenti della suite</h2>
+    <span class="section-num">L5 · 21/26</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">📌 Keep</h3>
+        <p>Note veloci, liste di cose da fare con le caselle da spuntare, promemoria con data e ora. Si può aprire in un pannello laterale dentro Documenti e trascinare una nota nel testo.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">💬 Chat e Spazi</h3>
+        <p>Messaggistica interna all'istituto. Gli <strong>Spazi</strong> sono stanze tematiche (per esempio un gruppo di progetto) con file e attività condivisi. Resta uno strumento di lavoro: valgono le stesse regole di educazione dell'email.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">🌐 Sites</h3>
+        <p>Crea pagine web senza scrivere codice, trascinando blocchi di testo, immagini e file di Drive. Perfetto per pubblicare il prodotto finale di un progetto di gruppo.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">👥 Gruppi</h3>
+        <p>Un solo indirizzo che scrive a molte persone: <code>classe1a@istituto.edu.it</code> raggiunge tutta la classe. Il docente lo usa per le comunicazioni collettive.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">📱 Le app per smartphone</h3>
+        <p>Gmail, Drive, Classroom, Meet, Documenti, Fogli e Presentazioni hanno un'app per Android e iOS. Sono comode per <strong>controllare</strong> le consegne e leggere i materiali; per <strong>scrivere</strong> una relazione o un foglio di calcolo, il computer resta un altro mestiere.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">📷 Foto, Maps, Traduttore</h3>
+        <p>Fanno parte dello stesso ecosistema di account. Sull'account scolastico alcuni servizi possono essere <strong>disattivati</strong> dall'amministratore: non è un guasto, è una scelta dell'istituto.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">🤖 Gli assistenti basati su IA</h3>
+        <p>Se l'istituto li ha attivati, dentro Workspace possono comparire funzioni di <strong>intelligenza artificiale</strong> che riassumono, correggono o generano testo.</p>
+        <ul style="margin-top:5px;">
+          <li>Sono strumenti, non autori: il lavoro consegnato deve essere <strong>tuo</strong></li>
+          <li>Verifica sempre: un'IA può produrre risposte <strong>sbagliate ma convincenti</strong></li>
+          <li>Se li usi, <strong>dichiaralo</strong> come faresti con qualsiasi altra fonte</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🧩</span>
+        <span>Il valore della suite non sta nella singola app ma nel fatto che <strong>comunicano fra loro</strong>: un modulo produce un foglio, un foglio produce un grafico, il grafico finisce in una presentazione, la presentazione si consegna su Classroom.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 22 — L5: SICUREZZA E PRIVACY ═══ -->
+<div class="slide" data-section="l5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Sicurezza, privacy e comportamento digitale</h2>
+    <span class="section-num">L5 · 22/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I tuoi dati sull'account scolastico</h3>
+        <ul>
+          <li>L'account è di proprietà dell'<strong>istituto</strong>, che ne è il <strong>titolare del trattamento</strong> ai sensi del <strong>GDPR</strong> (Reg. UE 2016/679)</li>
+          <li>Sugli account Education <strong>non viene fatta pubblicità profilata</strong> agli studenti</li>
+          <li>L'amministratore può reimpostare la password, sospendere l'account e, nei casi previsti, accedere ai contenuti</li>
+          <li>La scuola pubblica un'<strong>informativa privacy</strong> e un <strong>regolamento</strong> d'uso: sono documenti da leggere, non moduli da firmare al volo</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Le cinque regole di sicurezza</h3>
+        <ol class="steps">
+          <li>Password lunga, diversa dalle altre, mai condivisa</li>
+          <li><strong>Esci</strong> dall'account sui computer condivisi</li>
+          <li>Non cliccare link sospetti e non installare estensioni sconosciute</li>
+          <li>Prima di condividere, controlla <strong>chi</strong> potrà vedere il file</li>
+          <li>Se sbagli o subisci qualcosa, <strong>dillo subito</strong> a un docente: quasi tutto è rimediabile se lo si affronta presto</li>
+        </ol>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Rispettare gli altri</h3>
+        <ul>
+          <li>Non pubblicare <strong>foto, video o audio</strong> di compagni e docenti senza il loro consenso</li>
+          <li>Non diffondere fuori dalla classe i materiali che il docente condivide con voi: spesso sono protetti dal <strong>diritto d'autore</strong></li>
+          <li>Non usare l'account di un altro, neppure per scherzo: è <strong>accesso abusivo</strong>, non una bravata</li>
+          <li>Offendere o escludere qualcuno in chat o nei commenti è <strong>cyberbullismo</strong> (L. 71/2017), anche se "era solo una battuta"</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🧠</span>
+        <span>In rete resta una traccia di tutto: email inviate, cronologia delle versioni, log di accesso, commenti su Classroom. <strong>L'anonimato in un ambiente scolastico non esiste.</strong> Scrivi solo ciò che saresti disposto a firmare.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🧭</span>
+        <span>La prova del nove prima di premere Invio: <em>lo direi guardando la persona in faccia? Andrebbe bene se lo leggessero i miei genitori e il dirigente scolastico?</em> Se la risposta è no, non inviarlo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 23 — L5: SCORCIATOIE E BUONE PRATICHE ═══ -->
+<div class="slide" data-section="l5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Scorciatoie e buone pratiche</h2>
+    <span class="section-num">L5 · 23/26</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Creare al volo</h3>
+<pre><span class="cmd">doc.new</span>      <span class="cmt">nuovo Documento</span>
+<span class="cmd">sheet.new</span>    <span class="cmt">nuovo Foglio</span>
+<span class="cmd">slide.new</span>    <span class="cmt">nuova Presentazione</span>
+<span class="cmd">form.new</span>     <span class="cmt">nuovo Modulo</span>
+<span class="cmd">meet.new</span>     <span class="cmt">nuova riunione</span>
+<span class="cmd">cal.new</span>      <span class="cmt">nuovo evento</span>
+
+<span class="cmt">si scrivono nella barra</span>
+<span class="cmt">degli indirizzi del browser</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Ovunque</h3>
+        <p><span class="kbd">Ctrl</span>+<span class="kbd">/</span> apre l'elenco completo delle scorciatoie dell'app in cui ti trovi. È il modo più rapido per impararle.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Documenti e Fogli</h3>
+<pre><span class="cmd">Ctrl</span>+<span class="arg">Shift</span>+<span class="arg">V</span>  <span class="cmt">incolla senza formato</span>
+<span class="cmd">Ctrl</span>+<span class="arg">Alt</span>+<span class="arg">M</span>    <span class="cmt">nuovo commento</span>
+<span class="cmd">Ctrl</span>+<span class="arg">K</span>        <span class="cmt">link</span>
+<span class="cmd">Ctrl</span>+<span class="arg">Z</span> / <span class="arg">Y</span>    <span class="cmt">annulla / ripristina</span>
+<span class="cmd">F4</span>            <span class="cmt">blocca riferimento ($)</span>
+<span class="cmd">Ctrl</span>+<span class="arg">Invio</span>    <span class="cmt">a capo nella cella</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Meet</h3>
+<pre><span class="cmd">Ctrl</span>+<span class="arg">D</span>   <span class="cmt">microfono on/off</span>
+<span class="cmd">Ctrl</span>+<span class="arg">E</span>   <span class="cmt">videocamera on/off</span></pre>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il metodo di lavoro in cinque punti</h3>
+        <ol class="steps">
+          <li><strong>Un solo account</strong>: quello della scuola, per tutto ciò che riguarda la scuola</li>
+          <li><strong>Un solo posto</strong>: i file di scuola stanno in Drive, non sul desktop né su una chiavetta</li>
+          <li><strong>Nomi chiari</strong>: data, cognome, argomento</li>
+          <li><strong>Consegna dalla piattaforma</strong>, non via messaggio</li>
+          <li><strong>Controlla prima di inviare</strong>: destinatario, allegato, permessi</li>
+        </ol>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🧰</span>
+        <span>Queste non sono regole "da Google": sono le stesse abitudini che troverai in qualunque azienda, con Microsoft 365 o con qualsiasi altra suite. Cambiano i pulsanti, non il metodo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 24 — RIPASSO ═══ -->
+<div class="slide" data-section="ripasso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Abbiamo imparato che…</h2>
+    <span class="section-num">Sintesi · 24/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 L1 — Account e Gmail</h3>
+        <ul>
+          <li><strong>Google Workspace</strong> (ex G Suite) è una suite di <strong>applicazioni web</strong>: girano nel browser e salvano nel <strong>cloud</strong></li>
+          <li>L'account <code>nome.cognome@istituto.edu.it</code> è <strong>gestito dalla scuola</strong> e vale finché la frequenti</li>
+          <li>Un'email si compone di <strong>A, Cc, Ccn, oggetto, corpo, firma</strong>; il <strong>Ccn</strong> nasconde i destinatari</li>
+          <li>Oggetto chiaro, forma cortese, firma con nome e classe: è una comunicazione <strong>formale</strong></li>
+          <li>Il <strong>phishing</strong> finge di essere una fonte fidata per rubare le password: nessuno le chiede via email</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 L2 — Drive</h3>
+        <ul>
+          <li>Drive è un archivio nel cloud: <strong>La mia unità</strong>, <strong>Condivisi con me</strong>, <strong>Cestino</strong> (30 giorni)</li>
+          <li>Il <strong>salvataggio è automatico</strong>: nei file Google non esiste il pulsante Salva</li>
+          <li>Cartelle per materia e <strong>nomi dei file</strong> con data in formato <code>AAAA-MM-GG</code></li>
+          <li>Tre permessi: <strong>Visualizzatore</strong>, <strong>Commentatore</strong>, <strong>Editor</strong>; sopra a tutti il <strong>proprietario</strong></li>
+          <li>Condividere <strong>non</strong> equivale a consegnare</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L3 — Classroom</h3>
+        <ul>
+          <li>Ci si iscrive con il <strong>codice del corso</strong> e solo con l'account scolastico</li>
+          <li>Quattro schede: <strong>Stream</strong>, <strong>Lavori del corso</strong>, <strong>Persone</strong>, <strong>Voti</strong></li>
+          <li>Un compito si <strong>allega</strong> e poi si <strong>consegna</strong>: lo stato deve diventare "Consegnato"</li>
+          <li>Classroom collega Drive, Calendar, Gmail e Meet</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 L4 — Documenti, Fogli, Presentazioni</h3>
+        <ul>
+          <li>Gli <strong>stili</strong> (Titolo 1, 2, 3) danno struttura al documento e generano il sommario automatico</li>
+          <li>Tre modalità: <strong>Modifica</strong>, <strong>Suggerimenti</strong>, <strong>Visualizzazione</strong></li>
+          <li><strong>Commenti</strong>, <strong>@menzioni</strong> e <strong>cronologia versioni</strong> rendono possibile il lavoro di gruppo e tracciano chi ha fatto che cosa</li>
+          <li>Nei Fogli ogni formula inizia con <strong>=</strong>; i riferimenti sono <strong>relativi</strong> (<code>B2</code>) o <strong>assoluti</strong> (<code>$B$2</code>)</li>
+          <li>Slide leggibili: <strong>un'idea per slide</strong>, poco testo, buon contrasto</li>
+          <li>Si lavora in formato Google e si consegna in <strong>PDF</strong>; la conversione non è mai perfetta</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 L5 — Meet e gli altri strumenti</h3>
+        <ul>
+          <li>A Meet si accede da link, Calendar o Classroom; <strong>microfono spento</strong> quando non parli e <strong>Alza la mano</strong> per intervenire</li>
+          <li><strong>Registrare o diffondere</strong> la lezione senza autorizzazione è vietato</li>
+          <li><strong>Calendar</strong> riceve automaticamente le scadenze di Classroom</li>
+          <li><strong>Moduli</strong> raccoglie risposte e le riversa in un <strong>Foglio</strong> da elaborare</li>
+          <li>L'istituto è titolare del trattamento dei dati secondo il <strong>GDPR</strong>; sugli account Education non c'è pubblicità profilata</li>
+          <li>In rete <strong>resta traccia di tutto</strong>: password personale, nessun accesso all'account altrui, rispetto per compagni e docenti</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 25 — VERIFICA ═══ -->
+<div class="slide" data-section="verifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Verifica le tue conoscenze</h2>
+    <span class="section-num">Autoverifica · 25/26</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Risposta multipla</h3>
+        <ul class="qa-list">
+          <li>1. Le applicazioni di Google Workspace: <span class="sol">funzionano nel browser e salvano nel cloud</span></li>
+          <li>2. Il campo <strong>Ccn</strong> serve a: <span class="sol">inviare una copia senza mostrare il destinatario agli altri</span></li>
+          <li>3. Il limite indicativo di un allegato Gmail è: <span class="sol">circa 25 MB</span></li>
+          <li>4. Un messaggio che chiede la password con urgenza è: <span class="sol">un tentativo di phishing</span></li>
+          <li>5. In Drive, "Condivisi con me" contiene: <span class="sol">i file di cui il proprietario è un altro</span></li>
+          <li>6. Chi può modificare il testo ma non eliminare il file è: <span class="sol">l'editor (solo il proprietario lo elimina davvero)</span></li>
+          <li>7. Per iscriversi a un corso di Classroom serve: <span class="sol">il codice del corso o l'invito del docente</span></li>
+          <li>8. Dopo aver allegato il file a un compito bisogna: <span class="sol">premere Consegna</span></li>
+          <li>9. La cronologia versioni di un Documento permette di: <span class="sol">vedere e ripristinare le versioni precedenti</span></li>
+          <li>10. In Fogli, <code>$B$2</code> è un riferimento: <span class="sol">assoluto</span></li>
+          <li>11. Per consegnare un elaborato impaginato in modo stabile conviene: <span class="sol">esportarlo in PDF</span></li>
+          <li>12. Durante una videolezione, per intervenire si usa: <span class="sol">Alza la mano o la chat</span></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Vero o Falso</h3>
+        <ul class="qa-list">
+          <li>1. I file Google si devono salvare con Ctrl+S. <span class="sol-f">F</span> <span style="color:var(--muted)">— il salvataggio è automatico</span></li>
+          <li>2. Il Cestino di Drive si svuota da solo dopo 30 giorni. <span class="sol">V</span></li>
+          <li>3. Condividere il link di un file equivale a consegnarlo su Classroom. <span class="sol-f">F</span></li>
+          <li>4. Un Commentatore può modificare il testo del documento. <span class="sol-f">F</span> <span style="color:var(--muted)">— può solo commentare</span></li>
+          <li>5. Più studenti possono scrivere sullo stesso documento nello stesso momento. <span class="sol">V</span></li>
+          <li>6. Le scadenze dei compiti di Classroom compaiono in Calendar. <span class="sol">V</span></li>
+          <li>7. Si può entrare nei corsi dell'istituto con un account @gmail.com personale. <span class="sol-f">F</span></li>
+          <li>8. Registrare una videolezione senza autorizzazione è consentito se serve per studiare. <span class="sol-f">F</span></li>
+          <li>9. Le risposte di un Modulo possono essere riversate in un Foglio. <span class="sol">V</span></li>
+          <li>10. L'account scolastico resta attivo per sempre. <span class="sol-f">F</span> <span style="color:var(--muted)">— viene disattivato a fine percorso</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Domande aperte</h3>
+<pre><span class="cmt">1. Spiega la differenza fra Cc e Ccn e fai un</span>
+<span class="cmt">   esempio in cui useresti il secondo.</span>
+<span class="cmt">2. Elenca i tre livelli di permesso di Drive e</span>
+<span class="cmt">   di' quale sceglieresti per far correggere la</span>
+<span class="cmt">   tua relazione a un compagno.</span>
+<span class="cmt">3. Descrivi i passaggi per consegnare un compito</span>
+<span class="cmt">   su Classroom.</span>
+<span class="cmt">4. Perché conviene usare gli stili "Titolo" invece</span>
+<span class="cmt">   di ingrandire il testo a mano?</span>
+<span class="cmt">5. Che cos'è il phishing? Indica tre segnali che</span>
+<span class="cmt">   ti fanno sospettare di un messaggio.</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 26 — LABORATORIO ═══ -->
+<div class="slide" data-section="lab">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Laboratorio guidato</h2>
+    <span class="section-num">Esercitazione · 26/26</span>
+  </div>
+  <div class="three-col">
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Fase 1 — Prepara lo spazio</h3>
+        <ol class="steps">
+          <li>Accedi con l'account della scuola e apri <strong>Drive</strong></li>
+          <li>Crea la cartella <code>Scuola 2026-27</code> e, dentro, <code>Tecnologie informatiche</code></li>
+          <li>Colora la sottocartella e mettila fra gli <strong>Speciali</strong></li>
+          <li>Crea un Documento e rinominalo <code>2026-09-21_cognome_esercitazione1</code></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Fase 2 — Scrivi</h3>
+        <ol class="steps">
+          <li>Metti un titolo con lo stile <strong>Titolo 1</strong> e tre paragrafi con <strong>Titolo 2</strong></li>
+          <li>Inserisci un <strong>sommario</strong> automatico all'inizio</li>
+          <li>Aggiungi un'immagine e una tabella di tre righe</li>
+          <li>Inserisci i <strong>numeri di pagina</strong></li>
+        </ol>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Fase 3 — Collabora</h3>
+        <ol class="steps">
+          <li>Condividi il documento con il compagno di banco come <strong>Commentatore</strong></li>
+          <li>Fatti lasciare due commenti e <strong>rispondi</strong> a entrambi</li>
+          <li>Risolvi un commento e apri la <strong>cronologia versioni</strong>: individua chi ha scritto che cosa</li>
+          <li>Cambia il permesso del compagno in <strong>Editor</strong> e osserva la differenza</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Fase 4 — Calcola</h3>
+        <ol class="steps">
+          <li>Crea un <strong>Foglio</strong> con i tuoi voti di tre materie su due prove</li>
+          <li>Calcola la media di ogni materia con <code>=MEDIA()</code></li>
+          <li>Con <code>=SE()</code> scrivi "Sufficiente" o "Insufficiente"</li>
+          <li>Inserisci un <strong>istogramma</strong> delle medie</li>
+        </ol>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Fase 5 — Presenta e consegna</h3>
+        <ol class="steps">
+          <li>Crea una <strong>Presentazione</strong> di quattro slide che riassuma il lavoro</li>
+          <li>Incolla il grafico del Foglio nella terza slide</li>
+          <li>Scrivi le <strong>note del relatore</strong> di ogni slide</li>
+          <li>Esporta il documento in <strong>PDF</strong></li>
+          <li>Consegna il PDF e la presentazione nel compito su <strong>Classroom</strong> e controlla lo stato</li>
+        </ol>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span><strong>Autovalutazione.</strong> Hai finito davvero se: i file hanno nomi corretti e stanno nella cartella giusta, il compagno ha potuto commentare, il grafico si vede anche nella presentazione, il compito su Classroom risulta <strong>Consegnato</strong>.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Per chi finisce prima:</strong> crea un <strong>Modulo</strong> con tre domande sulla lezione di oggi, invialo a due compagni e analizza le risposte nel Foglio collegato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':    'Introduzione',
+    'l1':       'L1 · Account e Gmail',
+    'l2':       'L2 · Google Drive',
+    'l3':       'L3 · Classroom',
+    'l4':       'L4 · Documenti, Fogli, Slide',
+    'l5':       'L5 · Meet e altri strumenti',
+    'ripasso':  'Abbiamo imparato che…',
+    'verifica': 'Verifica',
+    'lab':      'Laboratorio guidato'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  document.getElementById('slide-counter').textContent = '01 / ' + String(total).padStart(2,'0');
+  document.getElementById('progress-fill').style.width = (1 / total * 100) + '%';
+  document.getElementById('section-label').textContent = sectionNames[slides[0].dataset.section] || '';
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { goTo(i); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
