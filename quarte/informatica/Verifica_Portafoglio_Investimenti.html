@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Portafoglio di Investimenti</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>PORTAFOGLIO DI INVESTIMENTI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: struct annidate, array, funzioni,<br>if/else, cicli for e while</span>
+      <span class="time">Tempo a disposizione: 45 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    La scuola partecipa a un progetto di <strong>educazione finanziaria</strong>: ogni classe gestisce
+    un <strong>portafoglio virtuale</strong> composto da <strong>ETF</strong> (fondi quotati che replicano
+    un indice di mercato) e <strong>obbligazioni</strong> (prestiti a uno Stato o a un'azienda che paga
+    un interesse). Per ogni investimento si registrano i <strong>rendimenti percentuali degli ultimi 5 mesi</strong>,
+    che possono essere positivi (guadagno) o negativi (perdita).
+    Il tuo compito è realizzare un programma C++ che permetta di <strong>registrare gli investimenti</strong>
+    e di <strong>simulare quanto potrebbero valere</strong> dopo un numero di anni scelto dall'utente,
+    sia lasciando investito solo il capitale iniziale, sia aggiungendo un <strong>piano di accumulo (PAC)</strong>,
+    cioè un versamento fisso ogni mese. Il risultato va mostrato anche <strong>al netto delle tasse</strong>
+    sui guadagni. Ogni investimento è associato al suo emittente, cioè lo Stato o la società che lo ha
+    messo sul mercato, rappresentato tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Emittente</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dell'emittente (es. "Repubblica Italiana", "iShares", "Vanguard")</td></tr>
+      <tr><td><code>rating</code></td><td>giudizio di affidabilità: "AAA", "AA", "A", "BBB", "BB", "B", "CCC" (da più a meno affidabile)</td></tr>
+      <tr><td><code>governativo</code></td><td><code>true</code> se l'emittente è uno Stato, <code>false</code> se è una società (tipo <code>bool</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Investimento</strong>, che contiene <strong>Emittente</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dello strumento (es. "ETF MSCI World", "BTP 2035")</td></tr>
+      <tr><td><code>tipo</code></td><td>tipo di strumento: "ETF" oppure "obbligazione"</td></tr>
+      <tr><td><code>capitale</code></td><td>capitale iniziale investito, in euro (numero con virgola)</td></tr>
+      <tr><td><code>rendimenti</code></td><td><strong>array di 5 numeri con virgola</strong>: il rendimento percentuale di ciascuno degli ultimi 5 mesi (anche negativo); la cella 0 è il mese 1, la cella 4 è il mese 5</td></tr>
+      <tr><td><code>emittente</code></td><td>dati dell'emittente dello strumento</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Le voci contrassegnate con <span class="star">&#9733;</span> sono <strong>facoltative</strong>: affrontale solo dopo aver completato tutte le altre, danno punteggio aggiuntivo.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>rendimentoMedio(Investimento inv)</code></td>
+        <td>Calcola e restituisce la media aritmetica dei 5 rendimenti mensili (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>meseMigliore(Investimento inv)</code></td>
+        <td>Restituisce il <strong>numero del mese</strong> (da 1 a 5) con il rendimento più alto</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>primoMeseInPerdita(Investimento inv)</code></td>
+        <td>Usando un ciclo <code>while</code>, restituisce il numero del <strong>primo mese</strong> (da 1 a 5) con rendimento negativo; restituisce <code>-1</code> se l'investimento non è mai andato in perdita</td>
+      </tr>
+      <tr>
+        <td><code>rendimentoAtteso(Investimento inv)</code></td>
+        <td>Restituisce il <strong>rendimento annuo ipotizzato</strong> per il mercato dello strumento, secondo la tabella 3a</td>
+      </tr>
+      <tr>
+        <td><code>aliquotaTasse(Investimento inv)</code></td>
+        <td>Restituisce la <strong>percentuale di tasse</strong> da applicare ai guadagni (26 oppure 12.5), secondo la tabella 3c</td>
+      </tr>
+      <tr>
+        <td><code>valoreFuturo(Investimento inv, int anni, double versamentoMensile)</code></td>
+        <td>Simula l'investimento <strong>mese per mese</strong> per il numero di anni indicato e restituisce il valore finale <strong>lordo</strong> in euro (vedi 3b). Con <code>versamentoMensile</code> uguale a 0 simula il solo capitale iniziale</td>
+      </tr>
+      <tr>
+        <td><code>stampaPrevisione(Investimento inv, int anni, double versamentoMensile)</code></td>
+        <td>Funzione <code>void</code>: richiamando <code>valoreFuturo</code> e <code>aliquotaTasse</code>, stampa totale versato, valore lordo, guadagno, tasse e <strong>valore netto</strong> (vedi 3c)</td>
+      </tr>
+      <tr>
+        <td><code>stampaInvestimento(Investimento inv)</code></td>
+        <td>Funzione <code>void</code>: stampa tutti i campi, inclusi quelli dell'emittente (per <code>governativo</code> scrivi "sì" o "no"), il rendimento medio mensile e l'aliquota applicata ai guadagni; <span class="star">&#9733;</span> se le hai svolte, anche mese migliore e primo mese in perdita</td>
+      </tr>
+      <tr>
+        <td><code>inserisciInvestimento()</code></td>
+        <td>Legge da tastiera tutti i campi di Investimento e di Emittente, restituisce l'Investimento compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaInvestimento(Investimento port[], int n, string nome)</code></td>
+        <td>Restituisce l'indice del <strong>primo investimento</strong> con il nome cercato; restituisce <code>-1</code> se non trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Regole per la simulazione</h2>
+
+  <h3>3a. Rendimento annuo ipotizzato (in base al campo <code>tipo</code>):</h3>
+  <table>
+    <thead>
+      <tr><th>Tipo di strumento</th><th>Mercato di riferimento</th><th>Rendimento annuo restituito</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>"ETF"</code></td><td>mercato azionario globale</td><td><code>6.0</code> (%)</td></tr>
+      <tr><td><code>"obbligazione"</code></td><td>mercato obbligazionario</td><td><code>3.0</code> (%)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3b. Calcolo mese per mese del valore lordo:</h3>
+  <ol>
+    <li>il numero di mesi da simulare è <code>anni * 12</code></li>
+    <li>il tasso mensile è <code>rendimentoAtteso / 12 / 100</code></li>
+    <li>il saldo parte dal <code>capitale</code> dell'investimento</li>
+    <li>all'inizio di ogni mese si aggiunge il versamento: <code>saldo = saldo + versamentoMensile</code></li>
+    <li>poi si applica il rendimento del mese: <code>saldo = saldo * (1 + tassoMensile)</code></li>
+  </ol>
+
+  <h3>3c. Tassazione dei guadagni (regola semplificata):</h3>
+  <table>
+    <thead>
+      <tr><th>Caso</th><th>Aliquota</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>tipo</code> è "obbligazione" <strong>e</strong> l'emittente è <code>governativo</code> (titolo di Stato)</td><td><code>12.5</code> %</td></tr>
+      <tr><td>tutti gli altri casi (ETF, obbligazioni di società)</td><td><code>26</code> %</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>totale versato</strong> = <code>capitale + versamentoMensile * mesi</code></li>
+    <li><strong>guadagno</strong> = valore lordo − totale versato</li>
+    <li><strong>tasse</strong> = guadagno × aliquota / 100, <strong>solo se il guadagno è positivo</strong>; altrimenti le tasse sono 0</li>
+    <li><strong>valore netto</strong> = valore lordo − tasse</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>20 investimenti</strong> e implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Nuovo investimento</td>
+        <td>chiama <code>inserisciInvestimento</code>, salva il risultato nell'array e incrementa il contatore; se l'array è pieno stampa un messaggio di errore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Visualizza portafoglio</td>
+        <td>stampa tutti gli investimenti con <code>stampaInvestimento</code>; alla fine mostra il <strong>capitale totale investito</strong></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Simula il futuro</td>
+        <td>chiede il nome dell'investimento e lo cerca con <code>cercaInvestimento</code>; se lo trova, chiede il <strong>numero di anni</strong> e il <strong>versamento mensile</strong> del PAC, mostra il rendimento annuo ipotizzato e poi due scenari a confronto, richiamando due volte <code>stampaPrevisione</code>:<br>
+        <strong>Scenario 1</strong> – solo capitale iniziale (versamento 0)<br>
+        <strong>Scenario 2</strong> – capitale iniziale + PAC con il versamento scelto</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> con questi dati il tuo programma deve stampare esattamente i valori della tabella (10 anni, PAC di 100 € al mese dove indicato).
+  </div>
+  <table class="check-table">
+    <thead>
+      <tr><th>Investimento di prova</th><th>Totale versato</th><th>Valore lordo</th><th>Tasse</th><th>Valore netto</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ETF, capitale 1000 €, solo capitale</td><td>1000.00</td><td>1819.40</td><td>213.04 (26%)</td><td>1606.35</td></tr>
+      <tr><td>ETF, capitale 1000 €, PAC 100 €/mese</td><td>13000.00</td><td>18289.27</td><td>1375.21 (26%)</td><td>16914.06</td></tr>
+      <tr><td>Obbligazione governativa, capitale 1000 €, solo capitale</td><td>1000.00</td><td>1349.35</td><td>43.67 (12.5%)</td><td>1305.68</td></tr>
+      <tr><td>Obbligazione governativa, capitale 1000 €, PAC 100 €/mese</td><td>13000.00</td><td>15358.43</td><td>294.80 (12.5%)</td><td>15063.63</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Per leggere una stringa con spazi usa <code>getline(cin, variabile)</code>.
+    Ricorda <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>.
+    Vale anche per il nome dell'emittente dentro <code>inserisciInvestimento</code> e per il nome
+    cercato nella voce di menu 3.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 4.
+    Dentro <code>inserisciInvestimento</code> usa invece un <code>while</code> di controllo per
+    <strong>rileggere il capitale</strong> finché l'utente non inserisce un valore maggiore di zero.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Rendimenti</td>
+        <td>Sempre 5 valori per investimento, possono essere negativi (es. -1.25 significa una perdita dell'1,25%)</td>
+      </tr>
+      <tr>
+        <td>Capitale</td>
+        <td>Valore con virgola strettamente maggiore di 0, espresso in euro (es. 1500.00)</td>
+      </tr>
+      <tr>
+        <td>Governativo</td>
+        <td>Da tastiera si inserisce <code>1</code> (è uno Stato) oppure <code>0</code> (è una società)</td>
+      </tr>
+      <tr>
+        <td>Simulazione</td>
+        <td>Anni: intero maggiore o uguale a 1 &nbsp;·&nbsp; versamento mensile: valore con virgola maggiore o uguale a 0</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Emittente deve essere dichiarata <em>prima</em> di Investimento</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 20 investimenti; usa una variabile per contare quanti sono inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le funzioni <code>meseMigliore</code> e <code>primoMeseInPerdita</code>
+    devono restituire un numero da <strong>1 a 5</strong> (non l'indice 0–4 dell'array).
+    <code>valoreFuturo</code> deve <em>richiamare</em> <code>rendimentoAtteso</code> invece di
+    riscrivere la tabella 3a, e i due scenari della voce 3 devono usare la <em>stessa</em> funzione
+    <code>stampaPrevisione</code>, cambiando solo il versamento mensile.
+    Se il valore lordo è minore del totale versato il guadagno è negativo: in quel caso non si pagano tasse.
+  </div>
+
+  <div class="nota">
+    <strong>Nota:</strong> per stampare i valori con la virgola usa due decimali
+    (<code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code>, libreria <code>&lt;iomanip&gt;</code>).
+    I rendimenti ipotizzati sono medie didattiche: nella realtà i rendimenti futuri <strong>non sono garantiti</strong>.
+  </div>
+
+</body>
+</html>
