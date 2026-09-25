@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ — Strutture Dati Dinamiche: Puntatori, Liste, Pile e Code</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f8fafc; --border: #e2e8f0;
+    --accent1: #059669; --accent2: #dc2626; --accent3: #d97706; --accent4: #2563eb;
+    --text: #1e293b; --muted: #64748b; --ct: #475569; --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14; --panel: #13161f; --border: #1e2330;
+    --accent1: #34d399; --accent2: #f87171; --accent3: #fbbf24; --accent4: #60a5fa;
+    --text: #e8eaf0; --muted: #6b7280; --ct: #6b7280; --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 13px; border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  #stage { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none; overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+  .slide-title { align-items: center; text-align: center; justify-content: center; }
+  .slide-title .big { font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -2px; }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+  .tag { padding: 6px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-shrink: 0; }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  .kw { color: var(--accent4); font-weight: 700; }
+  .cm { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); }
+  .callout { border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-green  { background: rgba(5,150,105,0.07); border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07); border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center; border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl      { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel  { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red  { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+  #nav {
+    display: flex; align-items: center; gap: 12px; padding: 11px 24px;
+    border-top: 1px solid var(--border); background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1; color: var(--text);
+    padding: 7px 18px; border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 220px; text-align: right; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     AGGIUNTE PER QUESTA UNITÀ — diagrammi di nodi e liste.
+     Riusano le stesse variabili del tema, così restano coerenti
+     con il resto delle slide sia in dark che in light.
+     ───────────────────────────────────────────────────────────── */
+  .ll { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin: 3px 0; }
+  .node { display: flex; border: 1px solid var(--accent4); border-radius: 5px; overflow: hidden;
+          font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; }
+  .node .d { padding: 5px 11px; background: rgba(37,99,235,0.12); color: var(--accent4); font-weight: 700; }
+  .node .n { padding: 5px 9px; background: var(--code-bg); color: var(--muted); border-left: 1px solid var(--accent4); }
+  .node.hot { border-color: var(--accent1); }
+  .node.hot .d { background: rgba(5,150,105,0.14); color: var(--accent1); }
+  .node.hot .n { border-left-color: var(--accent1); }
+  .arw { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--accent3); }
+  .lbl { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
+         color: var(--accent1); letter-spacing: 0.5px; }
+  .nul { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--muted);
+         border: 1px dashed var(--border); border-radius: 5px; padding: 5px 9px; }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Programmazione · C++ · Classe 4ª</div>
+    <div class="title-bar">Strutture Dati Dinamiche</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 17</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- SLIDE 1 — TITOLO -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">C++</div>
+  <div class="big" style="color:var(--accent1);">Strutture Dati Dinamiche</div>
+  <div class="sub">Memoria · Puntatori · Liste · Pile · Code</div>
+  <div class="tag-row">
+    <span class="tag tag-yellow">stack / heap</span>
+    <span class="tag tag-blue">int* · &amp; · *</span>
+    <span class="tag tag-green">new / delete</span>
+    <span class="tag tag-red">liste concatenate</span>
+    <span class="tag tag-yellow">pile · code</span>
+  </div>
+</div>
+
+<!-- SLIDE 2 — PANORAMICA -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="memoria">
+      <div class="ov-num" style="color:var(--accent3)">01</div>
+      <div class="ov-content"><h4>La memoria del programma</h4><p>Dove vivono le variabili · stack e heap · perché un array statico non basta più</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="puntatori">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content"><h4>Il tipo puntatore</h4><p>Indirizzi di memoria · operatori <code>&amp;</code> e <code>*</code> · nullptr · puntatori e array</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="dinamica">
+      <div class="ov-num" style="color:var(--accent1)">03</div>
+      <div class="ov-content"><h4>Allocazione dinamica</h4><p><code>new</code> e <code>delete</code> · array a dimensione variabile · memory leak · operatore <code>-&gt;</code></p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="liste">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content"><h4>Liste concatenate</h4><p>Il nodo autoreferenziale · inserimento · scansione · ricerca · cancellazione</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="pile-code">
+      <div class="ov-num" style="color:var(--accent3)">05</div>
+      <div class="ov-content"><h4>Pile e code</h4><p>LIFO e FIFO · push/pop · enqueue/dequeue · dove si usano davvero</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="riepilogo">
+      <div class="ov-num" style="color:var(--accent4)">06</div>
+      <div class="ov-content"><h4>Quando usare cosa</h4><p>Confronto array / lista / pila / coda · costi delle operazioni · errori tipici</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 — LA MEMORIA -->
+<div class="slide" data-section="memoria">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La memoria di un programma</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent3)">Quattro zone, quattro comportamenti</h3><p>Quando il programma parte, il sistema operativo gli assegna della memoria divisa in regioni. A noi ne interessano soprattutto due: lo <strong>stack</strong> e lo <strong>heap</strong>.</p></div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-yel">CODICE</div><div class="proto-cell" style="flex:2.4">le istruzioni del programma</div></div>
+        <div class="proto-row"><div class="proto-cell hl-yel">DATI STATICI</div><div class="proto-cell" style="flex:2.4">variabili globali e <code>static</code>: vivono per tutto il programma</div></div>
+        <div class="proto-row"><div class="proto-cell hl-blue">STACK</div><div class="proto-cell" style="flex:2.4">variabili locali e parametri: nascono e muoiono con la funzione</div></div>
+        <div class="proto-row"><div class="proto-cell hl">HEAP</div><div class="proto-cell" style="flex:2.4">memoria chiesta a runtime con <code>new</code>: vive finché non fai <code>delete</code></div></div>
+      </div>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Lo stack è gestito <strong>automaticamente</strong> dal compilatore. Lo heap lo gestisci <strong>tu</strong>: è questa la differenza che cambia tutto.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent2)">Il limite dell'allocazione statica</h3><p>Finora la dimensione di ogni array l'hai decisa <strong>scrivendo il codice</strong>, cioè prima di sapere quanti dati arriveranno davvero.</p></div>
+      <pre><span class="cm">// Come hai sempre fatto in terza:</span>
+<span class="kw">const int</span> MAX <span class="op">=</span> <span class="num">25</span>;
+Esopianeta catalogo[MAX];
+<span class="kw">int</span> quanti <span class="op">=</span> <span class="num">0</span>;
+
+<span class="cm">// Se ne cataloghi 3  -> sprechi 22 posti</span>
+<span class="cm">// Se te ne servono 40 -> non ci stanno</span>
+<span class="cm">// e il programma va modificato e ricompilato</span></pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9888;</span><span>La dimensione di un array statico deve essere una <strong>costante nota alla compilazione</strong>. Non puoi scrivere <code>cin &gt;&gt; n;</code> e poi <code>int v[n];</code>: non è C++ standard.</span></div>
+      <div class="callout callout-green"><span class="callout-icon">&#10140;</span><span>La soluzione è chiedere la memoria <strong>mentre il programma gira</strong>, quando finalmente sai quanta ne serve. Per farlo serve un nuovo tipo di dato: il <strong>puntatore</strong>.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 — IL TIPO PUNTATORE -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il tipo puntatore</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent4)">Un'idea sola</h3><p>Ogni variabile occupa delle celle di memoria, e ogni cella ha un <strong>indirizzo</strong>. Un puntatore è semplicemente <strong>una variabile che contiene un indirizzo</strong> invece di un valore normale.</p></div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-blue">OPERATORE</div><div class="proto-cell hl-blue" style="flex:2.2">SIGNIFICATO</div></div>
+        <div class="proto-row"><div class="proto-cell"><strong>&amp;x</strong></div><div class="proto-cell" style="flex:2.2">l'indirizzo della variabile x</div></div>
+        <div class="proto-row"><div class="proto-cell"><strong>int* p</strong></div><div class="proto-cell" style="flex:2.2">dichiara p: puntatore a un int</div></div>
+        <div class="proto-row"><div class="proto-cell"><strong>*p</strong></div><div class="proto-cell" style="flex:2.2">il valore contenuto all'indirizzo p</div></div>
+      </div>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9888;</span><span>L'asterisco ha <strong>due significati diversi</strong>: nella <em>dichiarazione</em> <code>int* p;</code> vuol dire "p è un puntatore"; nell'<em>uso</em> <code>*p = 5;</code> vuol dire "vai all'indirizzo e lavora lì". Non confonderli.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="kw">int</span> eta <span class="op">=</span> <span class="num">20</span>;
+<span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="op">&amp;</span>eta;   <span class="cm">// p riceve l'INDIRIZZO di eta</span>
+
+cout <span class="op">&lt;&lt;</span> eta;    <span class="cm">// 20        il valore</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">&amp;</span>eta;   <span class="cm">// 0x7ffee4  l'indirizzo</span>
+cout <span class="op">&lt;&lt;</span> p;      <span class="cm">// 0x7ffee4  lo stesso indirizzo</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;     <span class="cm">// 20        dereferenziazione</span>
+
+<span class="op">*</span>p <span class="op">=</span> <span class="num">25</span>;         <span class="cm">// modifico eta ATTRAVERSO p</span>
+cout <span class="op">&lt;&lt;</span> eta;    <span class="cm">// 25  -> eta e' cambiata!</span></pre>
+      <div class="card"><h3 style="color:var(--accent3)">Come leggerlo ad alta voce</h3><p><code>int* p = &amp;eta;</code> si legge: <em>"p è un puntatore a intero e vale l'indirizzo di eta"</em>.<br><code>*p = 25;</code> si legge: <em>"metti 25 nella cella puntata da p"</em>.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5 — NULLPTR ED ERRORI -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">nullptr e gli errori classici</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">Il puntatore "a vuoto"</h3><p><code>nullptr</code> è il valore convenzionale che significa <strong>"non punto a niente"</strong>. Serve per dire che un dato non c'è ancora, o non c'è più.</p></div>
+      <pre><span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="kw">nullptr</span>;  <span class="cm">// inizializzato a vuoto</span>
+
+<span class="cm">// Prima di usarlo, si CONTROLLA sempre:</span>
+<span class="kw">if</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) {
+  cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;
+} <span class="kw">else</span> {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Nessun dato\n"</span>;
+}</pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Regola pratica: <strong>un puntatore va sempre inizializzato</strong>, o con un indirizzo valido o con <code>nullptr</code>. Mai lasciarlo indefinito.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="cm">// ERRORE 1 — puntatore non inizializzato</span>
+<span class="kw">int</span><span class="op">*</span> q;          <span class="cm">// contiene spazzatura</span>
+<span class="op">*</span>q <span class="op">=</span> <span class="num">10</span>;         <span class="cm">// crash o danno silenzioso</span>
+
+<span class="cm">// ERRORE 2 — confondere p e *p</span>
+<span class="kw">int</span> a <span class="op">=</span> <span class="num">5</span>;
+<span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="op">&amp;</span>a;
+p <span class="op">=</span> <span class="num">10</span>;          <span class="cm">// NO: 10 non e' un indirizzo</span>
+<span class="op">*</span>p <span class="op">=</span> <span class="num">10</span>;         <span class="cm">// SI: cosi' scrivo in a</span>
+
+<span class="cm">// ERRORE 3 — dereferenziare nullptr</span>
+<span class="kw">int</span><span class="op">*</span> z <span class="op">=</span> <span class="kw">nullptr</span>;
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>z;      <span class="cm">// crash immediato</span></pre>
+      <div class="callout callout-red"><span class="callout-icon">&#10007;</span><span>Il compilatore <strong>non ti avvisa</strong> di questi errori: la sintassi è corretta. Te ne accorgi solo quando il programma si blocca, magari molto dopo il punto in cui hai sbagliato.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6 — PUNTATORI E ARRAY -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Puntatori e array</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent4)">Il nome di un array è un indirizzo</h3><p>In C++ il nome di un array <strong>equivale all'indirizzo del suo primo elemento</strong>. Array e puntatori sono quindi parenti stretti.</p></div>
+      <pre><span class="kw">int</span> v[<span class="num">5</span>] <span class="op">=</span> {<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>};
+
+cout <span class="op">&lt;&lt;</span> v;        <span class="cm">// indirizzo di v[0]</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">&amp;</span>v[<span class="num">0</span>];   <span class="cm">// lo stesso indirizzo</span>
+
+<span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> v;      <span class="cm">// legale: nessuna &amp;</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;       <span class="cm">// 10</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>(p<span class="op">+</span><span class="num">2</span>);   <span class="cm">// 30  aritmetica dei puntatori</span>
+cout <span class="op">&lt;&lt;</span> p[<span class="num">2</span>];     <span class="cm">// 30  forma equivalente</span></pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9432;</span><span><code>p+1</code> non somma 1 byte: avanza di <strong>un elemento</strong>, cioè di <code>sizeof(int)</code> byte. Il compilatore fa il conto per te.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent2)">Il mistero risolto</h3><p>Ricordi le funzioni che ricevevano un array, come <code>cercaPerStella(Esopianeta cat[], int n, ...)</code>? Ora puoi capire cosa succedeva davvero.</p></div>
+      <pre><span class="cm">// Queste due righe sono la STESSA cosa</span>
+<span class="kw">void</span> <span class="fn">f</span>(<span class="kw">int</span> v[]);
+<span class="kw">void</span> <span class="fn">f</span>(<span class="kw">int</span><span class="op">*</span> v);   <span class="cm">// il compilatore traduce cosi'</span></pre>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Quando passi un array a una funzione <strong>non viene copiato</strong>: viene passato il suo indirizzo. Ecco perché serviva anche il parametro <code>n</code> — dall'indirizzo da solo è impossibile sapere quanti elementi ci sono.</span></div>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>Conseguenza importante: se una funzione <strong>modifica</strong> l'array che riceve, la modifica si vede anche nel <code>main</code>. Una struct passata per valore, invece, viene copiata per intero — array interni compresi.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7 — NEW E DELETE -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Allocazione dinamica: <code style="font-size:inherit">new</code> e <code style="font-size:inherit">delete</code></h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">Chiedere memoria a runtime</h3><p><code>new</code> chiede allo heap una zona di memoria e <strong>restituisce il suo indirizzo</strong>. Quella zona resta tua finché non la restituisci con <code>delete</code>.</p></div>
+      <pre><span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>;   <span class="cm">// chiedo spazio per un int</span>
+<span class="op">*</span>p <span class="op">=</span> <span class="num">42</span>;               <span class="cm">// lo uso tramite il puntatore</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;            <span class="cm">// 42</span>
+
+<span class="kw">delete</span> p;              <span class="cm">// restituisco la memoria</span>
+p <span class="op">=</span> <span class="kw">nullptr</span>;           <span class="cm">// buona pratica: azzero p</span>
+
+<span class="cm">// con valore iniziale, in una riga sola</span>
+<span class="kw">int</span><span class="op">*</span> q <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">7</span>);
+<span class="kw">delete</span> q;</pre>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>La variabile creata con <code>new</code> <strong>non ha un nome</strong>: l'unico modo per raggiungerla è il puntatore. Se perdi il puntatore, perdi il dato.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent3)">Le tre regole d'oro</h3>
+        <ul>
+          <li>A ogni <code>new</code> deve corrispondere <strong>un</strong> <code>delete</code>.</li>
+          <li>A ogni <code>new[]</code> deve corrispondere <code>delete[]</code>, con le parentesi.</li>
+          <li>Dopo <code>delete</code>, metti il puntatore a <code>nullptr</code>.</li>
+        </ul>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-blue">STACK</div><div class="proto-cell hl">HEAP</div></div>
+        <div class="proto-row"><div class="proto-cell">int x = 5;</div><div class="proto-cell">int* p = new int;</div></div>
+        <div class="proto-row"><div class="proto-cell">dimensione fissa</div><div class="proto-cell">dimensione a runtime</div></div>
+        <div class="proto-row"><div class="proto-cell">liberata da sola</div><div class="proto-cell">la liberi tu</div></div>
+        <div class="proto-row"><div class="proto-cell">muore a fine funzione</div><div class="proto-cell">sopravvive alla funzione</div></div>
+      </div>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>È proprio l'ultima riga che rende possibili le liste: un nodo creato dentro una funzione <strong>continua a esistere</strong> anche dopo che la funzione è finita.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8 — ARRAY DINAMICI -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Array dinamici</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="kw">int</span> n;
+cout <span class="op">&lt;&lt;</span> <span class="str">"Quanti valori? "</span>;
+cin <span class="op">&gt;&gt;</span> n;
+
+<span class="kw">int</span><span class="op">*</span> v <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>[n];   <span class="cm">// n deciso ORA, non a compile-time</span>
+
+<span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> n; i<span class="op">++</span>) {
+  cout <span class="op">&lt;&lt;</span> <span class="str">"Valore "</span> <span class="op">&lt;&lt;</span> i<span class="op">+</span><span class="num">1</span> <span class="op">&lt;&lt;</span> <span class="str">": "</span>;
+  cin <span class="op">&gt;&gt;</span> v[i];              <span class="cm">// si usa come un array normale</span>
+}
+
+<span class="kw">int</span> somma <span class="op">=</span> <span class="num">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> n; i<span class="op">++</span>) somma <span class="op">+=</span> v[i];
+cout <span class="op">&lt;&lt;</span> <span class="str">"Media: "</span> <span class="op">&lt;&lt;</span> (<span class="kw">double</span>)somma <span class="op">/</span> n;
+
+<span class="kw">delete</span>[] v;               <span class="cm">// parentesi quadre OBBLIGATORIE</span>
+v <span class="op">=</span> <span class="kw">nullptr</span>;</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">Cosa cambia davvero</h3><p>Nessuno spreco e nessun limite artificiale: chiedi <strong>esattamente</strong> la memoria che ti serve, nel momento in cui scopri quanta te ne serve.</p></div>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>Usare <code>delete</code> al posto di <code>delete[]</code> su un array è un errore grave: viene liberato solo il primo elemento. Il programma spesso non si blocca subito, ed è il peggio che possa capitare.</span></div>
+      <div class="card"><h3 style="color:var(--accent3)">Il limite che resta</h3><p>Un array dinamico ha comunque una dimensione <strong>fissata al momento della creazione</strong>. Per aggiungere un elemento in più devi allocare un array nuovo, ricopiare tutto e cancellare il vecchio.</p></div>
+      <div class="callout callout-green"><span class="callout-icon">&#10140;</span><span>Da qui nasce l'idea di lista concatenata: una struttura che <strong>cresce un pezzo alla volta</strong>, senza mai ricopiare nulla.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9 — MEMORY LEAK E DANGLING -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">I due errori da conoscere</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent2)">Memory leak</h3><p>Memoria allocata e <strong>mai restituita</strong>, perché hai perso l'unico puntatore che la raggiungeva. Resta occupata fino alla fine del programma.</p></div>
+      <pre><span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">5</span>);
+p <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">9</span>);   <span class="cm">// il primo indirizzo e' PERSO</span>
+<span class="cm">// quei 4 byte non sono piu' raggiungibili</span>
+<span class="cm">// ne' utilizzabili: leak.</span>
+
+<span class="cm">// Corretto:</span>
+<span class="kw">int</span><span class="op">*</span> q <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">5</span>);
+<span class="kw">delete</span> q;
+q <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">9</span>);
+<span class="kw">delete</span> q;</pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9432;</span><span>In un esercizio scolastico non te ne accorgi. In un server che gira per settimane, un leak dentro un ciclo consuma tutta la RAM della macchina.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent2)">Dangling pointer</h3><p>Il problema opposto: il puntatore esiste ancora ma la memoria è già stata liberata. Punta a una zona <strong>non più valida</strong>.</p></div>
+      <pre><span class="kw">int</span><span class="op">*</span> p <span class="op">=</span> <span class="kw">new</span> <span class="kw">int</span>(<span class="num">5</span>);
+<span class="kw">delete</span> p;          <span class="cm">// memoria restituita</span>
+cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;       <span class="cm">// p e' "dangling": errore</span>
+<span class="op">*</span>p <span class="op">=</span> <span class="num">10</span>;         <span class="cm">// peggio ancora: scrivi dove non devi</span>
+
+<span class="cm">// Corretto:</span>
+<span class="kw">delete</span> p;
+p <span class="op">=</span> <span class="kw">nullptr</span>;      <span class="cm">// ora il test funziona</span>
+<span class="kw">if</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) cout <span class="op">&lt;&lt;</span> <span class="op">*</span>p;</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#10007;</span><span>Fare <code>delete</code> <strong>due volte</strong> sullo stesso indirizzo (<em>double free</em>) è altrettanto grave. Azzerare il puntatore dopo il <code>delete</code> previene anche questo: <code>delete nullptr</code> è innocuo.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10 — PUNTATORI A STRUCT -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Puntatori a struct e operatore <code style="font-size:inherit">-&gt;</code></h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">La scorciatoia indispensabile</h3><p>Per accedere a un campo attraverso un puntatore servirebbero parentesi scomode. C++ offre l'operatore <code>-&gt;</code>, che fa esattamente la stessa cosa.</p></div>
+      <pre><span class="kw">struct</span> Studente {
+  string nome;
+  <span class="kw">int</span> voto;
+};
+
+Studente<span class="op">*</span> p <span class="op">=</span> <span class="kw">new</span> Studente;
+
+(<span class="op">*</span>p).voto <span class="op">=</span> <span class="num">8</span>;   <span class="cm">// forma lunga</span>
+p<span class="op">-&gt;</span>voto <span class="op">=</span> <span class="num">8</span>;      <span class="cm">// forma breve: IDENTICA</span>
+p<span class="op">-&gt;</span>nome <span class="op">=</span> <span class="str">"Luca"</span>;
+
+cout <span class="op">&lt;&lt;</span> p<span class="op">-&gt;</span>nome <span class="op">&lt;&lt;</span> <span class="str">" "</span> <span class="op">&lt;&lt;</span> p<span class="op">-&gt;</span>voto;
+
+<span class="kw">delete</span> p;</pre>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9888;</span><span><code>*p.voto</code> <strong>non</strong> funziona: il punto ha priorità più alta dell'asterisco, quindi il compilatore legge <code>*(p.voto)</code>. Servono le parentesi, o meglio ancora <code>-&gt;</code>.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-blue">SE HAI...</div><div class="proto-cell hl-blue">USI...</div></div>
+        <div class="proto-row"><div class="proto-cell">Studente s;</div><div class="proto-cell">s.voto</div></div>
+        <div class="proto-row"><div class="proto-cell">Studente* p;</div><div class="proto-cell">p-&gt;voto</div></div>
+      </div>
+      <div class="card"><h3 style="color:var(--accent3)">Da qui al nodo</h3><p>Ora hai tutti i pezzi. Una struct può contenere <strong>un puntatore a una struct dello stesso tipo</strong>: è questo il mattone con cui si costruiscono liste, pile e code.</p></div>
+      <pre><span class="kw">struct</span> Nodo {
+  <span class="kw">int</span> dato;
+  Nodo<span class="op">*</span> next;   <span class="cm">// puntatore a un altro Nodo</span>
+};                <span class="cm">// struct AUTOREFERENZIALE</span></pre>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Perché è legale usare <code>Nodo</code> dentro <code>Nodo</code>, se non è ancora finita di definire? Perché <code>next</code> è <strong>un puntatore</strong>: occupa sempre la stessa dimensione, qualunque cosa ci sia dall'altra parte. Un campo <code>Nodo next;</code> non compilerebbe.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11 — LA LISTA CONCATENATA -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">La lista concatenata</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="one-col">
+    <div class="card"><h3 style="color:var(--accent2)">L'idea</h3><p>Invece di tenere i dati uno accanto all'altro come in un array, ogni elemento (<strong>nodo</strong>) sta dove capita nello heap e <strong>tiene l'indirizzo del successivo</strong>. Basta conservare il puntatore al primo nodo — la <strong>testa</strong> — per raggiungerli tutti.</p></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 2px;">
+      <span class="lbl">testa &#8594;</span>
+      <div class="ll">
+        <div class="node"><span class="d">10</span><span class="n">next &#9679;</span></div>
+        <span class="arw">&#8594;</span>
+        <div class="node"><span class="d">25</span><span class="n">next &#9679;</span></div>
+        <span class="arw">&#8594;</span>
+        <div class="node"><span class="d">7</span><span class="n">next &#9679;</span></div>
+        <span class="arw">&#8594;</span>
+        <span class="nul">nullptr</span>
+      </div>
+    </div>
+    <div class="two-col" style="flex:none;">
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <pre><span class="kw">struct</span> Nodo {
+  <span class="kw">int</span> dato;
+  Nodo<span class="op">*</span> next;
+};
+
+Nodo<span class="op">*</span> testa <span class="op">=</span> <span class="kw">nullptr</span>;  <span class="cm">// lista VUOTA</span>
+
+<span class="cm">// Un nodo creato a mano:</span>
+Nodo<span class="op">*</span> n1 <span class="op">=</span> <span class="kw">new</span> Nodo;
+n1<span class="op">-&gt;</span>dato <span class="op">=</span> <span class="num">10</span>;
+n1<span class="op">-&gt;</span>next <span class="op">=</span> <span class="kw">nullptr</span>;
+testa <span class="op">=</span> n1;              <span class="cm">// lista di 1 elemento</span></pre>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="card"><h3 style="color:var(--accent3)">Le due convenzioni da rispettare sempre</h3>
+          <ul>
+            <li><code>testa == nullptr</code> significa <strong>lista vuota</strong>.</li>
+            <li>L'ultimo nodo ha <code>next == nullptr</code>: è così che si riconosce la fine.</li>
+          </ul>
+        </div>
+        <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Vantaggio: inserire un elemento costa sempre lo stesso, anche con un milione di nodi. Non si ricopia niente e non c'è nessun limite massimo.</span></div>
+        <div class="callout callout-yellow"><span class="callout-icon">&#9888;</span><span>Prezzo da pagare: <strong>niente accesso diretto</strong>. Non esiste <code>lista[7]</code>. Per arrivare all'ottavo nodo devi attraversare i sette precedenti.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12 — INSERIMENTO IN TESTA -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Inserimento in testa</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="cm">// Restituisce la NUOVA testa della lista</span>
+Nodo<span class="op">*</span> <span class="fn">inserisciInTesta</span>(Nodo<span class="op">*</span> testa, <span class="kw">int</span> valore) {
+  Nodo<span class="op">*</span> nuovo <span class="op">=</span> <span class="kw">new</span> Nodo;  <span class="cm">// 1. creo il nodo</span>
+  nuovo<span class="op">-&gt;</span>dato <span class="op">=</span> valore;      <span class="cm">// 2. riempio il dato</span>
+  nuovo<span class="op">-&gt;</span>next <span class="op">=</span> testa;       <span class="cm">// 3. aggancio la vecchia testa</span>
+  <span class="kw">return</span> nuovo;                <span class="cm">// 4. il nuovo E' la testa</span>
+}
+
+<span class="cm">// Uso nel main:</span>
+Nodo<span class="op">*</span> testa <span class="op">=</span> <span class="kw">nullptr</span>;
+testa <span class="op">=</span> <span class="fn">inserisciInTesta</span>(testa, <span class="num">7</span>);
+testa <span class="op">=</span> <span class="fn">inserisciInTesta</span>(testa, <span class="num">25</span>);
+testa <span class="op">=</span> <span class="fn">inserisciInTesta</span>(testa, <span class="num">10</span>);
+<span class="cm">// risultato:  10 -> 25 -> 7 -> nullptr</span></pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>L'<strong>ordine dei passi 3 e 4 non è invertibile</strong>. Se prima cambi la testa e poi agganci, perdi il resto della lista: tutti i nodi successivi diventano irraggiungibili.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">Passo per passo</h3><p>Stato iniziale, con <code>valore = 10</code>:</p></div>
+      <div class="ll"><span class="lbl">testa &#8594;</span>
+        <div class="node"><span class="d">25</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+      </div>
+      <div class="card"><p><strong>1-2.</strong> Nasce il nodo, isolato:</p></div>
+      <div class="ll"><span class="lbl">nuovo &#8594;</span>
+        <div class="node hot"><span class="d">10</span><span class="n">?</span></div>
+      </div>
+      <div class="card"><p><strong>3.</strong> <code>nuovo-&gt;next = testa;</code> lo aggancia:</p></div>
+      <div class="ll"><span class="lbl">nuovo &#8594;</span>
+        <div class="node hot"><span class="d">10</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">25</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+      </div>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span><strong>4.</strong> <code>return nuovo;</code> e nel main <code>testa</code> punta al nodo nuovo. Funziona anche sulla lista vuota: <code>nuovo-&gt;next</code> diventa <code>nullptr</code>, che è esattamente giusto.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13 — SCANSIONE E RICERCA -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Scansione e ricerca</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent2)">Il ciclo che userai ovunque</h3><p>Si parte dalla testa con un puntatore d'appoggio e si avanza con <code>p = p-&gt;next</code> finché non si incontra <code>nullptr</code>. È il <code>while</code> tipico delle liste: <strong>imparalo a memoria</strong>.</p></div>
+      <pre><span class="kw">void</span> <span class="fn">stampaLista</span>(Nodo<span class="op">*</span> testa) {
+  Nodo<span class="op">*</span> p <span class="op">=</span> testa;     <span class="cm">// mai muovere testa!</span>
+  <span class="kw">while</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) {
+    cout <span class="op">&lt;&lt;</span> p<span class="op">-&gt;</span>dato <span class="op">&lt;&lt;</span> <span class="str">" -&gt; "</span>;
+    p <span class="op">=</span> p<span class="op">-&gt;</span>next;        <span class="cm">// passo al successivo</span>
+  }
+  cout <span class="op">&lt;&lt;</span> <span class="str">"nullptr\n"</span>;
+}
+
+<span class="kw">int</span> <span class="fn">contaNodi</span>(Nodo<span class="op">*</span> testa) {
+  <span class="kw">int</span> c <span class="op">=</span> <span class="num">0</span>;
+  Nodo<span class="op">*</span> p <span class="op">=</span> testa;
+  <span class="kw">while</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) { c<span class="op">++</span>; p <span class="op">=</span> p<span class="op">-&gt;</span>next; }
+  <span class="kw">return</span> c;
+}</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="kw">bool</span> <span class="fn">cerca</span>(Nodo<span class="op">*</span> testa, <span class="kw">int</span> valore) {
+  Nodo<span class="op">*</span> p <span class="op">=</span> testa;
+  <span class="kw">while</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) {
+    <span class="kw">if</span> (p<span class="op">-&gt;</span>dato <span class="op">==</span> valore) <span class="kw">return</span> <span class="kw">true</span>;
+    p <span class="op">=</span> p<span class="op">-&gt;</span>next;
+  }
+  <span class="kw">return</span> <span class="kw">false</span>;     <span class="cm">// arrivato in fondo: non c'e'</span>
+}
+
+<span class="cm">// Somma e massimo: stesso schema</span>
+<span class="kw">int</span> <span class="fn">somma</span>(Nodo<span class="op">*</span> testa) {
+  <span class="kw">int</span> s <span class="op">=</span> <span class="num">0</span>;
+  Nodo<span class="op">*</span> p <span class="op">=</span> testa;
+  <span class="kw">while</span> (p <span class="op">!=</span> <span class="kw">nullptr</span>) { s <span class="op">+=</span> p<span class="op">-&gt;</span>dato; p <span class="op">=</span> p<span class="op">-&gt;</span>next; }
+  <span class="kw">return</span> s;
+}</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>Dimenticare <code>p = p-&gt;next;</code> dentro il <code>while</code> produce un <strong>ciclo infinito</strong>. È l'errore numero uno con le liste: se il programma si pianta, controlla prima di tutto questa riga.</span></div>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Confronto con l'array: qui <strong>non serve un contatore</strong> come <code>n</code>. La lista sa da sola dove finisce, perché l'ultimo nodo punta a <code>nullptr</code>.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14 — CANCELLAZIONE -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Cancellazione di un nodo</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre>Nodo<span class="op">*</span> <span class="fn">cancellaValore</span>(Nodo<span class="op">*</span> testa, <span class="kw">int</span> valore) {
+  Nodo<span class="op">*</span> p <span class="op">=</span> testa;
+  Nodo<span class="op">*</span> prec <span class="op">=</span> <span class="kw">nullptr</span>;   <span class="cm">// nodo PRECEDENTE a p</span>
+
+  <span class="cm">// cerco, tenendo il passo indietro</span>
+  <span class="kw">while</span> (p <span class="op">!=</span> <span class="kw">nullptr</span> <span class="op">&amp;&amp;</span> p<span class="op">-&gt;</span>dato <span class="op">!=</span> valore) {
+    prec <span class="op">=</span> p;
+    p <span class="op">=</span> p<span class="op">-&gt;</span>next;
+  }
+
+  <span class="kw">if</span> (p <span class="op">==</span> <span class="kw">nullptr</span>) <span class="kw">return</span> testa;  <span class="cm">// non trovato</span>
+
+  <span class="kw">if</span> (prec <span class="op">==</span> <span class="kw">nullptr</span>)
+    testa <span class="op">=</span> p<span class="op">-&gt;</span>next;      <span class="cm">// era il PRIMO nodo</span>
+  <span class="kw">else</span>
+    prec<span class="op">-&gt;</span>next <span class="op">=</span> p<span class="op">-&gt;</span>next; <span class="cm">// scavalco p</span>
+
+  <span class="kw">delete</span> p;                <span class="cm">// libero la memoria</span>
+  <span class="kw">return</span> testa;
+}</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>L'ordine è vincolante: <strong>prima</strong> si ricuce la catena, <strong>poi</strong> si fa <code>delete</code>. Se cancelli per primo, <code>p-&gt;next</code> legge memoria già liberata.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent1)">Scavalcare il nodo</h3><p>Cancellare significa <strong>far saltare il nodo alla catena</strong>: il precedente inizia a puntare al successivo.</p></div>
+      <div class="ll">
+        <div class="node"><span class="d">10</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node hot"><span class="d">25</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+      </div>
+      <div class="card"><p><code>prec-&gt;next = p-&gt;next;</code> poi <code>delete p;</code></p></div>
+      <div class="ll">
+        <div class="node"><span class="d">10</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+      </div>
+      <div class="card"><h3 style="color:var(--accent3)">I tre casi da testare sempre</h3>
+        <ul>
+          <li>lista vuota</li>
+          <li>valore nel <strong>primo</strong> nodo (<code>prec</code> resta <code>nullptr</code>)</li>
+          <li>valore <strong>assente</strong></li>
+        </ul>
+      </div>
+      <pre><span class="cm">// Svuotare tutta la lista a fine programma</span>
+Nodo<span class="op">*</span> <span class="fn">svuota</span>(Nodo<span class="op">*</span> testa) {
+  <span class="kw">while</span> (testa <span class="op">!=</span> <span class="kw">nullptr</span>) {
+    Nodo<span class="op">*</span> tmp <span class="op">=</span> testa;
+    testa <span class="op">=</span> testa<span class="op">-&gt;</span>next;  <span class="cm">// avanzo PRIMA</span>
+    <span class="kw">delete</span> tmp;             <span class="cm">// cancello DOPO</span>
+  }
+  <span class="kw">return</span> <span class="kw">nullptr</span>;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 15 — LA PILA -->
+<div class="slide" data-section="pile-code">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La Pila (Stack) — LIFO</h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent3)">Last In, First Out</h3><p>Una lista con <strong>una regola in più</strong>: si inserisce e si estrae solo da un capo, la <strong>cima</strong>. L'ultimo entrato è il primo a uscire, come in una pila di piatti.</p></div>
+      <div class="ll"><span class="lbl">cima &#8594;</span>
+        <div class="node hot"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">25</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">10</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+      </div>
+      <pre>Nodo<span class="op">*</span> <span class="fn">push</span>(Nodo<span class="op">*</span> cima, <span class="kw">int</span> v) {
+  Nodo<span class="op">*</span> nuovo <span class="op">=</span> <span class="kw">new</span> Nodo;
+  nuovo<span class="op">-&gt;</span>dato <span class="op">=</span> v;
+  nuovo<span class="op">-&gt;</span>next <span class="op">=</span> cima;
+  <span class="kw">return</span> nuovo;        <span class="cm">// = inserimento in testa</span>
+}
+
+Nodo<span class="op">*</span> <span class="fn">pop</span>(Nodo<span class="op">*</span> cima) {
+  <span class="kw">if</span> (cima <span class="op">==</span> <span class="kw">nullptr</span>) <span class="kw">return</span> <span class="kw">nullptr</span>;
+  Nodo<span class="op">*</span> tmp <span class="op">=</span> cima;
+  cima <span class="op">=</span> cima<span class="op">-&gt;</span>next;
+  <span class="kw">delete</span> tmp;
+  <span class="kw">return</span> cima;
+}
+
+<span class="kw">int</span> <span class="fn">leggiCima</span>(Nodo<span class="op">*</span> cima) { <span class="kw">return</span> cima<span class="op">-&gt;</span>dato; }
+<span class="kw">bool</span> <span class="fn">vuota</span>(Nodo<span class="op">*</span> cima) { <span class="kw">return</span> cima <span class="op">==</span> <span class="kw">nullptr</span>; }</pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre><span class="cm">// Uso tipico</span>
+Nodo<span class="op">*</span> pila <span class="op">=</span> <span class="kw">nullptr</span>;
+pila <span class="op">=</span> <span class="fn">push</span>(pila, <span class="num">10</span>);
+pila <span class="op">=</span> <span class="fn">push</span>(pila, <span class="num">25</span>);
+pila <span class="op">=</span> <span class="fn">push</span>(pila, <span class="num">7</span>);
+
+<span class="kw">while</span> (<span class="op">!</span><span class="fn">vuota</span>(pila)) {
+  cout <span class="op">&lt;&lt;</span> <span class="fn">leggiCima</span>(pila) <span class="op">&lt;&lt;</span> <span class="str">" "</span>;
+  pila <span class="op">=</span> <span class="fn">pop</span>(pila);
+}
+<span class="cm">// stampa:  7 25 10   (ordine INVERTITO)</span></pre>
+      <div class="card"><h3 style="color:var(--accent1)">Dove la incontri davvero</h3>
+        <ul>
+          <li>Il tasto <strong>Annulla</strong> di qualsiasi programma</li>
+          <li>Il pulsante <strong>Indietro</strong> del browser</li>
+          <li>Il controllo delle <strong>parentesi bilanciate</strong> in un'espressione</li>
+          <li>Lo <strong>stack delle chiamate</strong>: è così che il computer ricorda dove tornare quando una funzione finisce</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow"><span class="callout-icon">&#9888;</span><span><code>leggiCima</code> e <code>pop</code> su una pila vuota sono errori: <strong>controlla sempre con <code>vuota()</code> prima</strong>.</span></div>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Nota la coerenza con il vostro stile: le funzioni ricevono e <strong>restituiscono</strong> il puntatore aggiornato, senza parametri per riferimento. Più avanti, con le classi, tutto questo finirà dentro un oggetto <code>Pila</code>.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16 — LA CODA -->
+<div class="slide" data-section="pile-code">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La Coda (Queue) — FIFO</h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card"><h3 style="color:var(--accent3)">First In, First Out</h3><p>Come la fila alla posta: si entra <strong>in fondo</strong> e si esce <strong>dalla testa</strong>. Servono quindi <strong>due</strong> puntatori, tenuti insieme in una struct.</p></div>
+      <div class="ll"><span class="lbl">testa &#8594;</span>
+        <div class="node"><span class="d">10</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node"><span class="d">25</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span>
+        <div class="node hot"><span class="d">7</span><span class="n">&#9679;</span></div><span class="arw">&#8594;</span><span class="nul">null</span>
+        <span class="lbl">&#8592; fondo</span>
+      </div>
+      <pre><span class="kw">struct</span> Coda {
+  Nodo<span class="op">*</span> testa;   <span class="cm">// si ESTRAE da qui</span>
+  Nodo<span class="op">*</span> fondo;   <span class="cm">// si INSERISCE qui</span>
+};
+
+Coda <span class="fn">creaCoda</span>() {
+  Coda c;
+  c.testa <span class="op">=</span> <span class="kw">nullptr</span>;
+  c.fondo <span class="op">=</span> <span class="kw">nullptr</span>;
+  <span class="kw">return</span> c;
+}</pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Tenere anche <code>fondo</code> serve a inserire <strong>senza scorrere</strong> tutta la lista: l'inserimento resta immediato anche con migliaia di elementi.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <pre>Coda <span class="fn">enqueue</span>(Coda c, <span class="kw">int</span> v) {
+  Nodo<span class="op">*</span> nuovo <span class="op">=</span> <span class="kw">new</span> Nodo;
+  nuovo<span class="op">-&gt;</span>dato <span class="op">=</span> v;
+  nuovo<span class="op">-&gt;</span>next <span class="op">=</span> <span class="kw">nullptr</span>;   <span class="cm">// va in FONDO</span>
+
+  <span class="kw">if</span> (c.fondo <span class="op">==</span> <span class="kw">nullptr</span>)
+    c.testa <span class="op">=</span> nuovo;        <span class="cm">// coda era vuota</span>
+  <span class="kw">else</span>
+    c.fondo<span class="op">-&gt;</span>next <span class="op">=</span> nuovo; <span class="cm">// aggancio in fondo</span>
+
+  c.fondo <span class="op">=</span> nuovo;
+  <span class="kw">return</span> c;
+}
+
+Coda <span class="fn">dequeue</span>(Coda c) {
+  <span class="kw">if</span> (c.testa <span class="op">==</span> <span class="kw">nullptr</span>) <span class="kw">return</span> c;
+  Nodo<span class="op">*</span> tmp <span class="op">=</span> c.testa;
+  c.testa <span class="op">=</span> c.testa<span class="op">-&gt;</span>next;
+  <span class="kw">if</span> (c.testa <span class="op">==</span> <span class="kw">nullptr</span>)
+    c.fondo <span class="op">=</span> <span class="kw">nullptr</span>;      <span class="cm">// era l'ULTIMO</span>
+  <span class="kw">delete</span> tmp;
+  <span class="kw">return</span> c;
+}</pre>
+      <div class="callout callout-red"><span class="callout-icon">&#9888;</span><span>I due <code>if</code> sono i casi limite che quasi tutti dimenticano: coda <strong>vuota</strong> in inserimento e coda che <strong>si svuota</strong> in estrazione. Senza il secondo, <code>fondo</code> resta a puntare un nodo cancellato.</span></div>
+      <div class="card"><h3 style="color:var(--accent1)">Dove la incontri</h3><p>Coda di stampa, richieste a un server web, messaggi in arrivo, gestione dei processi del sistema operativo: ovunque conti <strong>rispettare l'ordine di arrivo</strong>.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 17 — RIEPILOGO -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Quando usare cosa</h2>
+    <span class="section-num">RIEPILOGO</span>
+  </div>
+  <div class="one-col">
+    <div class="proto-header">
+      <div class="proto-row">
+        <div class="proto-cell hl-blue">STRUTTURA</div>
+        <div class="proto-cell hl-blue" style="flex:1.5">DIMENSIONE</div>
+        <div class="proto-cell hl-blue" style="flex:1.5">ACCESSO A UN ELEMENTO</div>
+        <div class="proto-cell hl-blue" style="flex:1.5">INSERIMENTO</div>
+        <div class="proto-cell hl-blue" style="flex:2">QUANDO CONVIENE</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell">Array statico</div>
+        <div class="proto-cell" style="flex:1.5">fissa, a compile-time</div>
+        <div class="proto-cell" style="flex:1.5">diretto: <code>v[i]</code></div>
+        <div class="proto-cell" style="flex:1.5">solo se c'e' posto</div>
+        <div class="proto-cell" style="flex:2">pochi dati, quantita' nota</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell">Array dinamico</div>
+        <div class="proto-cell" style="flex:1.5">scelta a runtime, poi fissa</div>
+        <div class="proto-cell" style="flex:1.5">diretto: <code>v[i]</code></div>
+        <div class="proto-cell" style="flex:1.5">richiede riallocazione</div>
+        <div class="proto-cell" style="flex:2">quantita' nota solo all'avvio</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell hl">Lista</div>
+        <div class="proto-cell hl" style="flex:1.5">cresce senza limiti</div>
+        <div class="proto-cell hl" style="flex:1.5">sequenziale: si scorre</div>
+        <div class="proto-cell hl" style="flex:1.5">immediato in testa</div>
+        <div class="proto-cell hl" style="flex:2">molti inserimenti e rimozioni</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell hl-yel">Pila (LIFO)</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">cresce senza limiti</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">solo la cima</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">immediato (push)</div>
+        <div class="proto-cell hl-yel" style="flex:2">annulla, ritorno indietro</div>
+      </div>
+      <div class="proto-row">
+        <div class="proto-cell hl-yel">Coda (FIFO)</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">cresce senza limiti</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">solo la testa</div>
+        <div class="proto-cell hl-yel" style="flex:1.5">immediato (enqueue)</div>
+        <div class="proto-cell hl-yel" style="flex:2">rispettare l'ordine di arrivo</div>
+      </div>
+    </div>
+    <div class="three-col" style="flex:none;">
+      <div class="card"><h3 style="color:var(--accent1)">Da ricordare</h3>
+        <ul>
+          <li><code>&amp;x</code> = indirizzo, <code>*p</code> = valore puntato</li>
+          <li>ogni <code>new</code> ha il suo <code>delete</code></li>
+          <li><code>testa == nullptr</code> = lista vuota</li>
+          <li>l'ultimo nodo punta a <code>nullptr</code></li>
+        </ul>
+      </div>
+      <div class="card"><h3 style="color:var(--accent2)">Errori da evitare</h3>
+        <ul>
+          <li>dimenticare <code>p = p-&gt;next</code></li>
+          <li><code>delete</code> prima di ricucire la catena</li>
+          <li>muovere <code>testa</code> durante una scansione</li>
+          <li><code>delete</code> invece di <code>delete[]</code></li>
+        </ul>
+      </div>
+      <div class="card"><h3 style="color:var(--accent4)">Dove si va adesso</h3>
+        <p>Nel prossimo blocco queste strutture diventeranno <strong>classi</strong>: i puntatori finiranno nella sezione privata e l'utente vedrà solo <code>push</code>, <code>pop</code>, <code>inserisci</code>. È l'incapsulamento.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:6%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: Panoramica</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+  const labels = {
+    'intro':'Panoramica','memoria':'La memoria del programma',
+    'puntatori':'Il tipo puntatore','dinamica':'Allocazione dinamica — new / delete',
+    'liste':'Liste concatenate','pile-code':'Pile e code',
+    'riepilogo':'Riepilogo e confronto'
+  };
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.add('active');
+    updateUI();
+  }
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total-1;
+    document.getElementById('progress-fill').style.width = ((current+1)/total*100)+'%';
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = 'Sezione: '+(labels[sec]||sec);
+  }
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown') changeSlide(1);
+    if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   changeSlide(-1);
+  });
+  updateUI();
+
+  // Touch swipe support
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) changeSlide(1);
+      else        changeSlide(-1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { changeSlide(i - current); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
