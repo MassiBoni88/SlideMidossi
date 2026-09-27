@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Portafoglio Azionario</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>PORTAFOGLIO AZIONARIO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: struct annidate, array, funzioni,<br>if/else, cicli for e while</span>
+      <span class="time">Tempo a disposizione: 2 ore</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Nell'ambito del progetto di <strong>educazione finanziaria</strong>, una banca online mette a disposizione
+    della classe un conto virtuale con cui costruire un <strong>portafoglio azionario</strong>. Per ogni
+    <strong>titolo</strong> acquistato si registrano il numero di <strong>azioni</strong> possedute, il
+    <strong>prezzo di carico</strong> (il prezzo medio pagato per ogni azione) e i
+    <strong>prezzi di chiusura degli ultimi 5 mesi</strong>.
+    Il tuo compito è realizzare un programma C++ che permetta di <strong>registrare i titoli</strong>,
+    di vedere <strong>quanto vale il portafoglio</strong> e quanto si sta guadagnando (o perdendo) e di
+    <strong>vendere azioni</strong>, calcolando la commissione della banca e le <strong>tasse sul guadagno</strong>.
+    Ogni titolo è associato alla società che lo ha emesso, rappresentata tramite una struct annidata.
+    Tutti i prezzi sono espressi in euro.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Societa</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome della società (es. "Eni", "Apple", "Intesa Sanpaolo")</td></tr>
+      <tr><td><code>settore</code></td><td>settore economico (es. "energia", "tecnologia", "banche")</td></tr>
+      <tr><td><code>estero</code></td><td><code>true</code> se la società è quotata su una borsa estera, <code>false</code> se è quotata alla Borsa di Milano (tipo <code>bool</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Titolo</strong>, che contiene <strong>Societa</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>ticker</code></td><td>codice del titolo in Borsa (es. "ENI", "AAPL", "ISP")</td></tr>
+      <tr><td><code>azioni</code></td><td>numero di azioni possedute (numero intero)</td></tr>
+      <tr><td><code>prezzoCarico</code></td><td>prezzo medio pagato per ogni azione, in euro (numero con virgola)</td></tr>
+      <tr><td><code>prezzi</code></td><td><strong>array di 5 numeri con virgola</strong>: il prezzo di chiusura di ciascuno degli ultimi 5 mesi; la cella 0 è il mese 1 (il più vecchio), la cella 4 è il mese 5, cioè il <strong>prezzo attuale</strong></td></tr>
+      <tr><td><code>societa</code></td><td>dati della società che ha emesso il titolo</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Le voci contrassegnate con <span class="star">&#9733;</span> sono <strong>facoltative</strong>: affrontale solo dopo aver completato tutte le altre, danno punteggio aggiuntivo.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>valoreAttuale(Titolo t)</code></td>
+        <td>Restituisce il valore attuale del titolo in euro: <strong>azioni × prezzo attuale</strong> (restituisce un <code>double</code>)</td>
+      </tr>
+      <tr>
+        <td><code>plusvalenza(Titolo t)</code></td>
+        <td>Restituisce il guadagno non ancora realizzato: <code>(prezzo attuale − prezzoCarico) × azioni</code>; se il titolo è in perdita il risultato è negativo</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>livelloRischio(Titolo t)</code></td>
+        <td>Con un ciclo <code>for</code> trova il prezzo massimo e il prezzo minimo dei 5 mesi e restituisce la <code>string</code> "basso", "medio" oppure "alto", secondo la tabella 3b</td>
+      </tr>
+      <tr>
+        <td><code>commissione(Titolo t)</code></td>
+        <td>Restituisce la commissione in euro che la banca trattiene per la vendita, secondo la tabella 3a</td>
+      </tr>
+      <tr>
+        <td><code>stampaVendita(Titolo t, int azioniVendute)</code></td>
+        <td>Funzione <code>void</code>: richiamando <code>commissione</code>, stampa controvalore, commissione, guadagno (o perdita), tasse e <strong>incasso netto</strong> (vedi 3a)</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>mesiPerObiettivo(double capitale, double versamentoMensile, double obiettivo)</code></td>
+        <td>Con un ciclo <code>while</code> simula un piano di accumulo (PAC) <strong>mese per mese</strong> e restituisce quanti mesi servono per raggiungere l'obiettivo; restituisce <code>-1</code> se non viene raggiunto entro 600 mesi (vedi 3c)</td>
+      </tr>
+      <tr>
+        <td><code>stampaTitolo(Titolo t)</code></td>
+        <td>Funzione <code>void</code>: stampa tutti i campi, inclusi quelli della società (per <code>estero</code> scrivi "sì" o "no") e i 5 prezzi, poi il valore attuale e la plusvalenza; <span class="star">&#9733;</span> se l'hai svolta, anche il livello di rischio</td>
+      </tr>
+      <tr>
+        <td><code>inserisciTitolo()</code></td>
+        <td>Legge da tastiera tutti i campi di Titolo e di Societa, restituisce il Titolo compilato</td>
+      </tr>
+      <tr>
+        <td><code>cercaTitolo(Titolo port[], int n, string ticker)</code></td>
+        <td>Restituisce l'indice del titolo con il ticker cercato; restituisce <code>-1</code> se non trovato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Regole di calcolo</h2>
+
+  <h3>3a. Vendita di azioni (regola semplificata):</h3>
+  <table>
+    <thead>
+      <tr><th>Società</th><th>Commissione restituita</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>quotata in Italia (<code>estero</code> è <code>false</code>)</td><td><code>3.0</code> €</td></tr>
+      <tr><td>quotata all'estero (<code>estero</code> è <code>true</code>)</td><td><code>8.0</code> €</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>controvalore</strong> = <code>azioniVendute * prezzo attuale</code></li>
+    <li><strong>guadagno</strong> = <code>(prezzo attuale − prezzoCarico) * azioniVendute − commissione</code></li>
+    <li><strong>tasse</strong> = guadagno × 26 / 100, <strong>solo se il guadagno è positivo</strong>; altrimenti le tasse sono 0</li>
+    <li><strong>incasso netto</strong> = controvalore − commissione − tasse</li>
+  </ul>
+
+  <h3><span class="star">&#9733;</span> 3b. Livello di rischio (in base all'oscillazione del prezzo):</h3>
+  <p>oscillazione = <code>(prezzo massimo − prezzo minimo) / prezzo minimo × 100</code></p>
+  <table>
+    <thead>
+      <tr><th>Oscillazione</th><th>Valore restituito</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>minore di 10</td><td><code>"basso"</code></td></tr>
+      <tr><td>da 10 a meno di 25</td><td><code>"medio"</code></td></tr>
+      <tr><td>25 o più</td><td><code>"alto"</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="star">&#9733;</span> 3c. Piano di accumulo (rendimento ipotizzato del 4% annuo):</h3>
+  <ol>
+    <li>il tasso mensile è <code>4.0 / 12 / 100</code></li>
+    <li>il saldo parte dal <code>capitale</code>, il contatore dei mesi parte da 0</li>
+    <li><strong>finché</strong> il saldo è minore dell'obiettivo <strong>e</strong> i mesi sono meno di 600:
+      <code>saldo = saldo + versamentoMensile</code>, poi <code>saldo = saldo * (1 + tassoMensile)</code>, poi <code>mesi = mesi + 1</code></li>
+    <li>alla fine, se il saldo ha raggiunto l'obiettivo restituisce <code>mesi</code>, altrimenti <code>-1</code></li>
+  </ol>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>20 titoli</strong> e implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Acquista titolo</td>
+        <td>chiama <code>inserisciTitolo</code>, salva il risultato nell'array e incrementa il contatore; se l'array è pieno stampa un messaggio di errore</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Visualizza portafoglio</td>
+        <td>stampa tutti i titoli con <code>stampaTitolo</code>; alla fine mostra il <strong>valore totale del portafoglio</strong> e la <strong>plusvalenza totale</strong> (somma delle plusvalenze di tutti i titoli)</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Vendi azioni</td>
+        <td>chiede il ticker e lo cerca con <code>cercaTitolo</code>; se lo trova chiede quante azioni vendere: se il numero è minore di 1 o maggiore delle azioni possedute stampa un messaggio di errore, altrimenti chiama <code>stampaVendita</code> e poi <strong>aggiorna le azioni rimaste</strong> nell'array</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 4</td>
+        <td>Piano di accumulo</td>
+        <td>usa come capitale iniziale il valore totale del portafoglio, chiede l'<strong>obiettivo</strong> in euro e il <strong>versamento mensile</strong> e chiama <code>mesiPerObiettivo</code>; stampa il tempo necessario in <strong>anni e mesi</strong> (<code>mesi / 12</code> e <code>mesi % 12</code>), oppure "Obiettivo non raggiungibile in 50 anni" se la funzione restituisce <code>-1</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> inserisci questi tre titoli di prova. Il tuo programma deve stampare
+    esattamente i valori delle tabelle seguenti.
+  </div>
+  <table>
+    <thead>
+      <tr><th>Ticker</th><th>Società</th><th>Settore</th><th>Estero</th><th>Azioni</th><th>Carico</th><th>Prezzi dal mese 1 al mese 5</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ENI</td><td>Eni</td><td>energia</td><td>0</td><td>100</td><td>14.50</td><td>14.20 · 13.80 · 14.60 · 14.90 · 15.40</td></tr>
+      <tr><td>AAPL</td><td>Apple</td><td>tecnologia</td><td>1</td><td>10</td><td>196.00</td><td>195.00 · 150.20 · 165.80 · 188.40 · 172.30</td></tr>
+      <tr><td>ISP</td><td>Intesa Sanpaolo</td><td>banche</td><td>0</td><td>800</td><td>3.20</td><td>3.45 · 3.52 · 3.60 · 3.71 · 3.66</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Voce 2 – Visualizza portafoglio</h3>
+  <table class="check-table">
+    <thead>
+      <tr><th>Ticker</th><th>Valore attuale</th><th>Plusvalenza</th><th><span class="star">&#9733;</span> Rischio</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ENI</td><td>1540.00</td><td>90.00</td><td>medio</td></tr>
+      <tr><td>AAPL</td><td>1723.00</td><td>-237.00</td><td>alto</td></tr>
+      <tr><td>ISP</td><td>2928.00</td><td>368.00</td><td>basso</td></tr>
+    </tbody>
+  </table>
+  <p>Valore totale del portafoglio: <strong>6191.00 €</strong> &nbsp;·&nbsp; plusvalenza totale: <strong>221.00 €</strong></p>
+
+  <h3>Voce 3 – Vendi azioni (ogni vendita parte dai dati di prova iniziali)</h3>
+  <table class="check-table">
+    <thead>
+      <tr><th>Vendita</th><th>Controvalore</th><th>Commissione</th><th>Guadagno</th><th>Tasse</th><th>Incasso netto</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>40 azioni ENI (italiana)</td><td>616.00</td><td>3.00</td><td>33.00</td><td>8.58</td><td>604.42</td></tr>
+      <tr><td>500 azioni ISP (italiana)</td><td>1830.00</td><td>3.00</td><td>227.00</td><td>59.02</td><td>1767.98</td></tr>
+      <tr><td>2 azioni AAPL (estera, in perdita)</td><td>344.60</td><td>8.00</td><td>-55.40</td><td>0.00</td><td>336.60</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="star">&#9733;</span> Voce 4 – Piano di accumulo (capitale iniziale 6191.00 €)</h3>
+  <table class="check-table">
+    <thead>
+      <tr><th>Obiettivo</th><th>Versamento mensile</th><th>Mesi</th><th>Tempo necessario</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>20000 €</td><td>150 €</td><td>72</td><td>6 anni e 0 mesi</td></tr>
+      <tr><td>20000 €</td><td>300 €</td><td>41</td><td>3 anni e 5 mesi</td></tr>
+      <tr><td>50000 €</td><td>0 €</td><td>-1</td><td>non raggiungibile in 50 anni</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> Il ticker e il settore sono parole singole e si leggono con <code>cin &gt;&gt;</code>;
+    il nome della società può contenere spazi (es. "Intesa Sanpaolo"): usa <code>getline(cin, variabile)</code>.
+    Ricorda <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 5.
+    Dentro <code>inserisciTitolo</code> usa un <code>while</code> di controllo per <strong>rileggere il numero
+    di azioni</strong> finché l'utente non inserisce un valore maggiore di zero; i 5 prezzi si leggono invece
+    con un ciclo <code>for</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Le funzioni ricevono una <strong>copia</strong> del titolo, quindi
+    <code>stampaVendita</code> non modifica l'array. Dopo la vendita aggiorna le azioni direttamente nel main,
+    ad esempio <code>port[i].azioni = port[i].azioni - azioniVendute;</code>
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Prezzi</td>
+        <td>Sempre 5 valori maggiori di 0 per ogni titolo; la cella 0 è il mese 1, la cella 4 è il mese 5 (prezzo attuale)</td>
+      </tr>
+      <tr>
+        <td>Azioni</td>
+        <td>Numero intero strettamente maggiore di 0</td>
+      </tr>
+      <tr>
+        <td>Prezzo di carico</td>
+        <td>Valore con virgola maggiore di 0, espresso in euro (es. 14.50)</td>
+      </tr>
+      <tr>
+        <td>Ticker e settore</td>
+        <td>Una sola parola, senza spazi (es. ENI, AAPL &nbsp;·&nbsp; energia, banche)</td>
+      </tr>
+      <tr>
+        <td>Estero</td>
+        <td>Da tastiera si inserisce <code>1</code> (quotata all'estero) oppure <code>0</code> (quotata in Italia)</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Societa deve essere dichiarata <em>prima</em> di Titolo</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 20 titoli; usa una variabile per contare quanti sono inseriti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> <code>stampaVendita</code> deve <em>richiamare</em> <code>commissione</code>
+    invece di riscrivere la tabella 3a, e i totali della voce 2 vanno calcolati nel main <em>richiamando</em>
+    <code>valoreAttuale</code> e <code>plusvalenza</code>.
+    Se il guadagno della vendita è negativo non si pagano tasse.
+  </div>
+
+  <div class="nota">
+    <strong>Nota:</strong> per stampare i valori con la virgola usa due decimali
+    (<code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code>, libreria <code>&lt;iomanip&gt;</code>).
+    Commissioni, tasse e rendimenti sono semplificati a scopo didattico: nella realtà i rendimenti futuri
+    <strong>non sono garantiti</strong>.
+  </div>
+
+</body>
+</html>
