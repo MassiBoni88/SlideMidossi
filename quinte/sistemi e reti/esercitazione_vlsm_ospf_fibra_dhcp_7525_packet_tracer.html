@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione — VLSM, OSPF, fibra ottica e DHCP 75/25</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f2f7fc; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.88; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px; margin-right: 4px;
+    }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 18px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { line-height: 1.7; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+    td.key { font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d; }
+    td.fill, tr:nth-child(even) td.fill {
+      background: #fffff0; border: 1px dashed #cbd5e0;
+      min-width: 110px; height: 34px;
+    }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .checkpoint { background: #f0fff4; border-left: 4px solid #38a169; border-radius: 4px;
+                  padding: 12px 16px; font-size: 0.88rem; margin-top: 16px; line-height: 1.6; }
+    .checkpoint strong:first-child { color: #22543d; }
+
+    .q-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+             padding: 12px 16px; margin: 14px 0; }
+    .q-box .q { font-size: 0.89rem; line-height: 1.6; }
+    .q-num { display: inline-block; background: #2b6cb0; color: white; border-radius: 4px;
+             padding: 0 7px; margin-right: 6px; font-size: 0.78rem; font-weight: bold; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    td > .tag:first-child { margin-left: 0; }
+    .tag-amb  { background: #e9d8fd; color: #553c9a; }
+    .tag-acc  { background: #bee3f8; color: #2c5282; }
+    .tag-uff  { background: #c6f6d5; color: #22543d; }
+    .tag-ced  { background: #fed7d7; color: #9b2c2c; }
+    .tag-fib  { background: #feebc8; color: #7b341e; }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+
+    .points { float: right; background: #edf2f7; border-radius: 12px;
+              padding: 2px 10px; font-size: 0.78rem; color: #718096; }
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+    pre.cli {
+      background: #1a202c; color: #e2e8f0; border-radius: 6px;
+      padding: 14px 16px; font-family: 'Courier New', monospace;
+      font-size: 0.8rem; line-height: 1.6; overflow-x: auto; margin: 10px 0;
+    }
+    pre.cli .cmt { color: #718096; font-style: italic; }
+    pre.cli .kw  { color: #f6ad55; }
+    pre.cli .val { color: #68d391; }
+    pre.cli .gap { color: #fbd38d; }
+
+    ol.steps { margin: 6px 0 0 20px; }
+    ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.89rem; }
+    ul.check { margin: 6px 0 0 20px; }
+    ul.check li { font-size: 0.88rem; line-height: 1.6; margin-bottom: 4px; }
+
+    tr.group td, tr.group:hover td { background: #ebf4ff; color: #1a365d; font-weight: bold; font-size: 0.82rem;
+                                     text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px; }
+    .topo { margin: 6px 0 4px; }
+    .topo svg { width: 100%; height: auto; display: block; }
+
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px 16px; }
+      .points { float: none; display: inline-block; margin-left: 6px; }
+    }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 13px; }
+      header { padding: 18px 24px; margin-bottom: 16px; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 16px 20px; margin-bottom: 14px; }
+      .card h2, .card h3, .card h2 + p { break-after: avoid; page-break-after: avoid; }
+      td, th { padding: 6px 9px; }
+      td.fill, tr:nth-child(even) td.fill { min-width: 70px; height: 30px; }
+      table, pre.cli, .q-box, .topo, .info-box, .warn-box, .checkpoint { page-break-inside: avoid; }
+      header, th, .tag, .q-num, pre.cli, td.fill {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      header { background: #1a365d !important; }
+      footer { margin-top: 6px; padding-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercitazione di laboratorio — Due palazzine in fibra con OSPF e DHCP ridondato 75/25</h1>
+    <p>Sottoreti VLSM, dorsale in fibra ottica, routing dinamico OSPF, due server DHCP con relay agent e regola 75/25</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT Informatica — Sistemi e Reti</span>
+    <span class="badge">Durata: 1 h 50 min</span>
+    <span class="badge">Punteggio: 100</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>
+      Il <strong>Poliambulatorio San Luca</strong> occupa due palazzine distanti circa <strong>400 m</strong>. Nella
+      <strong>palazzina A</strong> si trovano gli <strong>AMBULATORI</strong> e l'<strong>ACCETTAZIONE</strong>, collegati al
+      router <strong>R1</strong>; nella <strong>palazzina B</strong> si trovano gli <strong>UFFICI</strong> e il
+      <strong>CED</strong>, collegati al router <strong>R2</strong>. I due router sono uniti da una
+      <strong>dorsale in fibra ottica</strong>: su entrambi va installato un modulo con porta in fibra. Al poliambulatorio
+      è stato assegnato il blocco <code>172.20.10.0/24</code>, da suddividere con la tecnica <strong>VLSM</strong>.
+    </p>
+    <p>
+      Per garantire la continuità del servizio, gli indirizzi sono distribuiti da <strong>due server DHCP</strong>, uno per
+      palazzina, che si fanno da <strong>backup</strong> a vicenda con la <strong>regola 75/25</strong>: per ogni LAN, il
+      server della stessa palazzina distribuisce il 75% degli indirizzi e l'altro server il restante 25%. Perché un server
+      possa servire anche le LAN in cui non si trova, i router fanno da <strong>relay agent</strong>. Le tabelle di routing
+      vengono costruite dinamicamente da <strong>OSPF</strong> (processo 1, area 0).
+    </p>
+
+    <h3>Reti da realizzare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>Palazzina</th><th>Collegata a</th><th>Host richiesti</th><th>Indirizzamento degli host</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td>A</td><td>R1 — Gig0/0</td><td class="key">60</td><td>DHCP 75/25 · qui si trova SRV-DHCP-A</td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td>B</td><td>R2 — Gig0/1</td><td class="key">45</td><td>DHCP 75/25</td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td>A</td><td>R1 — Gig0/1</td><td class="key">20</td><td>DHCP 75/25</td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td>B</td><td>R2 — Gig0/0</td><td class="key">12</td><td>DHCP 75/25 · qui si trova SRV-DHCP-B</td></tr>
+        <tr><td><span class="tag tag-fib">FIBRA</span></td><td>A ↔ B</td><td>R1 Gig0/1/0 — R2 Gig0/1/0</td><td class="key">2</td><td>statico</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Topologia</h3>
+    <div class="topo">
+      <svg viewBox="0 0 960 510" role="img" aria-label="Topologia: nella palazzina A il router R1 collega la LAN AMBULATORI (switch SW-AMB, server SRV-DHCP-A e due PC) e la LAN ACCETTAZIONE (switch SW-ACC, un PC); nella palazzina B il router R2 collega la LAN UFFICI (switch SW-UFF, due PC) e il CED (switch SW-CED, server SRV-DHCP-B e un PC). R1 e R2 sono collegati in fibra ottica tramite le porte Gig0/1/0.">
+        <defs>
+          <symbol id="ico-srv" viewBox="0 0 30 42">
+            <rect x="1" y="1" width="28" height="40" rx="3" fill="#4a5568"/>
+            <rect x="6" y="8" width="18" height="3" rx="1" fill="#e2e8f0"/>
+            <rect x="6" y="15" width="18" height="3" rx="1" fill="#e2e8f0"/>
+            <rect x="6" y="22" width="18" height="3" rx="1" fill="#e2e8f0"/>
+            <circle cx="15" cy="33" r="2.5" fill="#68d391"/>
+          </symbol>
+          <symbol id="ico-pc" viewBox="0 0 40 36">
+            <rect x="1" y="1" width="38" height="25" rx="3" fill="#718096"/>
+            <rect x="5" y="5" width="30" height="17" rx="1" fill="#ebf8ff"/>
+            <rect x="17" y="26" width="6" height="5" fill="#718096"/>
+            <rect x="10" y="31" width="20" height="4" rx="2" fill="#718096"/>
+          </symbol>
+        </defs>
+
+        <!-- zone -->
+        <rect x="20" y="10" width="440" height="195" rx="12" fill="#faf5ff" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="36" y="34" font-size="14" font-weight="700" fill="#553c9a">LAN AMBULATORI · 60 host</text>
+        <rect x="20" y="300" width="440" height="200" rx="12" fill="#ebf8ff" stroke="#3182ce" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="36" y="487" font-size="14" font-weight="700" fill="#2c5282">LAN ACCETTAZIONE · 20 host</text>
+        <rect x="500" y="10" width="440" height="195" rx="12" fill="#f0fff4" stroke="#38a169" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="924" y="34" font-size="14" font-weight="700" fill="#22543d" text-anchor="end">LAN UFFICI · 45 host</text>
+        <rect x="500" y="300" width="440" height="200" rx="12" fill="#fff5f5" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="924" y="487" font-size="14" font-weight="700" fill="#9b2c2c" text-anchor="end">LAN CED · 12 host</text>
+
+        <!-- palazzine -->
+        <text x="210" y="226" font-size="11" font-weight="700" fill="#a0aec0" text-anchor="middle" letter-spacing="2">PALAZZINA A</text>
+        <text x="750" y="226" font-size="11" font-weight="700" fill="#a0aec0" text-anchor="middle" letter-spacing="2">PALAZZINA B</text>
+
+        <!-- collegamenti in rame -->
+        <g stroke="#4a5568" stroke-width="2" fill="none">
+          <line x1="190" y1="66"  x2="345" y2="123"/>
+          <line x1="190" y1="123" x2="345" y2="123"/>
+          <line x1="190" y1="173" x2="345" y2="123"/>
+          <line x1="190" y1="390" x2="345" y2="390"/>
+          <line x1="345" y1="123" x2="345" y2="250"/>
+          <line x1="345" y1="390" x2="345" y2="250"/>
+          <line x1="770" y1="78"  x2="615" y2="111"/>
+          <line x1="770" y1="143" x2="615" y2="111"/>
+          <line x1="770" y1="362" x2="615" y2="390"/>
+          <line x1="770" y1="420" x2="615" y2="390"/>
+          <line x1="615" y1="111" x2="615" y2="250"/>
+          <line x1="615" y1="390" x2="615" y2="250"/>
+        </g>
+        <!-- dorsale in fibra -->
+        <line x1="345" y1="250" x2="615" y2="250" stroke="#dd6b20" stroke-width="5"/>
+        <line x1="345" y1="250" x2="615" y2="250" stroke="#fefcbf" stroke-width="1.2"/>
+        <line x1="310" y1="250" x2="321" y2="250" stroke="#d69e2e" stroke-width="2" stroke-dasharray="3 3"/>
+        <line x1="639" y1="250" x2="650" y2="250" stroke="#d69e2e" stroke-width="2" stroke-dasharray="3 3"/>
+
+        <!-- porte -->
+        <g font-size="11" fill="#2d3748" font-family="'Courier New', monospace" font-weight="700">
+          <text x="353" y="160">Fa0/1</text>
+          <text x="353" y="220">Gig0/0</text>
+          <text x="353" y="290">Gig0/1</text>
+          <text x="353" y="366">Fa0/1</text>
+          <text x="375" y="242">Gig0/1/0</text>
+          <text x="585" y="242" text-anchor="end">Gig0/1/0</text>
+          <text x="607" y="145" text-anchor="end">Fa0/1</text>
+          <text x="607" y="220" text-anchor="end">Gig0/1</text>
+          <text x="607" y="290" text-anchor="end">Gig0/0</text>
+          <text x="607" y="366" text-anchor="end">Fa0/1</text>
+        </g>
+        <text x="480" y="222" font-size="12" font-weight="700" fill="#2b6cb0" text-anchor="middle">OSPF · area 0</text>
+        <text x="480" y="275" font-size="12" font-weight="700" fill="#9c4221" text-anchor="middle">FIBRA · 2 host · 400 m</text>
+        <text x="480" y="291" font-size="11" fill="#718096" text-anchor="middle">modulo HWIC-1GE-SFP</text>
+
+        <!-- relay agent -->
+        <rect x="110" y="236" width="200" height="28" rx="14" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+        <text x="210" y="255" font-size="12" font-weight="700" fill="#744210" text-anchor="middle">relay agent DHCP su R1</text>
+        <rect x="650" y="236" width="200" height="28" rx="14" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+        <text x="750" y="255" font-size="12" font-weight="700" fill="#744210" text-anchor="middle">relay agent DHCP su R2</text>
+
+        <!-- switch -->
+        <g font-size="13" font-weight="700" fill="white" text-anchor="middle">
+          <rect x="300" y="108" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="345" y="128">SW-AMB</text>
+          <rect x="300" y="375" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="345" y="395">SW-ACC</text>
+          <rect x="570" y="96"  width="90" height="30" rx="5" fill="#2c7a7b"/><text x="615" y="116">SW-UFF</text>
+          <rect x="570" y="375" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="615" y="395">SW-CED</text>
+        </g>
+
+        <!-- router -->
+        <circle cx="345" cy="250" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+        <text x="345" y="255" font-size="14" font-weight="700" fill="white" text-anchor="middle">R1</text>
+        <circle cx="615" cy="250" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+        <text x="615" y="255" font-size="14" font-weight="700" fill="white" text-anchor="middle">R2</text>
+
+        <!-- host -->
+        <use href="#ico-srv" x="175" y="45"  width="30" height="42"/>
+        <use href="#ico-pc"  x="170" y="105" width="40" height="36"/>
+        <use href="#ico-pc"  x="170" y="155" width="40" height="36"/>
+        <use href="#ico-pc"  x="170" y="372" width="40" height="36"/>
+        <use href="#ico-pc"  x="750" y="60"  width="40" height="36"/>
+        <use href="#ico-pc"  x="750" y="125" width="40" height="36"/>
+        <use href="#ico-srv" x="755" y="341" width="30" height="42"/>
+        <use href="#ico-pc"  x="750" y="402" width="40" height="36"/>
+
+        <!-- etichette host -->
+        <g text-anchor="end">
+          <text x="162" y="66"  font-size="13" font-weight="700" fill="#1a202c">SRV-DHCP-A</text>
+          <text x="162" y="81"  font-size="11" fill="#718096">server DHCP · IP statico</text>
+          <text x="162" y="123" font-size="13" font-weight="700" fill="#1a202c">PC-AMB1</text>
+          <text x="162" y="138" font-size="11" fill="#718096">client DHCP</text>
+          <text x="162" y="173" font-size="13" font-weight="700" fill="#1a202c">PC-AMB2</text>
+          <text x="162" y="188" font-size="11" fill="#718096">client DHCP</text>
+          <text x="162" y="390" font-size="13" font-weight="700" fill="#1a202c">PC-ACC1</text>
+          <text x="162" y="405" font-size="11" fill="#718096">client DHCP</text>
+        </g>
+        <g>
+          <text x="798" y="78"  font-size="13" font-weight="700" fill="#1a202c">PC-UFF1</text>
+          <text x="798" y="93"  font-size="11" fill="#718096">client DHCP</text>
+          <text x="798" y="143" font-size="13" font-weight="700" fill="#1a202c">PC-UFF2</text>
+          <text x="798" y="158" font-size="11" fill="#718096">client DHCP</text>
+          <text x="798" y="362" font-size="13" font-weight="700" fill="#1a202c">SRV-DHCP-B</text>
+          <text x="798" y="377" font-size="11" fill="#718096">server DHCP · IP statico</text>
+          <text x="798" y="420" font-size="13" font-weight="700" fill="#1a202c">PC-CED1</text>
+          <text x="798" y="435" font-size="11" fill="#718096">client DHCP</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PROMEMORIA -->
+  <div class="card">
+    <h2>Promemoria comandi</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Comando</th><th>Dove</th><th>A cosa serve</th></tr></thead>
+      <tbody>
+        <tr><td><code>show ip protocols</code></td><td>router</td><td>riepilogo OSPF: router ID, reti annunciate, interfacce passive</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>Salva spesso:</strong> <em>File → Save As</em> con il nome <code>Cognome_Nome_backup.pkt</code>, almeno
+      alla fine di ogni parte. Se resti bloccato su una parte, annota il problema nel documento Google
+      e passa alla successiva: la diagnosi scritta viene valutata.
+    </div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2>Parte 1 — Piano di indirizzamento VLSM <span class="points">20 min · 15 punti</span></h2>
+
+    <h3>Tabella di indirizzamento</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>Indirizzo di rete / prefisso</th><th>Subnet mask</th><th>Primo host</th><th>Ultimo host</th><th>Broadcast</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D1</span>Quali indirizzi del blocco /24 restano liberi al termine del piano, e quanti sono?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong> mostra la tabella al docente prima di aprire Packet Tracer.
+      Un errore nel piano si propaga a tutte le parti successive.
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2>Parte 2 — Topologia e modulo in fibra <span class="tag tag-gui">GUI</span> <span class="points">15 min · 10 punti</span></h2>
+
+    <h3>Dispositivi da posizionare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Quantità</th><th>Tipo</th><th>Modello</th><th>Nomi da assegnare</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td>Router</td><td><strong>1941</strong></td><td>R1, R2</td></tr>
+        <tr><td>2</td><td>Modulo in fibra</td><td><strong>HWIC-1GE-SFP</strong></td><td>uno per router, nello slot <strong>EHWIC 1</strong></td></tr>
+        <tr><td>4</td><td>Switch</td><td><strong>2960-24TT</strong></td><td>SW-AMB, SW-ACC, SW-UFF, SW-CED</td></tr>
+        <tr><td>2</td><td>Server</td><td>Server-PT</td><td>SRV-DHCP-A, SRV-DHCP-B</td></tr>
+        <tr><td>6</td><td>PC</td><td>PC-PT</td><td>PC-AMB1, PC-AMB2, PC-ACC1, PC-UFF1, PC-UFF2, PC-CED1</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Montaggio del modulo in fibra (su R1 e poi su R2)</h3>
+    <div class="warn-box">
+      <strong>Monta i moduli prima di configurare i router.</strong> Per inserire un modulo il router va spento, e lo
+      spegnimento cancella la configurazione non salvata.
+    </div>
+    <ol class="steps">
+      <li>Clic sul router → scheda <em>Physical</em>.</li>
+      <li><strong>Spegni</strong> il router con l'interruttore di alimentazione disegnato sullo chassis: la spia verde si spegne.</li>
+      <li>Nell'elenco <em>MODULES</em> seleziona <strong>HWIC-1GE-SFP</strong> e trascinalo nello slot <strong>EHWIC 1</strong>.</li>
+      <li><strong>Riaccendi</strong> il router con lo stesso interruttore.</li>
+      <li>Verifica il nome della nuova porta: scheda <em>Config → INTERFACE</em>. Deve comparire
+          <strong><code>GigabitEthernet0/1/0</code></strong>.</li>
+    </ol>
+    <div class="info-box" style="margin-top:12px;">
+      Il nome dell'interfaccia dipende dallo slot: <code>0/<u>1</u>/0</code> = slot EHWIC 1, <code>0/<u>0</u>/0</code> =
+      slot EHWIC 0. Se compare <code>GigabitEthernet0/0/0</code> hai usato lo slot sbagliato: spegni il router,
+      trascina il modulo fuori dallo slot e reinseriscilo nell'altro.
+    </div>
+
+    <h3>Cavi da collegare (13 collegamenti)</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Da</th><th>Porta</th><th>A</th><th>Porta</th><th>Cavo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>SRV-DHCP-A</td><td>Fa0</td><td>SW-AMB</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>2</td><td>PC-AMB1</td><td>Fa0</td><td>SW-AMB</td><td>Fa0/3</td><td>dritto</td></tr>
+        <tr><td>3</td><td>PC-AMB2</td><td>Fa0</td><td>SW-AMB</td><td>Fa0/4</td><td>dritto</td></tr>
+        <tr><td>4</td><td>SW-AMB</td><td>Fa0/1</td><td>R1</td><td>Gig0/0</td><td>dritto</td></tr>
+        <tr><td>5</td><td>PC-ACC1</td><td>Fa0</td><td>SW-ACC</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>6</td><td>SW-ACC</td><td>Fa0/1</td><td>R1</td><td>Gig0/1</td><td>dritto</td></tr>
+        <tr><td class="key">7</td><td class="key">R1</td><td class="key">Gig0/1/0</td><td class="key">R2</td><td class="key">Gig0/1/0</td><td class="key">fibra</td></tr>
+        <tr><td>8</td><td>SW-UFF</td><td>Fa0/1</td><td>R2</td><td>Gig0/1</td><td>dritto</td></tr>
+        <tr><td>9</td><td>PC-UFF1</td><td>Fa0</td><td>SW-UFF</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>10</td><td>PC-UFF2</td><td>Fa0</td><td>SW-UFF</td><td>Fa0/3</td><td>dritto</td></tr>
+        <tr><td>11</td><td>SW-CED</td><td>Fa0/1</td><td>R2</td><td>Gig0/0</td><td>dritto</td></tr>
+        <tr><td>12</td><td>SRV-DHCP-B</td><td>Fa0</td><td>SW-CED</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>13</td><td>PC-CED1</td><td>Fa0</td><td>SW-CED</td><td>Fa0/3</td><td>dritto</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="info-box" style="margin-top:12px;">
+      Per la dorsale usa il cavo <em>Fiber</em> dal menu <em>Connections</em>. La porta in fibra compare nell'elenco
+      solo con il cavo in fibra: con un cavo in rame non la vedi, e viceversa. Le porte dei router restano
+      <strong>rosse</strong> finché non le attivi nella Parte 3: è normale.
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D2</span>Perché tra le due palazzine non si può usare un normale cavo in rame UTP?
+        Indica almeno un altro vantaggio della fibra ottica rispetto al rame.</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>I nomi visualizzati dei dispositivi corrispondono alla tabella.</li>
+        <li>Su R1 e su R2, in <em>Config → INTERFACE</em>, compare <code>GigabitEthernet0/1/0</code>.</li>
+        <li>I 13 cavi usano esattamente le porte indicate (passa col mouse sui cavi per verificarlo).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2>Parte 3 — Indirizzamento di router e server <span class="tag tag-gui">GUI</span> <span class="points">10 min · 10 punti</span></h2>
+
+    <h3>Convenzioni da rispettare</h3>
+    <ol class="steps">
+      <li>L'interfaccia del router in una LAN prende il <strong>primo host</strong> della rete (è il default gateway della LAN).</li>
+      <li>Ogni server DHCP prende il <strong>secondo host</strong> della propria rete.</li>
+      <li>Sulla fibra, R1 prende il <strong>primo host</strong> e R2 il <strong>secondo</strong>.</li>
+      <li>I PC per ora non si toccano: riceveranno l'indirizzo dal DHCP nelle Parti 5 e 6.</li>
+    </ol>
+
+    <h3>Indirizzi da assegnare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dispositivo</th><th>Interfaccia</th><th>Rete</th><th>Indirizzo IP</th><th>Subnet mask</th><th>Default gateway</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-uff">UFFICI</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>SRV-DHCP-A</td><td>Fa0</td><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>SRV-DHCP-B</td><td>Fa0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Procedura</h3>
+    <ol class="steps">
+      <li><strong>Router</strong>: <em>Config → GLOBAL → Settings</em>, imposta <em>Hostname</em> (R1 o R2).
+          Poi <em>Config → INTERFACE → GigabitEthernet…</em>: <em>Port Status</em> su <strong>On</strong>,
+          indirizzo IP e subnet mask. Ricordati anche della porta in fibra <code>GigabitEthernet0/1/0</code>.</li>
+      <li><strong>Server</strong>: <em>Desktop → IP Configuration → Static</em>: indirizzo IP, subnet mask e
+          <em>Default Gateway</em>.</li>
+    </ol>
+    <div class="warn-box" style="margin-top:12px;">
+      <strong>Il default gateway dei due server è obbligatorio.</strong> Senza, un server non riesce a rispondere alle
+      richieste che arrivano dalle altre LAN e il backup non funzionerà.
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D3</span>Da SRV-DHCP-B esegui <code>ping</code> verso l'indirizzo in fibra di
+        <strong>R2</strong> e poi verso l'indirizzo in fibra di <strong>R1</strong>. Quale dei due funziona? Perché
+        l'altro fallisce, anche se la richiesta di ping arriva a destinazione?</p>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2>Parte 4 — Routing dinamico OSPF <span class="tag tag-cli">CLI</span> <span class="points">20 min · 20 punti</span></h2>
+    <p style="font-size:0.89rem;">
+      Con OSPF ogni router comunica ai vicini le reti a cui è collegato e costruisce da solo la tabella di routing:
+      non serve scrivere rotte statiche. Parametri da usare: <strong>processo 1</strong> e <strong>area 0</strong>.
+    </p>
+
+    <div class="info-box" style="margin-top:12px;">
+      <strong>Wildcard mask.</strong> Nel comando <code>network</code> la rete si indica con l'indirizzo di rete e la
+      <strong>wildcard</strong>, che si ottiene sottraendo la subnet mask da <code>255.255.255.255</code>.<br>
+      Esempio: per una /29 (<code>255.255.255.248</code>) la wildcard è <code>0.0.0.7</code>.
+    </div>
+
+    <h3>Reti da annunciare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Router</th><th>Interfaccia</th><th>Rete</th><th>Indirizzo di rete</th><th>Wildcard mask</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="5">R1 — palazzina A</td></tr>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr class="group"><td colspan="5">R2 — palazzina B</td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-uff">UFFICI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Configurazione di R1</h3>
+<pre class="cli">R1&gt; <span class="kw">enable</span>
+R1# <span class="kw">configure terminal</span>
+R1(config)# <span class="kw">router ospf</span> <span class="val">1</span>
+R1(config-router)# <span class="kw">network</span> <span class="gap">___.___.___.___  ___.___.___.___</span> <span class="kw">area</span> <span class="val">0</span>   <span class="cmt">! AMBULATORI</span>
+R1(config-router)# <span class="kw">network</span> <span class="gap">___.___.___.___  ___.___.___.___</span> <span class="kw">area</span> <span class="val">0</span>   <span class="cmt">! ACCETTAZIONE</span>
+R1(config-router)# <span class="kw">network</span> <span class="gap">___.___.___.___  ___.___.___.___</span> <span class="kw">area</span> <span class="val">0</span>   <span class="cmt">! FIBRA</span>
+R1(config-router)# <span class="kw">end</span></pre>
+
+    <h3>Configurazione di R2 — in autonomia</h3>
+    <p class="muted">Stessa struttura di R1, con le reti di R2.</p>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo</strong> (dopo aver configurato entrambi i router, attendi 30–40 secondi):
+      <ul class="check">
+        <li><code>show ip ospf neighbor</code> su R1: il vicino R2 è in stato <strong>FULL</strong> su Gig0/1/0.</li>
+        <li><code>show ip route</code>: su R1 compaiono due rotte <code>O</code> (UFFICI e CED), su R2 due rotte <code>O</code> (AMBULATORI e ACCETTAZIONE).</li>
+        <li>Il ping di D3 che prima falliva ora funziona, e SRV-DHCP-A e SRV-DHCP-B si raggiungono a vicenda.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2>Parte 5 — Due server DHCP con regola 75/25 <span class="tag tag-gui">GUI</span> <span class="points">30 min · 25 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Regola 75/25.</strong> Per ogni LAN, il server della <strong>stessa palazzina</strong> è il principale e
+      distribuisce il <strong>75%</strong> degli indirizzi; l'altro server distribuisce il restante <strong>25%</strong>
+      come backup. I due range <u>non devono sovrapporsi</u>, perché i server non si scambiano informazioni sugli indirizzi
+      già assegnati. Ogni server avrà quindi <strong>quattro pool</strong>, uno per LAN.
+    </div>
+
+    <h3>Server principale e di backup</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>LAN</th><th>Palazzina</th><th>75% — principale</th><th>25% — backup</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td>A</td><td>SRV-DHCP-A</td><td>SRV-DHCP-B</td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td>A</td><td>SRV-DHCP-A</td><td>SRV-DHCP-B</td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td>B</td><td>SRV-DHCP-B</td><td>SRV-DHCP-A</td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td>B</td><td>SRV-DHCP-B</td><td>SRV-DHCP-A</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>Indirizzi esclusi:</strong> in ogni LAN i <strong>primi 6 indirizzi host</strong> sono riservati a
+      router, server e stampanti e <u>non</u> vanno distribuiti. Il primo indirizzo distribuibile è quindi il
+      <strong>7° host</strong> e l'ultimo è l'<strong>ultimo host</strong> della rete.
+    </div>
+
+    <h3>Passo 1 — Indirizzi distribuibili</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>LAN</th><th>Primo indirizzo distribuibile (7° host)</th><th>Ultimo indirizzo distribuibile</th><th>Totale indirizzi</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Passo 2 — Suddivisione 75/25</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>LAN</th><th>Quota</th><th>Gestita da</th><th>N. indirizzi</th><th>Primo IP</th><th>Ultimo IP</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td>75%</td><td>SRV-DHCP-A</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-amb">AMBULATORI</span></td><td>25%</td><td>SRV-DHCP-B</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td>75%</td><td>SRV-DHCP-A</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td>25%</td><td>SRV-DHCP-B</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td>75%</td><td>SRV-DHCP-B</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td>25%</td><td>SRV-DHCP-A</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td>75%</td><td>SRV-DHCP-B</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td>25%</td><td>SRV-DHCP-A</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="muted" style="margin-top:8px;">
+      Autoverifica: per ciascuna LAN, 75% + 25% deve dare esattamente il totale del Passo 1. Con questo piano
+      i conti tornano senza arrotondamenti, e l'ultimo IP del 25% coincide con l'ultimo host della rete.
+    </p>
+
+    <h3>Passo 3 — Configurazione dei pool in Packet Tracer</h3>
+    <p style="font-size:0.89rem; margin-bottom:6px;">
+      Lascia <em>DNS Server</em>, <em>TFTP Server</em> e <em>WLC Address</em> ai valori predefiniti.
+    </p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pool Name</th><th>Default Gateway</th><th>Start IP Address</th><th>Subnet Mask</th><th>Max Users</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="5">SRV-DHCP-A</td></tr>
+        <tr><td><code>serverPool</code><br><span class="muted">AMBULATORI 75%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>ACC_75</code><br><span class="muted">ACCETTAZIONE 75%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>UFF_25</code><br><span class="muted">UFFICI 25%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>CED_25</code><br><span class="muted">CED 25%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr class="group"><td colspan="5">SRV-DHCP-B</td></tr>
+        <tr><td><code>serverPool</code><br><span class="muted">CED 75%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>UFF_75</code><br><span class="muted">UFFICI 75%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>AMB_25</code><br><span class="muted">AMBULATORI 25%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>ACC_25</code><br><span class="muted">ACCETTAZIONE 25%</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Procedura</h3>
+    <ol class="steps">
+      <li>Su ciascun server: <em>Services → DHCP</em>, <em>Service</em> su <strong>On</strong>.</li>
+      <li><strong>serverPool</strong>: selezionalo nell'elenco in basso, modifica i campi e premi <strong>Save</strong>.</li>
+      <li><strong>Pool nuovi</strong>: scrivi il nome in <em>Pool Name</em>, compila i campi e premi
+          <strong>Add</strong> (non Save, altrimenti sovrascrivi il pool selezionato). Ripeti per i tre pool.</li>
+      <li>Controlla nell'elenco che i quattro pool di ogni server abbiano i valori giusti.</li>
+      <li>Sui sei PC: <em>Desktop → IP Configuration</em> → seleziona <strong>DHCP</strong>.</li>
+    </ol>
+    <div class="warn-box" style="margin-top:12px;">
+      <strong>Trappola di Packet Tracer:</strong> quando cambi lo <em>Start IP Address</em>, il programma può
+      ricalcolare da solo <em>Subnet Mask</em> (proponendo <code>255.255.255.0</code>) e <em>Maximum Number of Users</em>.
+      Con VLSM tutte le reti stanno nello stesso /24: se lasci la maschera proposta, i pool si sovrappongono e il server
+      può assegnare l'indirizzo dal pool sbagliato. Ricontrolla sempre questi due campi prima di Save o Add.
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D4</span>Perché il server principale di ogni LAN è quello della
+        <u>stessa palazzina</u>? Pensa a cosa succederebbe ai client se si interrompesse la dorsale in fibra.</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D5</span><strong>Esperimento (senza relay agent).</strong> Dopo aver impostato
+        i PC su DHCP, quali PC ricevono un indirizzo e da quale server? Perché gli altri no (<em>DHCP request failed</em>
+        oppure un indirizzo <code>169.254.x.x</code>), se entrambi i server hanno un pool anche per le loro LAN?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Ogni server ha quattro pool con gateway, Start IP, maschera e Max Users corretti, e nessun range si sovrappone.</li>
+        <li>PC-AMB1 e PC-AMB2 hanno un indirizzo del 75% degli AMBULATORI; PC-CED1 un indirizzo del 75% del CED.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 6 -->
+  <div class="card">
+    <h2>Parte 6 — Relay agent e prova di backup <span class="tag tag-cli">CLI</span> <span class="points">15 min · 20 punti</span></h2>
+
+    <div class="info-box">
+      Il <em>DHCPDISCOVER</em> del client è un <strong>broadcast</strong> e i router non inoltrano i broadcast.
+      Il comando <code>ip helper-address</code>, configurato sull'<strong>interfaccia che riceve il broadcast del
+      client</strong>, trasforma il router in <strong>relay agent</strong>: la richiesta viene inoltrata in
+      <strong>unicast</strong> all'indirizzo indicato e il router scrive nel campo <strong>GIAddr</strong> l'IP della
+      propria interfaccia. Il server usa il GIAddr per capire da quale subnet arriva la richiesta e scegliere il pool giusto.
+      <br>Con due server, sulla stessa interfaccia si possono configurare <strong>più righe</strong>
+      <code>ip helper-address</code>: il router inoltra la richiesta a ciascun server indicato.
+    </div>
+
+    <h3>Interfacce dei router</h3>
+    <p style="font-size:0.89rem; margin-bottom:6px;">Per ogni interfaccia individua quali server DHCP il router deve raggiungere: nessuno, uno o due.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Router</th><th>Interfaccia</th><th>Collegata a</th><th>Primo <code>ip helper-address</code></th><th>Secondo <code>ip helper-address</code></th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-amb">AMBULATORI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-acc">ACCETTAZIONE</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-uff">UFFICI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="muted" style="margin-top:8px;">
+      Il relay si configura solo da CLI: in Packet Tracer non esiste un campo della GUI per
+      <code>ip helper-address</code>.
+    </p>
+
+<pre class="cli">R1&gt; <span class="kw">enable</span>
+R1# <span class="kw">configure terminal</span>
+R1(config)# <span class="kw">interface</span> <span class="gap">&lt;interfaccia&gt;</span>
+R1(config-if)# <span class="kw">ip helper-address</span> <span class="gap">&lt;primo server DHCP&gt;</span>
+R1(config-if)# <span class="kw">ip helper-address</span> <span class="gap">&lt;secondo server DHCP, se serve&gt;</span>
+R1(config-if)# <span class="kw">exit</span>
+<span class="cmt">! ripeti per ogni interfaccia che ne ha bisogno, poi fai lo stesso su R2</span>
+R1(config)# <span class="kw">end</span></pre>
+
+    <div class="warn-box">
+      Con entrambi i server accesi, se il relay inoltra la richiesta a due server il client accetta la
+      <strong>prima offerta</strong> che riceve. Se un PC riceve un indirizzo del 25% anche con entrambi i server accesi,
+      non è un errore: ha semplicemente risposto per primo il server di backup.
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D6</span>Perché su alcune interfacce servono due righe <code>ip helper-address</code>,
+        su altre una sola e sulle interfacce in fibra nessuna?</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D7</span><strong>Prova di backup.</strong> Spegni il servizio DHCP su SRV-DHCP-A e
+        rinnova l'indirizzo di PC-AMB1. Quale server risponde e da quale range arriva l'indirizzo? Grazie a quale
+        informazione quel server sceglie il pool giusto?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Su ogni PC: <em>IP Configuration</em> → <em>Static</em> e poi di nuovo <em>DHCP</em>. Tutti e sei i PC ricevono
+            un indirizzo della propria LAN con il gateway corretto.</li>
+        <li><strong>Backup palazzina A:</strong> SRV-DHCP-A → <em>Services → DHCP</em> su <em>Off</em>. Su PC-AMB1
+            <code>ipconfig /release</code> e poi <code>ipconfig /renew</code>: riceve un indirizzo del 25% degli AMBULATORI
+            e <code>ipconfig /all</code> indica SRV-DHCP-B come server DHCP. Poi rimetti il servizio su <em>On</em>.</li>
+        <li><strong>Backup palazzina B:</strong> stessa prova spegnendo SRV-DHCP-B e rinnovando l'indirizzo di PC-UFF1:
+            riceve un indirizzo del 25% degli UFFICI da SRV-DHCP-A. Poi rimetti il servizio su <em>On</em>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Consegna</h2>
+    <ol class="steps">
+      <li>Salva il file Packet Tracer come <code>Cognome_Nome_backup.pkt</code> e consegnalo secondo le indicazioni del docente.</li>
+      <li>Consegna un <strong>documento Google</strong> <code>Cognome_Nome_backup</code> con le tabelle delle Parti 1, 3, 4, 5 e 6
+          e le risposte alle domande D1–D7.</li>
+      <li>Se qualche punto di controllo non è riuscito, descrivi nel documento cosa hai controllato e dove pensi che sia l'errore.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — VLSM, OSPF, dorsale in fibra e DHCP ridondato 75/25 con relay agent — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
