@@ -119,9 +119,8 @@
 
     ol.steps { margin: 6px 0 0 20px; }
     ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.89rem; }
-    ul.check { list-style: none; margin: 6px 0 0; }
+    ul.check { margin: 6px 0 0 20px; }
     ul.check li { font-size: 0.88rem; line-height: 1.6; margin-bottom: 4px; }
-    ul.check input { margin-right: 8px; transform: scale(1.15); }
 
     tr.group td, tr.group:hover td { background: #ebf4ff; color: #1a365d; font-weight: bold; font-size: 0.82rem;
                                      text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px; }
@@ -336,8 +335,8 @@
     </div>
     <div class="warn-box" style="margin-top:14px;">
       <strong>Salva spesso:</strong> <em>File → Save As</em> con il nome <code>Cognome_Nome_ospf.pkt</code>, almeno
-      alla fine di ogni parte. Se resti bloccato su una parte, annota il problema nella sezione
-      <em>Consegna</em> e passa alla successiva: la diagnosi scritta viene valutata.
+      alla fine di ogni parte. Se resti bloccato su una parte, annota il problema nel documento Google
+      e passa alla successiva: la diagnosi scritta viene valutata.
     </div>
   </div>
 
@@ -349,19 +348,17 @@
     <table>
       <thead><tr><th>Rete</th><th>Indirizzo di rete / prefisso</th><th>Subnet mask</th><th>Primo host</th><th>Ultimo host</th><th>Broadcast</th></tr></thead>
       <tbody>
-        <tr><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
 
     <div class="q-box">
-      <p class="q"><span class="q-num">D1</span>Quanti indirizzi del blocco /24 restano liberi al termine del piano?
-        Da <span class="blank" contenteditable="true"></span> a <span class="blank" contenteditable="true"></span>,
-        cioè <span class="blank" contenteditable="true" style="min-width:60px;"></span> indirizzi.</p>
+      <p class="q"><span class="q-num">D1</span>Quali indirizzi del blocco /24 restano liberi al termine del piano, e quanti sono?</p>
     </div>
 
     <div class="checkpoint">
@@ -436,15 +433,14 @@
     <div class="q-box">
       <p class="q"><span class="q-num">D2</span>Perché tra i due edifici non si può usare un normale cavo in rame UTP?
         Indica almeno un altro vantaggio della fibra ottica rispetto al rame.</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
 
     <div class="checkpoint">
       <strong>Punto di controllo:</strong>
       <ul class="check">
-        <li><label><input type="checkbox"> I nomi visualizzati dei dispositivi corrispondono alla tabella.</label></li>
-        <li><label><input type="checkbox"> Su R1 e su R2, in <em>Config → INTERFACE</em>, compare <code>GigabitEthernet0/1/0</code>.</label></li>
-        <li><label><input type="checkbox"> I 12 cavi usano esattamente le porte indicate (passa col mouse sui cavi per verificarlo).</label></li>
+        <li>I nomi visualizzati dei dispositivi corrispondono alla tabella.</li>
+        <li>Su R1 e su R2, in <em>Config → INTERFACE</em>, compare <code>GigabitEthernet0/1/0</code>.</li>
+        <li>I 12 cavi usano esattamente le porte indicate (passa col mouse sui cavi per verificarlo).</li>
       </ul>
     </div>
   </div>
@@ -461,18 +457,18 @@
       <li>I PC per ora non si toccano: riceveranno l'indirizzo dal DHCP nelle Parti 5 e 6.</li>
     </ol>
 
-    <h3>Tabella da completare</h3>
+    <h3>Indirizzi da assegnare</h3>
     <div class="table-wrap">
     <table>
       <thead><tr><th>Dispositivo</th><th>Interfaccia</th><th>Rete</th><th>Indirizzo IP</th><th>Subnet mask</th><th>Default gateway</th></tr></thead>
       <tbody>
-        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td style="color:#a0aec0;">—</td></tr>
-        <tr><td>SRV-DHCP</td><td>Fa0</td><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td style="color:#a0aec0;">—</td></tr>
+        <tr><td>SRV-DHCP</td><td>Fa0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
@@ -494,7 +490,6 @@
       <p class="q"><span class="q-num">D3</span>Da SRV-DHCP esegui <code>ping</code> verso l'indirizzo in fibra di
         <strong>R2</strong> e poi verso l'indirizzo in fibra di <strong>R1</strong>. Quale dei due funziona? Perché
         l'altro fallisce, anche se la richiesta di ping arriva a destinazione?</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
 
   </div>
@@ -519,13 +514,13 @@
       <thead><tr><th>Router</th><th>Interfaccia</th><th>Rete</th><th>Indirizzo di rete</th><th>Wildcard mask</th></tr></thead>
       <tbody>
         <tr class="group"><td colspan="5">R1 — edificio A</td></tr>
-        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
         <tr class="group"><td colspan="5">R2 — edificio B</td></tr>
-        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
@@ -549,22 +544,20 @@ R1# <span class="kw">copy running-config startup-config</span></pre>
       <u>continua a essere annunciata</u>. Si usa sulle interfacce rivolte verso le LAN, dove ci sono solo PC e server.
     </div>
 
-    <h3>Configurazione di R2 — scrivila tu</h3>
-    <p class="muted">Stessa struttura di R1, con il router ID e le reti di R2. Trascrivi qui i comandi che hai digitato.</p>
-    <div class="answer mono" contenteditable="true"></div>
+    <h3>Configurazione di R2 — in autonomia</h3>
+    <p class="muted">Stessa struttura di R1, con il router ID e le reti di R2.</p>
 
     <div class="q-box">
       <p class="q"><span class="q-num">D4</span>Perché <code>passive-interface</code> si applica a Gig0/0 e Gig0/1 ma
         <u>non</u> a Gig0/1/0? Cosa succederebbe alla tabella di routing di R1 se rendessi passiva anche Gig0/1/0?</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
 
     <div class="checkpoint">
       <strong>Punto di controllo</strong> (dopo aver configurato entrambi i router, attendi 30–40 secondi):
       <ul class="check">
-        <li><label><input type="checkbox"> <code>show ip ospf neighbor</code> su R1: il vicino <code>2.2.2.2</code> è in stato <strong>FULL</strong> su Gig0/1/0.</label></li>
-        <li><label><input type="checkbox"> <code>show ip route</code>: su R1 compaiono due rotte <code>O</code> (SALA DOCENTI e CED), su R2 due rotte <code>O</code> (LABORATORI e SEGRETERIA).</label></li>
-        <li><label><input type="checkbox"> Il ping di D3 che prima falliva ora funziona.</label></li>
+        <li><code>show ip ospf neighbor</code> su R1: il vicino <code>2.2.2.2</code> è in stato <strong>FULL</strong> su Gig0/1/0.</li>
+        <li><code>show ip route</code>: su R1 compaiono due rotte <code>O</code> (SALA DOCENTI e CED), su R2 due rotte <code>O</code> (LABORATORI e SEGRETERIA).</li>
+        <li>Il ping di D3 che prima falliva ora funziona.</li>
       </ul>
     </div>
   </div>
@@ -589,10 +582,10 @@ R1# <span class="kw">copy running-config startup-config</span></pre>
     <table>
       <thead><tr><th>LAN</th><th>Primo indirizzo distribuibile (6° host)</th><th>Ultimo indirizzo distribuibile</th><th>Totale indirizzi (Max Users)</th></tr></thead>
       <tbody>
-        <tr><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
@@ -609,10 +602,10 @@ R1# <span class="kw">copy running-config startup-config</span></pre>
       <thead><tr><th>Pool Name</th><th>Default Gateway</th><th>Start IP Address</th><th>Subnet Mask</th><th>Max Users</th></tr></thead>
       <tbody>
         <tr class="group"><td colspan="5">SRV-DHCP</td></tr>
-        <tr><td><code>serverPool</code><br><span class="muted">CED (rete del server)</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><code>POOL_LAB</code><br><span class="muted">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><code>POOL_DOC</code><br><span class="muted">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td><code>POOL_SEG</code><br><span class="muted">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td><code>serverPool</code><br><span class="muted">CED (rete del server)</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>POOL_LAB</code><br><span class="muted">LABORATORI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>POOL_DOC</code><br><span class="muted">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><code>POOL_SEG</code><br><span class="muted">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
@@ -638,14 +631,13 @@ R1# <span class="kw">copy running-config startup-config</span></pre>
         i PC su DHCP, PC-CED1 riceve un indirizzo, mentre gli altri cinque PC no (<em>DHCP request failed</em> oppure un
         indirizzo <code>169.254.x.x</code>). Perché PC-CED1 sì e PC-LAB1 no, se il server ha un pool anche per i
         LABORATORI?</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
 
     <div class="checkpoint">
       <strong>Punto di controllo:</strong>
       <ul class="check">
-        <li><label><input type="checkbox"> Nell'elenco dei pool compaiono quattro righe con gateway, Start IP, maschera e Max Users corretti.</label></li>
-        <li><label><input type="checkbox"> PC-CED1 ha un indirizzo di <code>serverPool</code>.</label></li>
+        <li>Nell'elenco dei pool compaiono quattro righe con gateway, Start IP, maschera e Max Users corretti.</li>
+        <li>PC-CED1 ha un indirizzo di <code>serverPool</code>.</li>
       </ul>
     </div>
   </div>
@@ -662,18 +654,18 @@ R1# <span class="kw">copy running-config startup-config</span></pre>
       propria interfaccia. Il server usa il GIAddr per capire da quale subnet arriva la richiesta e scegliere il pool giusto.
     </div>
 
-    <h3>Tabella da completare</h3>
+    <h3>Interfacce dei router</h3>
     <p style="font-size:0.89rem; margin-bottom:6px;">Per ogni interfaccia dei router decidi se serve il relay e, se sì, quale indirizzo indicare.</p>
     <div class="table-wrap">
     <table>
       <thead><tr><th>Router</th><th>Interfaccia</th><th>Collegata a</th><th>Serve <code>ip helper-address</code>? (sì/no)</th><th>Indirizzo da indicare</th></tr></thead>
       <tbody>
-        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
-        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill" contenteditable="true"></td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>R1</td><td>Gig0/0</td><td><span class="tag tag-lab">LABORATORI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1</td><td><span class="tag tag-seg">SEGRETERIA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1/0</td><td><span class="tag tag-fib">FIBRA</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/1</td><td><span class="tag tag-doc">SALA DOCENTI</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td>Gig0/0</td><td><span class="tag tag-ced">CED</span></td><td class="fill"></td><td class="fill"></td></tr>
       </tbody>
     </table>
     </div>
@@ -693,19 +685,17 @@ R1(config)# <span class="kw">end</span></pre>
     <div class="q-box">
       <p class="q"><span class="q-num">D6</span>Perché su R2 Gig0/0 e sulle due interfacce in fibra il relay
         <u>non</u> serve?</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
     <div class="q-box">
       <p class="q"><span class="q-num">D7</span>SRV-DHCP ha quattro pool. Quando riceve la richiesta di PC-SEG1, come fa a
         scegliere <code>POOL_SEG</code>? Quale valore contiene il campo GIAddr di quella richiesta?</p>
-      <div class="answer" contenteditable="true"></div>
     </div>
 
     <div class="checkpoint">
       <strong>Punto di controllo:</strong>
       <ul class="check">
-        <li><label><input type="checkbox"> Su ogni PC: <em>IP Configuration</em> → <em>Static</em> e poi di nuovo <em>DHCP</em>. Tutti e sei i PC ricevono un indirizzo.</label></li>
-        <li><label><input type="checkbox"> Ogni PC ha un indirizzo del pool della propria LAN e il gateway corretto.</label></li>
+        <li>Su ogni PC: <em>IP Configuration</em> → <em>Static</em> e poi di nuovo <em>DHCP</em>. Tutti e sei i PC ricevono un indirizzo.</li>
+        <li>Ogni PC ha un indirizzo del pool della propria LAN e il gateway corretto.</li>
       </ul>
     </div>
   </div>
@@ -715,13 +705,10 @@ R1(config)# <span class="kw">end</span></pre>
     <h2>Consegna</h2>
     <ol class="steps">
       <li>Salva il file Packet Tracer come <code>Cognome_Nome_ospf.pkt</code> e consegnalo secondo le indicazioni del docente.</li>
-      <li>Consegna questa scheda compilata, su carta oppure salvata in PDF.</li>
-      <li>Se qualche punto di controllo non è riuscito, descrivi qui sotto cosa hai controllato e dove pensi che sia l'errore.</li>
+      <li>Consegna un <strong>documento Google</strong> <code>Cognome_Nome_ospf</code> con le tabelle delle Parti 1, 3, 4, 5 e 6
+          e le risposte alle domande D1–D7.</li>
+      <li>Se qualche punto di controllo non è riuscito, descrivi nel documento cosa hai controllato e dove pensi che sia l'errore.</li>
     </ol>
-    <div class="q-box">
-      <p class="q"><strong>Punti di controllo rimasti aperti e diagnosi</strong></p>
-      <div class="answer tall" contenteditable="true"></div>
-    </div>
   </div>
 
   <footer>
