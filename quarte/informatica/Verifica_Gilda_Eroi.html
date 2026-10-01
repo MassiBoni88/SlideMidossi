@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – La Gilda degli Eroi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>LA GILDA DEGLI EROI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 3°</span>
+      <span class="topics">Argomenti: struct annidate, array, funzioni,<br>if/else, cicli for e while</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Una piccola software house indipendente sta sviluppando un <strong>gioco di ruolo fantasy</strong>
+    e ti ha chiesto di programmare il modulo che gestisce la <strong>gilda degli avventurieri</strong>.
+    Ogni eroe della gilda impugna un'arma e tiene un registro dei <strong>mostri sconfitti nelle
+    ultime 6 missioni</strong>. Il tuo compito è realizzare un programma C++ che permetta di
+    <strong>reclutare nuovi eroi</strong>, assegnare a ciascuno un <strong>rango</strong> in base
+    all'esperienza accumulata e scoprire chi è pronto ad affrontare il boss finale:
+    il temibile <strong>Drago di Cristallo</strong>. L'arma di ogni eroe è rappresentata
+    tramite una struct annidata.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Struttura dati con struct annidata</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Arma</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dell'arma (es. "Spada di fuoco", "Arco elfico")</td></tr>
+      <tr><td><code>danno</code></td><td>punti di danno inflitti dall'arma (intero, es. 35)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Eroe</strong>, che contiene <strong>Arma</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dell'eroe (es. "Aria", "Borin")</td></tr>
+      <tr><td><code>classe</code></td><td>classe del personaggio: "Guerriero", "Mago", "Arciere"</td></tr>
+      <tr><td><code>punti_vita</code></td><td>punti vita attuali dell'eroe (intero da 1 a 100)</td></tr>
+      <tr><td><code>mostri</code></td><td>numero di mostri sconfitti in ciascuna delle ultime 6 missioni</td></tr>
+      <tr><td><code>arma</code></td><td>Dati dell'arma impugnata dall'eroe</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Le voci contrassegnate con <span class="star">&#9733;</span> sono <strong>facoltative</strong>: affrontale solo dopo aver completato tutte le altre, danno punteggio aggiuntivo.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>totaleMostri(Eroe e)</code></td>
+        <td>Calcola e restituisce il <strong>totale</strong> dei mostri sconfitti nelle 6 missioni</td>
+      </tr>
+      <tr>
+        <td><code>missioneMigliore(Eroe e)</code></td>
+        <td>Restituisce il <strong>numero della missione</strong> (da 1 a 6) in cui l'eroe ha sconfitto più mostri</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>primaMissioneVuota(Eroe e)</code></td>
+        <td>Usando un ciclo <code>while</code>, restituisce il numero della <strong>prima missione</strong> (da 1 a 6) in cui l'eroe non ha sconfitto nessun mostro; restituisce <code>-1</code> se ha sempre sconfitto almeno un mostro</td>
+      </tr>
+      <tr>
+        <td><code>rangoEroe(Eroe e)</code></td>
+        <td>Restituisce una <code>string</code> con il rango dell'eroe, secondo la tabella della Parte 3</td>
+      </tr>
+      <tr>
+        <td><code>prontoPerIlDrago(Eroe e)</code></td>
+        <td>Restituisce <code>true</code> se l'eroe rispetta <strong>tutte e tre</strong> le condizioni per sfidare il drago (vedi Parte 3), <code>false</code> altrimenti</td>
+      </tr>
+      <tr>
+        <td><code>stampaEroe(Eroe e)</code></td>
+        <td>Funzione <strong>senza valore di ritorno</strong> (<code>void</code>): stampa tutti i campi dell'eroe, inclusi quelli dell'arma annidata, più il totale dei mostri, la missione migliore, il rango e se è pronto per il drago; <span class="star">&#9733;</span> se hai svolto <code>primaMissioneVuota</code>, mostra anche la prima missione senza vittorie</td>
+      </tr>
+      <tr>
+        <td><code>inserisciEroe()</code></td>
+        <td>Legge da tastiera tutti i campi di Eroe e di Arma, restituisce l'Eroe compilato</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>campioneGilda(Eroe gilda[], int n)</code></td>
+        <td>Restituisce l'indice dell'eroe con il <strong>totale di mostri più alto</strong> di tutta la gilda; restituisce <code>-1</code> se la gilda è vuota</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Regole del gioco</h2>
+
+  <h3>3a. Rango dell'eroe (in base al totale dei mostri sconfitti nelle 6 missioni):</h3>
+  <table>
+    <thead>
+      <tr><th>Totale mostri sconfitti</th><th>Rango restituito</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>minore di 10</td><td><code>"Recluta"</code></td></tr>
+      <tr><td>da 10 (incluso) a 30 (escluso)</td><td><code>"Avventuriero"</code></td></tr>
+      <tr><td>da 30 (incluso) a 60 (escluso)</td><td><code>"Veterano"</code></td></tr>
+      <tr><td>maggiore o uguale a 60</td><td><code>"Leggenda"</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3b. Condizioni per sfidare il Drago di Cristallo (devono valere <strong>tutte insieme</strong>):</h3>
+  <table>
+    <thead>
+      <tr><th>Condizione</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Esperienza</td><td>rango "Veterano" o "Leggenda" (cioè almeno 30 mostri sconfitti in totale)</td></tr>
+      <tr><td>Salute</td><td><code>punti_vita</code> maggiori o uguali a 60</td></tr>
+      <tr><td>Arma</td><td>il <code>danno</code> dell'arma è maggiore o uguale a 30</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3c. Dati di prova (usali per controllare che il tuo programma dia i risultati giusti):</h3>
+  <table>
+    <thead>
+      <tr><th>Eroe</th><th>Punti vita</th><th>Danno arma</th><th>Mostri nelle 6 missioni</th><th>Totale</th><th>Missione migliore</th><th>Rango</th><th>Drago?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Aria</td><td>90</td><td>35</td><td>8 · 5 · 0 · 12 · 9 · 6</td><td>40</td><td>4</td><td>Veterano</td><td>SÌ</td></tr>
+      <tr><td>Borin</td><td>40</td><td>45</td><td>15 · 20 · 12 · 18 · 10 · 9</td><td>84</td><td>2</td><td>Leggenda</td><td>NO</td></tr>
+      <tr><td>Lyra</td><td>75</td><td>50</td><td>6 · 7 · 4 · 7 · 3 · 1</td><td>28</td><td>2</td><td>Avventuriero</td><td>NO</td></tr>
+      <tr><td>Zefiro</td><td>100</td><td>20</td><td>2 · 0 · 3 · 1 · 0 · 2</td><td>8</td><td>3</td><td>Recluta</td><td>NO</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Dichiara un array di massimo <strong>20 eroi</strong> e implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Recluta eroe</td>
+        <td>chiama <code>inserisciEroe</code>, salva il risultato nell'array e incrementa il contatore; se la gilda è già piena stampa "La gilda è al completo"</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Mostra la gilda</td>
+        <td>stampa tutti gli eroi reclutati con <code>stampaEroe</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Sfida al drago</td>
+        <td>scorre tutto l'array e stampa con <code>stampaEroe</code> <strong>solo</strong> gli eroi per cui <code>prontoPerIlDrago</code> restituisce <code>true</code>; alla fine mostra il messaggio "X eroi su Y sono pronti per il drago"</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 4</td>
+        <td>Campione della gilda</td>
+        <td>usa <code>campioneGilda</code> e, se la gilda non è vuota, mostra la scheda completa del campione con <code>stampaEroe</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> Per leggere una stringa con spazi (es. "Spada di fuoco") usa <code>getline(cin, variabile)</code>.
+    Ricorda <code>cin.ignore()</code> prima di ogni <code>getline</code> che segue un <code>cin &gt;&gt;</code>.
+    Vale anche per il nome dell'arma dentro <code>inserisciEroe</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 5.
+    Dentro <code>inserisciEroe</code> usa invece un <code>while</code> di controllo per
+    <strong>rileggere i punti vita</strong> finché l'utente non inserisce un valore da 1 a 100.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Mostri</td>
+        <td>Sempre 6 valori per eroe, tutti &gt;= 0</td>
+      </tr>
+      <tr>
+        <td>Punti vita</td>
+        <td>Valore intero da 1 a 100 (estremi inclusi)</td>
+      </tr>
+      <tr>
+        <td>Danno arma</td>
+        <td>Valore intero strettamente maggiore di 0</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Arma deve essere dichiarata <em>prima</em> di Eroe</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 20 eroi; usa una variabile per contare quanti sono reclutati</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le funzioni <code>missioneMigliore</code> e <code>primaMissioneVuota</code>
+    devono restituire un numero da <strong>1 a 6</strong> (non l'indice 0–5 dell'array).
+    In caso di parità, <code>missioneMigliore</code> restituisce la <strong>prima</strong> missione
+    con il valore massimo (vedi Lyra nei dati di prova).
+  </div>
+
+  <div class="nota">
+    <strong>Nota:</strong> <code>rangoEroe</code> deve <em>richiamare</em> <code>totaleMostri</code>
+    invece di ricalcolare la somma da zero. Nella voce di menu 3, se nessun eroe è pronto,
+    stampa comunque il messaggio riepilogativo con X uguale a 0.
+  </div>
+
+</body>
+</html>
