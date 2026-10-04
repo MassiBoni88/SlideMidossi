@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione — «Dentro il computer» con Google Documenti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Oswald:wght@500;700&family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f2f7fc; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.88; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px; margin-right: 4px;
+    }
+
+    .student {
+      display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px 24px;
+      background: white; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 16px 28px; margin-bottom: 22px; font-size: 0.9rem;
+    }
+    .student label { font-weight: 600; color: #4a5568; }
+    .student .blank { width: 100%; }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 18px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { line-height: 1.7; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    td.key { font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d; white-space: nowrap; }
+    td.fill, tr:nth-child(even) td.fill {
+      background: #fffff0; border: 1px dashed #cbd5e0;
+      min-width: 110px; height: 34px;
+      font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d;
+    }
+    td.fill:focus, .blank:focus, .answer:focus { outline: 2px solid #90cdf4; outline-offset: 1px; }
+
+    .blank {
+      display: inline-block; min-width: 150px; min-height: 1.4em;
+      border-bottom: 1.5px dotted #718096; padding: 0 4px;
+      font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d;
+    }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .checkpoint { background: #f0fff4; border-left: 4px solid #38a169; border-radius: 4px;
+                  padding: 12px 16px; font-size: 0.88rem; margin-top: 16px; line-height: 1.6; }
+    .checkpoint strong:first-child { color: #22543d; }
+    .info-box ul, .warn-box ul { margin: 4px 0 0 20px; }
+
+    .q-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+             padding: 12px 16px; margin: 14px 0; }
+    .q-box .q { font-size: 0.89rem; line-height: 1.6; }
+    .q-num { display: inline-block; background: #2b6cb0; color: white; border-radius: 4px;
+             padding: 0 7px; margin-right: 6px; font-size: 0.78rem; font-weight: bold; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle; white-space: nowrap;
+    }
+    td > .tag:first-child { margin-left: 0; }
+    .tag-sty { background: #c3dafe; color: #2a4365; }
+    .tag-dir { background: #feebc8; color: #7b341e; }
+
+    .points { float: right; background: #edf2f7; border-radius: 12px;
+              padding: 2px 10px; font-size: 0.78rem; color: #718096; }
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+    kbd { background: #fff; border: 1px solid #cbd5e0; border-bottom-width: 2px; border-radius: 4px;
+          padding: 0 5px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 0.8em; color: #2d3748; white-space: nowrap; }
+    .menu { font-weight: 600; color: #1a365d; }
+
+    ol.steps { margin: 6px 0 0 20px; }
+    ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.89rem; }
+    ul.check { margin: 6px 0 0 20px; }
+    ul.check li { font-size: 0.88rem; line-height: 1.6; margin-bottom: 4px; }
+
+    /* campioni di carattere e colore */
+    .f-oswald { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 700; }
+    .f-lora   { font-family: 'Lora', Georgia, serif; }
+    .f-roboto { font-family: 'Roboto', Arial, sans-serif; }
+    .f-mono   { font-family: 'Roboto Mono', 'Courier New', monospace; }
+    .f-caveat { font-family: 'Caveat', cursive; font-weight: 700; }
+    .sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+          border: 1px solid rgba(0,0,0,0.25); vertical-align: -2px; margin-right: 6px; }
+    .hex { font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
+    .hl  { background: #FFE599; font-weight: 700; }
+
+    .concepts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+    .concept { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; }
+    .concept.wide { grid-column: 1 / -1; }
+    .concept h4 { font-size: 0.92rem; color: #1a365d; margin-bottom: 6px; }
+    .concept p, .concept li { font-size: 0.86rem; line-height: 1.6; }
+    .concept ul { margin: 4px 0 0 18px; }
+    .fontrow { display: grid; grid-template-columns: 230px 1fr; gap: 12px; align-items: baseline;
+               border-bottom: 1px dotted #cbd5e0; padding: 6px 0; }
+    .fontrow:last-child { border-bottom: none; }
+    .fontrow .sample { font-size: 1.25rem; color: #1a202c; }
+    .fontrow .desc { font-size: 0.84rem; color: #4a5568; line-height: 1.5; }
+    .sizes { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 8px 0 4px; }
+    .sizes span { font-family: 'Roboto', Arial, sans-serif; color: #2b6cb0; }
+    .sizes small { display: block; font-size: 0.7rem; color: #718096; font-family: 'Segoe UI', Arial, sans-serif; }
+
+    /* foglio di stile */
+    table.spec td { vertical-align: middle; }
+    table.spec td.prev { min-width: 200px; }
+
+    /* menabò: com'è fatta la pagina */
+    .menabo-wrap { background: #edf2f7; border-radius: 8px; padding: 20px 18px; margin-top: 10px; }
+    .menabo { display: grid; grid-template-columns: minmax(0, 1fr) 230px; column-gap: 16px; }
+    .menabo .pg { background: white; border-left: 1px solid #cbd5e0; border-right: 1px solid #cbd5e0;
+                  padding: 4px 40px; font-family: 'Lora', Georgia, serif; font-size: 13px; color: #000; }
+    .menabo .pg.first { border-top: 1px solid #cbd5e0; border-radius: 4px 4px 0 0; padding-top: 30px; }
+    .menabo .pg.last  { border-bottom: 1px solid #cbd5e0; border-radius: 0 0 4px 4px; padding-bottom: 30px; }
+    .menabo .lab { align-self: center; font-size: 0.74rem; line-height: 1.45; color: #4a5568;
+                   border-left: 2px solid #90cdf4; padding: 2px 0 2px 10px; }
+    .menabo .lab:empty { border: none; padding: 0; }
+    .menabo .lab b { color: #1a365d; }
+    .m-title { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 30px;
+               color: #073763; text-align: center; line-height: 1.25; }
+    .m-sub   { font-family: 'Lora', Georgia, serif; font-style: italic; font-size: 15px; color: #666666;
+               text-align: center; }
+    .m-h1    { font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 19px; color: #1155CC;
+               margin-top: 14px; }
+    .m-h2    { font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 15px; color: #B45F06;
+               margin-top: 6px; }
+    .m-body  { line-height: 1.3; text-align: justify; }
+    .m-list  { line-height: 1.15; }
+    .m-list div { margin: 3px 0; }
+    .m-list .n { color: #1155CC; display: inline-block; width: 22px; }
+    .m-list .l2 { padding-left: 26px; }
+    .m-mono  { font-family: 'Roboto Mono', 'Courier New', monospace; font-size: 11px; color: #38761D;
+               white-space: pre; line-height: 1.25; overflow-x: auto; }
+    .m-note  { font-family: 'Caveat', cursive; font-weight: 700; font-size: 18px; color: #783F04; line-height: 1.3;
+               background: #FFF2CC; border-left: 4px solid #F1C232; padding: 6px 12px; }
+    .m-toc   { font-family: 'Lora', Georgia, serif; font-size: 11px; line-height: 1.6; color: #1155CC;
+               border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 4px 0; margin: 6px 0; }
+    .m-toc div { display: flex; gap: 6px; }
+    .m-toc div::after { content: ''; order: 1; flex: 1; border-bottom: 1px dotted #a0aec0; margin-bottom: 4px; }
+    .m-toc div span:last-child { order: 2; }
+    .m-gap   { text-align: center; color: #a0aec0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px;
+               letter-spacing: 4px; padding: 4px 0; }
+    .ph      { display: inline-block; height: 7px; background: #e2e8f0; border-radius: 4px; vertical-align: middle; }
+    .ph-line { display: block; height: 7px; background: #e2e8f0; border-radius: 4px; margin: 11px 0; }
+    sup { line-height: 0; }
+
+    pre.data {
+      background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 12px 16px; font-family: 'Roboto Mono', 'Courier New', monospace;
+      font-size: 0.8rem; line-height: 1.5; color: #38761D; overflow-x: auto; margin: 10px 0;
+    }
+
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      body { padding: 16px 10px; }
+      header { padding: 22px 18px; }
+      header h1 { font-size: 1.35rem; }
+      .student { grid-template-columns: 1fr; }
+      .card { padding: 20px 16px; }
+      .points { float: none; display: inline-block; margin-left: 6px; }
+      .concepts { grid-template-columns: minmax(0, 1fr); }
+      .fontrow { grid-template-columns: 1fr; gap: 2px; }
+      .menabo-wrap { padding: 12px 8px; }
+      .menabo { grid-template-columns: minmax(0, 1fr); }
+      .menabo .pg { padding: 4px 16px; }
+      .menabo .lab { background: white; border-left: 1px solid #cbd5e0; border-right: 1px solid #cbd5e0;
+                     padding: 0 16px 8px; color: #2b6cb0; }
+      .menabo .pg.last { border-bottom: none; border-radius: 0; }
+      .menabo .lab.last { border-bottom: 1px solid #cbd5e0; border-radius: 0 0 4px 4px; }
+      .m-title { font-size: 24px; }
+    }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 12px; }
+      header { padding: 14px 20px; margin-bottom: 10px; }
+      header h1 { font-size: 1.45rem; }
+      .card, .student { box-shadow: none; border: 1px solid #cbd5e0; padding: 12px 16px; margin-bottom: 10px; }
+      .card h2 { margin-bottom: 10px; }
+      .card h3 { margin: 12px 0 6px; }
+      .concepts { gap: 8px 10px; }
+      .concept { padding: 10px 12px; }
+      .fontrow { grid-template-columns: 200px 1fr; padding: 4px 0; }
+      ol.steps li, ul.check li { margin-bottom: 3px; }
+      .q-box { margin: 8px 0; padding: 8px 12px; }
+      .info-box, .warn-box, .checkpoint { padding: 8px 12px; margin-bottom: 8px; }
+      .menabo-wrap { padding: 12px 10px; }
+      .menabo .pg.first { padding-top: 18px; }
+      .menabo .pg.last { padding-bottom: 18px; }
+      .card h2, .card h3, .card h2 + p { break-after: avoid; page-break-after: avoid; }
+      td, th { padding: 6px 9px; }
+      table { font-size: 0.82rem; }
+      table.spec td.prev { min-width: 0; }
+      .table-wrap { overflow: visible; }
+      td.fill, tr:nth-child(even) td.fill { min-width: 70px; height: 30px; }
+      tr, .q-box, .info-box, .warn-box, .checkpoint, .fontrow, .sizes, pre.data, .menabo-wrap { break-inside: avoid; page-break-inside: avoid; }
+      header, th, .tag, .q-num, td.fill, .sw, .hl, .menabo-wrap, .m-note, .ph, .ph-line {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      header { background: #1a365d !important; }
+      .print-break { break-before: page; page-break-before: always; }
+      footer { margin-top: 6px; padding-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercitazione di laboratorio — «Dentro il computer»</h1>
+    <p>Scrivi un articolo sull'hardware dell'elaboratore con Google Documenti, rispettando un foglio di stile:
+       caratteri, dimensioni, colori, titoli ed elenchi</p>
+    <span class="badge">Google Documenti</span>
+    <span class="badge">1ª ITT — Informatica e Comunicazione</span>
+    <span class="badge">Durata: 1 h 40 min</span>
+    <span class="badge">Punteggio: 100</span>
+  </header>
+
+  <div class="student">
+    <div><label>Nome e cognome</label><br><span class="blank" contenteditable="true"></span></div>
+    <div><label>Classe</label><br><span class="blank" contenteditable="true"></span></div>
+    <div><label>Data</label><br><span class="blank" contenteditable="true"></span></div>
+  </div>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>
+      La redazione del <strong>giornalino d'istituto</strong> sta preparando un numero speciale sulla tecnologia e ti ha
+      chiesto un articolo per la rubrica <strong>«Dentro il computer»</strong>: un paio di pagine per spiegare ai compagni
+      com'è fatto un elaboratore e come funziona.
+    </p>
+    <p>
+      Il caporedattore è molto pignolo: ogni articolo deve rispettare il <strong>foglio di stile della redazione</strong>.
+      Carattere, dimensione e colore di ogni elemento sono già stabiliti, e un articolo con i titoli del
+      colore sbagliato non va in stampa. Oggi conta quindi sia <em>che cosa</em> scrivi, cioè i contenuti di hardware che
+      hai studiato, sia <em>come</em> lo presenti.
+    </p>
+
+    <h3>Alla fine dell'esercitazione saprai</h3>
+    <ul class="check">
+      <li>riconoscere e cambiare <strong>tipo, dimensione e colore del carattere</strong>;</li>
+      <li>scegliere l'<strong>allineamento</strong> dei paragrafi (a sinistra, centrato, giustificato);</li>
+      <li>usare gli <strong>stili di paragrafo</strong> (Titolo, Sottotitolo, Intestazioni, Testo normale) e capire perché
+          funzionano meglio della formattazione «a mano»;</li>
+      <li>creare <strong>elenchi puntati e numerati</strong>, anche su due livelli;</li>
+      <li>descrivere i <strong>componenti hardware</strong> di un elaboratore, a cominciare dal PC che hai davanti.</li>
+    </ul>
+  </div>
+
+  <!-- TEORIA -->
+  <div class="card">
+    <h2>Le parole del mestiere</h2>
+    <p class="muted" style="margin-bottom:12px">Leggi questa pagina prima di cominciare: ti servirà per tutta l'esercitazione
+       e per rispondere alle domande D1–D6.</p>
+
+    <div class="concepts">
+      <div class="concept wide">
+        <h4>Il carattere (in inglese <em>font</em>)</h4>
+        <p>È la <strong>forma delle lettere</strong>. I caratteri si dividono in grandi famiglie, e ognuna ha un uso preferito.
+           Ecco quelli che userai oggi:</p>
+        <div class="fontrow"><span class="sample f-lora">Elaboratore digitale 0123</span>
+          <span class="desc"><strong>Lora</strong> — <em>con grazie</em> (<em>serif</em>): le lettere terminano con piccoli
+          «piedini» che guidano l'occhio lungo la riga. Adatto ai testi lunghi.</span></div>
+        <div class="fontrow"><span class="sample f-roboto">Elaboratore digitale 0123</span>
+          <span class="desc"><strong>Roboto</strong> — <em>senza grazie</em> (<em>sans serif</em>): linee pulite, si legge
+          bene sullo schermo e nei titoli.</span></div>
+        <div class="fontrow"><span class="sample f-oswald">Elaboratore digitale 0123</span>
+          <span class="desc"><strong>Oswald</strong> — senza grazie e <em>stretto</em>: fa colpo nei titoli brevi, stanca
+          nei testi lunghi.</span></div>
+        <div class="fontrow"><span class="sample f-mono" style="font-size:1.05rem">Elaboratore digitale 0123</span>
+          <span class="desc"><strong>Roboto Mono</strong> — <em>a spaziatura fissa</em> (<em>monospace</em>): ogni carattere
+          occupa la stessa larghezza. Si usa per il codice e per i dati da incolonnare.</span></div>
+        <div class="fontrow"><span class="sample f-caveat" style="font-size:1.5rem">Elaboratore digitale 0123</span>
+          <span class="desc"><strong>Caveat</strong> — <em>calligrafico</em>: imita la scrittura a mano. Va usato poco, per
+          un tocco particolare.</span></div>
+      </div>
+
+      <div class="concept">
+        <h4>La dimensione</h4>
+        <p>Si misura in <strong>punti (pt)</strong>: 1 pt ≈ 0,35 mm, cioè 72 pt = 1 pollice = 2,54 cm. Il testo di un
+           libro è di 10–12 pt; i titoli sono più grandi per creare una <strong>gerarchia</strong>: chi legge capisce subito
+           che cosa è più importante.</p>
+        <div class="sizes">
+          <span style="font-size:10pt">Aa<small>10 pt</small></span>
+          <span style="font-size:12pt">Aa<small>12 pt</small></span>
+          <span style="font-size:14pt">Aa<small>14 pt</small></span>
+          <span style="font-size:18pt">Aa<small>18 pt</small></span>
+          <span style="font-size:30pt; line-height:1">Aa<small>30 pt</small></span>
+        </div>
+      </div>
+
+      <div class="concept">
+        <h4>Colore del testo e colore di evidenziazione</h4>
+        <p><span class="menu">Colore testo</span> (la <strong>A</strong> sottolineata) colora le lettere;
+           <span class="menu">Colore evidenziazione</span> (l'evidenziatore) colora lo sfondo dietro le lettere:
+           <span class="hl">come qui</span>.</p>
+        <p>Un colore si indica con un <strong>codice esadecimale</strong> come <span class="hex">#1155CC</span>: due cifre per
+           il rosso, due per il verde e due per il blu. Lo stesso codice dà lo stesso colore su ogni computer.</p>
+      </div>
+
+      <div class="concept wide">
+        <h4>Gli elenchi</h4>
+        <ul>
+          <li><strong>Elenco puntato</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>8</kbd>): quando l'ordine
+              <u>non</u> conta.</li>
+          <li><strong>Elenco numerato</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>7</kbd>): quando l'ordine conta
+              (passaggi, fasi, classifiche).</li>
+          <li><kbd>Tab</kbd> crea un <strong>sottolivello</strong>, <kbd>Maiusc</kbd>+<kbd>Tab</kbd> torna al livello
+              superiore, due volte <kbd>Invio</kbd> chiude l'elenco.</li>
+        </ul>
+      </div>
+
+      <div class="concept wide">
+        <h4>Gli stili di paragrafo</h4>
+        <p>Uno <strong>stile</strong> è un «pacchetto» di formattazioni con un nome: <em>Titolo</em>, <em>Sottotitolo</em>,
+           <em>Intestazione 1</em>, <em>Intestazione 2</em>, <em>Testo normale</em>. Si sceglie dal menu a tendina della
+           barra degli strumenti, quello che di solito mostra <span class="menu">Testo normale</span>. Con lo stile dici
+           <strong>che cos'è</strong> una riga (un titolo, un'intestazione di sezione, del testo); il suo aspetto lo decidi
+           una volta sola per tutto il documento. Se cambi l'aspetto di uno stile, cambiano insieme tutti i paragrafi che lo
+           usano, e le intestazioni compaiono da sole nella <strong>struttura</strong> e nel <strong>sommario</strong>.</p>
+        <p class="muted">In alcune versioni di Documenti le intestazioni si chiamano <em>Titolo 1</em>, <em>Titolo 2</em>…:
+           sono la stessa cosa.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOGLIO DI STILE -->
+  <div class="card print-break">
+    <h2>Il foglio di stile della redazione</h2>
+    <p style="margin-bottom:10px">Ogni elemento dell'articolo deve avere <strong>esattamente</strong> queste caratteristiche.
+       Le colonne <span class="tag tag-sty">Stile</span> indicano che cosa scegliere nel menu degli stili.</p>
+    <div class="table-wrap">
+    <table class="spec">
+      <thead><tr><th>Elemento</th><th>Stile</th><th>Carattere</th><th>Dim.</th><th>Colore</th><th>Paragrafo e altro</th></tr></thead>
+      <tbody>
+        <tr><td class="prev"><span class="f-oswald" style="font-size:1.35rem; color:#073763">Dentro il computer</span></td>
+            <td><span class="tag tag-sty">Titolo</span></td><td>Oswald</td><td class="key">30 pt</td>
+            <td><span class="sw" style="background:#073763"></span><span class="hex">#073763</span></td>
+            <td>grassetto · centrato</td></tr>
+        <tr><td class="prev"><span class="f-lora" style="font-style:italic; color:#666666">Viaggio tra i componenti…</span></td>
+            <td><span class="tag tag-sty">Sottotitolo</span></td><td>Lora</td><td class="key">14 pt</td>
+            <td><span class="sw" style="background:#666666"></span><span class="hex">#666666</span></td>
+            <td>corsivo · centrato</td></tr>
+        <tr><td class="prev"><span class="f-roboto" style="font-weight:700; font-size:1.1rem; color:#1155CC">Le periferiche</span></td>
+            <td><span class="tag tag-sty">Intestazione 1</span></td><td>Roboto</td><td class="key">18 pt</td>
+            <td><span class="sw" style="background:#1155CC"></span><span class="hex">#1155CC</span></td>
+            <td>grassetto</td></tr>
+        <tr><td class="prev"><span class="f-roboto" style="font-weight:700; color:#B45F06">La CPU</span></td>
+            <td><span class="tag tag-sty">Intestazione 2</span></td><td>Roboto</td><td class="key">14 pt</td>
+            <td><span class="sw" style="background:#B45F06"></span><span class="hex">#B45F06</span></td>
+            <td>grassetto</td></tr>
+        <tr><td class="prev"><span class="f-lora">Il computer è un elaboratore…</span></td>
+            <td><span class="tag tag-sty">Testo normale</span></td><td>Lora</td><td class="key">12 pt</td>
+            <td><span class="sw" style="background:#000000"></span><span class="hex">#000000</span></td>
+            <td><strong>giustificato</strong></td></tr>
+        <tr><td class="prev f-lora"><span style="color:#1155CC">1.</span> Input &nbsp; <span style="color:#1155CC">➢</span> RAM</td>
+            <td><span class="tag tag-sty">Testo normale</span> + elenco</td><td>Lora</td><td class="key">12 pt</td>
+            <td>testo <span class="hex">#000000</span>,<br>numeri e punti <span class="sw" style="background:#1155CC; margin-left:4px"></span><span class="hex">#1155CC</span></td>
+            <td>allineato a sinistra · simboli diversi fra 1° e 2° livello</td></tr>
+        <tr><td class="prev f-lora"><span class="hl">volatile</span></td>
+            <td><span class="tag tag-dir">nel testo</span></td><td colspan="2">—</td>
+            <td>evidenziazione<br><span class="sw" style="background:#FFE599"></span><span class="hex">#FFE599</span></td>
+            <td><strong>parole chiave</strong> (almeno 8): grassetto + evidenziazione</td></tr>
+        <tr><td class="prev f-lora"><em>Central Processing Unit</em></td>
+            <td><span class="tag tag-dir">nel testo</span></td><td colspan="2">—</td><td>—</td>
+            <td><strong>sigle e termini in inglese</strong>: corsivo</td></tr>
+        <tr><td class="prev"><span class="f-mono" style="font-size:0.82rem; color:#38761D">Memoria RAM : 8 GB</span></td>
+            <td><span class="tag tag-sty">Testo normale</span></td><td>Roboto Mono</td><td class="key">10 pt</td>
+            <td><span class="sw" style="background:#38761D"></span><span class="hex">#38761D</span></td>
+            <td>scheda tecnica · allineato a sinistra</td></tr>
+        <tr><td class="prev"><span class="f-caveat" style="font-size:1.25rem; color:#783F04; background:#FFF2CC; border-left:4px solid #F1C232; padding:0 8px">Lo sapevi che…</span></td>
+            <td><span class="tag tag-sty">Testo normale</span></td><td>Caveat</td><td class="key">16 pt</td>
+            <td><span class="sw" style="background:#783F04"></span><span class="hex">#783F04</span></td>
+            <td>a sinistra · <span class="menu">Bordi e ombreggiatura</span>: sfondo <span class="hex">#FFF2CC</span>,
+                bordo sinistro 3 pt <span class="hex">#F1C232</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="info-box" style="margin-top:16px">
+      <strong>Un colore con il codice:</strong> <span class="menu">Colore testo</span> → sotto <em>PERSONALIZZATO</em> clicca
+      <strong>+</strong> → scrivi il codice esadecimale (per esempio <code>1155CC</code>) → <strong>OK</strong>. Da quel
+      momento il colore resta fra i personalizzati e lo ritrovi con un clic. Per l'evidenziazione si fa lo stesso dal
+      pulsante <span class="menu">Colore evidenziazione</span>.
+    </div>
+    <div class="warn-box">
+      <strong>Non trovi un carattere nell'elenco?</strong> Apri il menu dei caratteri → <span class="menu">Altri caratteri</span>
+      → cerca il nome (es. <em>Caveat</em>) → cliccalo → <strong>OK</strong>. Da quel momento compare nel menu.
+    </div>
+
+    <h3 class="print-break">Ecco come deve apparire (estratto dalla prima pagina)</h3>
+    <div class="menabo-wrap">
+      <div class="menabo">
+        <div class="pg first"><p class="m-title">Dentro il computer</p></div>
+        <div class="lab"><b>Titolo</b> · Oswald 30 pt grassetto · #073763 · centrato</div>
+
+        <div class="pg"><p class="m-sub">Viaggio tra i componenti hardware di un elaboratore — di Nome Cognome, 1ª D</p></div>
+        <div class="lab"><b>Sottotitolo</b> · Lora 14 pt corsivo · #666666 · centrato</div>
+
+        <div class="pg"><div class="m-toc">
+          <div><span>Che cos'è un elaboratore</span><span>1</span></div>
+          <div><span>Hardware, software e firmware</span><span>1</span></div>
+          <div><span>Il modello di Von Neumann</span><span>1</span></div>
+          <div><span>…</span><span></span></div>
+        </div></div>
+        <div class="lab"><b>Sommario</b> automatico · si inserisce nella Parte 6</div>
+
+        <div class="pg"><p class="m-h1">Che cos'è un elaboratore</p></div>
+        <div class="lab"><b>Intestazione 1</b> · Roboto 18 pt grassetto · #1155CC</div>
+
+        <div class="pg"><p class="m-body">Il computer è chiamato <span class="hl">elaboratore elettronico digitale</span> perché…</p>
+          <span class="ph-line" style="width:100%"></span><span class="ph-line" style="width:100%"></span><span class="ph-line" style="width:64%"></span></div>
+        <div class="lab"><b>Testo normale</b> · Lora 12 pt · giustificato · parole chiave in grassetto evidenziate</div>
+
+        <div class="pg"><div class="m-list">
+          <div><span class="n">1.</span><em>Input</em> — <span class="ph" style="width:55%"></span></div>
+          <div><span class="n">2.</span>Elaborazione — <span class="ph" style="width:45%"></span></div>
+          <div><span class="n">3.</span><em>Output</em> — <span class="ph" style="width:52%"></span></div>
+        </div></div>
+        <div class="lab"><b>Elenco numerato</b> · numeri #1155CC · termini inglesi in corsivo</div>
+
+        <div class="pg"><p class="m-gap">• • •</p></div>
+        <div class="lab">le altre sezioni seguono la <b>scaletta</b></div>
+
+        <div class="pg"><p class="m-h2">La CPU</p></div>
+        <div class="lab"><b>Intestazione 2</b> · Roboto 14 pt grassetto · #B45F06</div>
+
+        <div class="pg"><div class="m-list">
+          <div><span class="n">➢</span><em>Control Unit</em> (CU) — <span class="ph" style="width:40%"></span></div>
+          <div><span class="n">➢</span><em>Arithmetic Logic Unit</em> (ALU) — <span class="ph" style="width:30%"></span></div>
+        </div></div>
+        <div class="lab"><b>Elenco puntato</b> · punti #1155CC</div>
+
+        <div class="pg"><p class="m-gap">• • •</p></div>
+        <div class="lab"></div>
+
+        <div class="pg"><div class="m-list">
+          <div><span class="n">➢</span>Input</div>
+          <div class="l2"><span class="n">◦</span>tastiera</div>
+          <div class="l2"><span class="n">◦</span>mouse</div>
+          <div><span class="n">➢</span>Output</div>
+        </div></div>
+        <div class="lab"><b>Elenco su due livelli</b> · <kbd>Tab</kbd> per scendere di livello · simboli diversi</div>
+
+        <div class="pg"><p class="m-gap">• • •</p></div>
+        <div class="lab"></div>
+
+        <div class="pg"><div class="m-mono">Processore (CPU)  : <span class="ph" style="width:44%; background:#c6e2b8"></span>
+Memoria RAM       : <span class="ph" style="width:18%; background:#c6e2b8"></span>
+Memoria di massa  : <span class="ph" style="width:28%; background:#c6e2b8"></span></div></div>
+        <div class="lab"><b>Scheda tecnica</b> · Roboto Mono 10 pt · #38761D</div>
+
+        <div class="pg last" style="padding-top:12px"><p class="m-note">Lo sapevi che un processore da 3 GHz compie 3 × 10<sup>9</sup> cicli al secondo?</p></div>
+        <div class="lab last"><b>Lo sapevi che?</b> · Caveat 16 pt · #783F04 · sfondo #FFF2CC · bordo sinistro #F1C232</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCALETTA -->
+  <div class="card">
+    <h2>La scaletta dell'articolo</h2>
+    <p style="margin-bottom:10px">Scrivi le sezioni in quest'ordine, <strong>con parole tue</strong>. Il numero di
+       righe indicato è orientativo.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Riga da scrivere</th><th>Stile</th><th>Che cosa scrivere</th></tr></thead>
+      <tbody>
+        <tr><td class="key">1</td><td><strong>Dentro il computer</strong></td><td><span class="tag tag-sty">Titolo</span></td><td>—</td></tr>
+        <tr><td class="key">2</td><td>Viaggio tra i componenti hardware di un elaboratore — di <em>Nome Cognome, classe</em></td>
+            <td><span class="tag tag-sty">Sottotitolo</span></td><td>—</td></tr>
+        <tr><td class="key">3</td><td><strong>Che cos'è un elaboratore</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>3–4 righe: perché il computer si chiama <em>elaboratore elettronico digitale</em> (spiega le tre parole).
+                Poi un <strong>elenco numerato</strong> con le tre fasi di lavoro, ognuna con un esempio.</td></tr>
+        <tr><td class="key">4</td><td><strong>Hardware, software e firmware</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>4–5 righe: definisci i tre termini e fai un esempio per ciascuno.</td></tr>
+        <tr><td class="key">5</td><td><strong>Il modello di Von Neumann</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>2–3 righe: chi era Von Neumann e qual è l'idea alla base del suo modello.</td></tr>
+        <tr><td class="key">5a</td><td>La CPU</td><td><span class="tag tag-sty">Intestazione 2</span></td>
+            <td>1–2 righe (che cosa fa, in che unità si misura la velocità) + <strong>elenco puntato</strong>: CU, ALU, registri.</td></tr>
+        <tr><td class="key">5b</td><td>La memoria centrale</td><td><span class="tag tag-sty">Intestazione 2</span></td>
+            <td><strong>Elenco puntato</strong>: RAM, ROM, cache. Spiega che cosa vuol dire <em>volatile</em>.</td></tr>
+        <tr><td class="key">5c</td><td>Le memorie di massa</td><td><span class="tag tag-sty">Intestazione 2</span></td>
+            <td>2–3 righe: perché servono, se c'è già la RAM, e almeno tre esempi.</td></tr>
+        <tr><td class="key">6</td><td><strong>Le periferiche</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>1 riga di introduzione + <strong>elenco su due livelli</strong>: Input, Output, Input/Output, con almeno
+                tre esempi ciascuno.</td></tr>
+        <tr><td class="key">7</td><td><strong>La scheda tecnica del mio PC</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>La completi nella <strong>Parte 5</strong>.</td></tr>
+        <tr><td class="key">8</td><td><strong>Lo sapevi che?</strong></td><td><span class="tag tag-sty">Intestazione 1</span></td>
+            <td>La completi nella <strong>Parte 5</strong>.</td></tr>
+        <tr><td class="key">9</td><td><strong>Le mie risposte</strong> <span class="muted">(su una pagina nuova)</span></td>
+            <td><span class="tag tag-sty">Intestazione 1</span></td><td>Le risposte alle domande D1–D6, in un elenco numerato (<strong>Parte 6</strong>).</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2>Parte 1 — Prepara il documento <span class="points">10 min · 5 punti</span></h2>
+    <ol class="steps">
+      <li>Accedi con l'<strong>account della scuola</strong>, apri <strong>Drive</strong> ed entra nella cartella della
+          materia (se non c'è, creala).</li>
+      <li><span class="menu">+ Nuovo → Documenti Google → Documento vuoto</span>.</li>
+      <li>Clicca su <em>Documento senza titolo</em> in alto a sinistra e rinomina il file
+          <code>AAAA-MM-GG_Cognome_dentro-il-computer</code> con la data di oggi (es.
+          <code>2026-10-06_Rossi_dentro-il-computer</code>).</li>
+      <li><span class="menu">File → Impostazione pagina</span>: scheda <strong>Pagine</strong> (non <em>Senza pagine</em>),
+          orientamento <strong>Verticale</strong>, formato <strong>A4</strong>, margini di <strong>2 cm</strong> su tutti e
+          quattro i lati → <strong>OK</strong>.</li>
+      <li>Rileggi <em>Le parole del mestiere</em> e il <em>Foglio di stile</em>: ti serviranno per tutto il lavoro.</li>
+    </ol>
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Il nome del file compare in alto a sinistra e nella cartella giusta di Drive.</li>
+        <li>Nel righello in alto i margini sono più stretti di prima.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2>Parte 2 — Scrivi l'articolo con gli stili giusti <span class="points">33 min · 30 punti</span></h2>
+    <div class="info-box">
+      In questa parte <strong>non preoccuparti di caratteri e colori</strong>: scrivi i contenuti seguendo la scaletta e
+      assegna a ogni riga lo <strong>stile</strong> giusto. L'aspetto lo sistemerai tutto insieme nella Parte 3, e vedrai
+      quanto tempo fanno risparmiare gli stili.
+    </div>
+    <div class="info-box">
+      <strong>Dove trovo le informazioni?</strong> Nel quaderno, nel libro (Unità 1) e nelle slide della lezione:
+      <a href="https://massiboni88.github.io/SlideMidossi/prime/tecnologie%20informatiche/teknolab_unita1_computer_struttura_funzioni.html">Unità 1 — Il computer: struttura e funzioni</a>.
+    </div>
+    <ol class="steps">
+      <li>Scrivi il titolo, lascia il cursore sulla riga e scegli <span class="tag tag-sty">Titolo</span> dal menu degli
+          stili. Premi <kbd>Invio</kbd>, scrivi il sottotitolo e scegli <span class="tag tag-sty">Sottotitolo</span>.</li>
+      <li>Per ogni sezione scrivi l'intestazione e applica <span class="tag tag-sty">Intestazione 1</span>
+          (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>) o <span class="tag tag-sty">Intestazione 2</span>
+          (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>2</kbd>). Quando premi <kbd>Invio</kbd> alla fine di un'intestazione, la riga
+          successiva torna da sola in <em>Testo normale</em>.</li>
+      <li>Scrivi i testi della scaletta in <span class="tag tag-sty">Testo normale</span>, con parole tue.</li>
+      <li>Le tre fasi di lavoro vanno in un <strong>elenco numerato</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>7</kbd>);
+          CPU e memoria centrale in <strong>elenchi puntati</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>8</kbd>).</li>
+      <li>Periferiche, l'elenco su due livelli: scrivi <em>Input</em>, premi <kbd>Invio</kbd> e poi <kbd>Tab</kbd> per
+          scendere di livello; scrivi <em>tastiera</em>, <em>mouse</em>… Con <kbd>Maiusc</kbd>+<kbd>Tab</kbd> torni al primo
+          livello per scrivere <em>Output</em>. Due volte <kbd>Invio</kbd> per uscire dall'elenco.</li>
+      <li>Per le sezioni 7 e 8 per ora scrivi soltanto l'intestazione: le completerai nella Parte 5.</li>
+    </ol>
+    <div class="warn-box">
+      <strong>Errori da evitare</strong>
+      <ul>
+        <li>premere <kbd>Invio</kbd> più volte per lasciare spazio fra le sezioni: lo spazio prima delle intestazioni lo aggiunge già lo stile;</li>
+        <li>centrare con la barra spaziatrice: si usa il pulsante di allineamento;</li>
+        <li>scrivere un titolo in <em>Testo normale</em> e ingrandirlo a mano: per Documenti resta testo normale e non comparirà
+            nel sommario;</li>
+        <li>copiare e incollare da Internet: scrivi con parole tue. La <em>cronologia delle versioni</em> mostra al docente
+            tutto ciò che è stato incollato.</li>
+      </ul>
+    </div>
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li><span class="menu">Visualizza → Mostra struttura</span>: a sinistra compaiono le <strong>6 sezioni</strong> e, più
+            rientrate, le <strong>3 sottosezioni</strong>. Se ne manca una, quella riga non ha lo stile giusto. Il sottotitolo
+            non compare mai nella struttura: è normale.</li>
+        <li>Clicca sul titolo: nel menu degli stili deve leggersi <em>Titolo</em>, non <em>Testo normale</em>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2>Parte 3 — Applica il foglio di stile <span class="points">20 min · 25 punti</span></h2>
+    <p>Ora trasformi l'aspetto di tutto l'articolo formattando <strong>un solo esempio</strong> per ogni stile e chiedendo a
+       Documenti di aggiornare lo stile. L'ordine conta: <strong>comincia dal Testo normale</strong>, perché se lo cambi
+       dopo, Documenti cambia anche il carattere delle intestazioni.</p>
+
+    <h3>A. Il testo normale</h3>
+    <ol class="steps">
+      <li>Seleziona un paragrafo di testo (non un elenco e non un'intestazione).</li>
+      <li>Carattere <strong>Lora</strong>, dimensione <strong>12</strong>, colore <span class="hex">#000000</span>,
+          allineamento <strong>Giustificato</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>J</kbd>).</li>
+      <li><span class="menu">Formato → Stili paragrafo → Testo normale → Aggiorna «Testo normale» perché corrisponda</span>.
+          Guarda la pagina: <strong>tutti</strong> i paragrafi sono cambiati insieme.</li>
+    </ol>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D1</span>Allinea per un momento un paragrafo <em>a sinistra</em>
+        (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>L</kbd>), poi rimettilo <em>giustificato</em>
+        (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>J</kbd>). Che differenza vedi sul margine destro e negli spazi fra le parole?
+        Perché nei giornali si usa spesso il testo giustificato?</p>
+    </div>
+
+    <h3>B. Titolo e sottotitolo</h3>
+    <ol class="steps" start="4">
+      <li>Titolo: <strong>Oswald</strong>, <strong>30</strong>, grassetto, colore <span class="hex">#073763</span>,
+          <strong>centrato</strong> (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>E</kbd>).</li>
+      <li>Sottotitolo: <strong>Lora</strong>, <strong>14</strong>, corsivo, colore <span class="hex">#666666</span>,
+          <strong>centrato</strong>.</li>
+    </ol>
+
+    <h3>C. Le intestazioni</h3>
+    <ol class="steps" start="6">
+      <li>Seleziona la <strong>prima</strong> Intestazione 1: <strong>Roboto</strong>, <strong>18</strong>, grassetto,
+          colore <span class="hex">#1155CC</span>.</li>
+      <li><span class="menu">Formato → Stili paragrafo → Intestazione 1 → Aggiorna «Intestazione 1» perché corrisponda</span>.
+          Scorri il documento: che cosa è successo alle altre intestazioni?</li>
+      <li>Fai lo stesso con la prima Intestazione 2 (<strong>Roboto</strong>, <strong>14</strong>, grassetto,
+          <span class="hex">#B45F06</span>) e aggiorna lo stile «Intestazione 2».</li>
+    </ol>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D2</span>Quante intestazioni hai formattato a mano e quante si sono aggiornate da
+        sole? Immagina un libro di 200 pagine: perché gli stili fanno risparmiare tempo ed evitano errori?</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D3</span>Porta per un momento a 48 pt una parola del testo (Lora) e una di
+        un'intestazione (Roboto), poi annulla con <kbd>Ctrl</kbd>+<kbd>Z</kbd>. Quale dei due caratteri ha le grazie? Descrivi
+        dove si vedono.</p>
+    </div>
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Clicca su un'intestazione qualunque: nella barra leggi <em>Intestazione 1</em>, <em>Roboto</em>, <em>18</em>.</li>
+        <li>Nessun paragrafo è rimasto nel carattere di partenza (Arial).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2>Parte 4 — Parole chiave ed elenchi <span class="points">10 min · 15 punti</span></h2>
+    <h3>Parole chiave e termini inglesi</h3>
+    <ol class="steps">
+      <li>Scegli nel testo almeno <strong>8 parole chiave</strong> (es. <em>hardware</em>, <em>CPU</em>, <em>RAM</em>,
+          <em>volatile</em>…): grassetto (<kbd>Ctrl</kbd>+<kbd>B</kbd>) ed evidenziazione <span class="hex">#FFE599</span>.</li>
+      <li>Trucco: formatta la prima parola, poi usa <span class="menu">Copia formato</span> (l'icona del rullo): clicca il
+          rullo e poi trascina sulla parola successiva. Con un <strong>doppio clic</strong> sul rullo puoi usarlo più volte
+          di fila; <kbd>Esc</kbd> per smettere.</li>
+      <li>Metti in corsivo (<kbd>Ctrl</kbd>+<kbd>I</kbd>) le sigle sciolte e i termini in inglese: <em>Central Processing
+          Unit</em>, <em>Random Access Memory</em>, <em>input</em>, <em>output</em>…</li>
+    </ol>
+    <h3>Elenchi</h3>
+    <ol class="steps" start="4">
+      <li>Seleziona ogni elenco e allinealo <strong>a sinistra</strong>
+          (<kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>L</kbd>).</li>
+      <li>Clicca su un numero o su un punto elenco: si selezionano tutti quelli dello stesso livello. Scegli
+          <span class="menu">Colore testo</span> <span class="hex">#1155CC</span>: numeri e punti diventano blu, il testo
+          resta nero.</li>
+      <li>Nell'elenco delle periferiche cambia il simbolo del primo livello: clicca su un punto →
+          <span class="menu">Formato → Elenchi puntati e numerati → Elenco puntato</span> e scegli uno stile, oppure
+          <span class="menu">Altri punti elenco</span>. I due livelli devono avere simboli diversi.</li>
+    </ol>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D4</span>Perché le tre fasi di lavoro stanno in un elenco <strong>numerato</strong>
+        e le periferiche in un elenco <strong>puntato</strong>? Fai un altro esempio, fuori dall'informatica, per ciascun tipo
+        di elenco.</p>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2>Parte 5 — La scheda tecnica e «Lo sapevi che?» <span class="points">15 min · 15 punti</span></h2>
+    <h3>Indaga sul PC che hai davanti</h3>
+    <div class="info-box">
+      <strong>Dove trovo i dati</strong> (Windows):
+      <ul>
+        <li>clic destro su <strong>Start</strong> → <span class="menu">Sistema</span>: processore, RAM installata, tipo di
+            sistema ed edizione di Windows;</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>Esc</kbd> → <span class="menu">Gestione attività → Prestazioni</span>:
+            velocità della CPU, memoria, <em>Disco 0</em> (SSD o HDD, e capacità), GPU;</li>
+        <li>il <strong>case</strong>: conta le porte USB davanti e dietro e cerca le altre porte. <u>Guarda, ma non staccare
+            nessun cavo.</u></li>
+      </ul>
+      Se il PC del laboratorio usa un altro sistema operativo, il docente ti dirà dove cercare.
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dato</th><th>Dove lo trovo</th><th>Il mio PC (n. <span class="blank" contenteditable="true" style="min-width:40px; color:white; border-color:white"></span>)</th></tr></thead>
+      <tbody>
+        <tr><td>Processore (CPU) e velocità</td><td>Sistema · Gestione attività → CPU</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Memoria RAM</td><td>Sistema → «RAM installata»</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Memoria di massa (tipo e capacità)</td><td>Gestione attività → Disco 0</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Scheda video</td><td>Gestione attività → GPU 0</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Sistema operativo</td><td>Sistema → «Specifiche di Windows»</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Porte USB</td><td>il case, davanti e dietro</td><td class="fill" contenteditable="true"></td></tr>
+        <tr><td>Altre porte</td><td>RJ45, HDMI, VGA, DisplayPort, jack audio…</td><td class="fill" contenteditable="true"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Scrivi la scheda tecnica</h3>
+    <ol class="steps">
+      <li>Sotto l'intestazione <em>La scheda tecnica del mio PC</em> scrivi 1–2 righe in Testo normale (es. «Ho esaminato il
+          PC n. 12 del laboratorio. Ecco i suoi dati principali:»).</li>
+      <li>Poi scrivi i dati, uno per riga, come nell'esempio qui sotto (<strong>i valori sono inventati: scrivi quelli del
+          tuo PC</strong>). Per andare a capo senza creare un nuovo paragrafo usa <kbd>Maiusc</kbd>+<kbd>Invio</kbd>.</li>
+      <li>Seleziona tutte le righe dei dati: <strong>Roboto Mono</strong>, <strong>10</strong>, colore
+          <span class="hex">#38761D</span>, allineamento <strong>a sinistra</strong>.</li>
+      <li>Incolonna i due punti aggiungendo spazi prima dei «:». Con un carattere a spaziatura fissa funziona!</li>
+    </ol>
+<pre class="data">Processore (CPU)  : Intel Core i5-10400 @ 2,90 GHz
+Memoria RAM       : 8 GB
+Memoria di massa  : SSD da 256 GB
+Scheda video      : Intel UHD Graphics 630
+Sistema operativo : Windows 11 Pro, 64 bit
+Porte USB         : 2 davanti, 4 dietro
+Altre porte       : RJ45 (LAN), HDMI, jack audio</pre>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D5</span>Seleziona le righe della scheda e cambia per un momento il carattere in Lora:
+        che cosa succede ai due punti? Perché con Roboto Mono restano incolonnati? (Poi annulla con
+        <kbd>Ctrl</kbd>+<kbd>Z</kbd>.)</p>
+    </div>
+
+    <h3>Lo sapevi che?</h3>
+    <ol class="steps" start="5">
+      <li>Sotto l'intestazione scrivi <strong>una o due curiosità</strong> sull'hardware in un unico paragrafo. Almeno un
+          numero deve avere l'esponente, per esempio 1 GHz = 10<sup>9</sup> Hz oppure 1 kB = 2<sup>10</sup> byte: scrivi
+          <code>109</code>, seleziona il <code>9</code> e scegli <span class="menu">Formato → Testo → Apice</span>
+          (<kbd>Ctrl</kbd>+<kbd>.</kbd>).</li>
+      <li>Seleziona il paragrafo: <strong>Caveat</strong>, <strong>16</strong>, colore <span class="hex">#783F04</span>,
+          allineamento a sinistra.</li>
+      <li><span class="menu">Formato → Stili paragrafo → Bordi e ombreggiatura</span>: colore sfondo
+          <span class="hex">#FFF2CC</span>; bordo solo a <strong>sinistra</strong>, spessore <strong>3 pt</strong>, colore
+          <span class="hex">#F1C232</span> → <strong>Applica</strong>.</li>
+    </ol>
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong> i due punti della scheda tecnica sono tutti in colonna e «Lo sapevi che?» sembra un
+      foglietto adesivo giallo.
+    </div>
+  </div>
+
+  <!-- PARTE 6 -->
+  <div class="card">
+    <h2>Parte 6 — Sommario, risposte e consegna <span class="points">12 min · 10 punti</span></h2>
+    <ol class="steps">
+      <li>Metti il cursore alla fine del sottotitolo, premi <kbd>Invio</kbd> e scegli <span class="menu">Inserisci →
+          Sommario</span> (nelle versioni più recenti: <span class="menu">Inserisci → Elementi di pagina → Sommario</span>),
+          con lo stile che mostra i numeri di pagina.</li>
+      <li>Vai alla fine del documento e inserisci un'interruzione di pagina: <span class="menu">Inserisci → Interruzione →
+          Interruzione di pagina</span> (<kbd>Ctrl</kbd>+<kbd>Invio</kbd>).</li>
+      <li>Scrivi <em>Le mie risposte</em> in <span class="tag tag-sty">Intestazione 1</span>: ha già il formato giusto, senza
+          fare nulla. Sotto, in un <strong>elenco numerato</strong>, scrivi le risposte alle domande D1–D6.</li>
+      <li>Torna al sommario, cliccalo e premi l'icona <strong>Aggiorna</strong> (↻): ora compare anche <em>Le mie
+          risposte</em>.</li>
+    </ol>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D6</span>Il sommario si è scritto da solo. Da dove ha preso le voci? Che cosa sarebbe
+        successo se avessi scritto le intestazioni in Testo normale, solo più grandi e in grassetto?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Prima di consegnare, controlla:</strong>
+      <ul class="check">
+        <li>nessun paragrafo in Arial; titolo e sottotitolo centrati;</li>
+        <li>il sommario contiene tutte le sezioni con il numero di pagina;</li>
+        <li>almeno 8 parole chiave in grassetto evidenziate e i termini inglesi in corsivo;</li>
+        <li>numeri e punti degli elenchi in blu, con due livelli nelle periferiche;</li>
+        <li>la scheda tecnica è incolonnata e le risposte sono su una pagina nuova.</li>
+      </ul>
+    </div>
+    <ol class="steps" start="5">
+      <li><strong>Consegna:</strong> apri il compito su <strong>Classroom</strong> → <span class="menu">Aggiungi o crea →
+          Google Drive</span> → scegli il documento → <strong>Consegna</strong>. Controlla che lo stato sia
+          <em>Consegnato</em>.</li>
+    </ol>
+  </div>
+
+  <!-- SFIDE -->
+  <div class="card">
+    <h2>Per chi finisce prima</h2>
+    <div class="q-box">
+      <p class="q"><span class="q-num">E1</span><strong>Intestazione e numeri di pagina.</strong>
+        <span class="menu">Inserisci → Intestazioni e piè di pagina → Intestazione</span>: scrivi <em>Giornalino d'istituto ·
+        Rubrica «Dentro il computer»</em> in Roboto 9 pt, colore <span class="hex">#999999</span>, allineato a destra. Poi
+        <span class="menu">Inserisci → Numeri di pagina</span> in basso a destra.</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">E2</span><strong>La tabella delle unità di misura.</strong> Dopo «Le memorie di massa»
+        inserisci una tabella di 2 colonne e 6 righe (<span class="menu">Inserisci → Tabella</span>) con le unità di misura
+        della memoria: bit, byte, kB, MB, GB, TB e i loro valori, usando gli apici (es. 1 kB = 2<sup>10</sup> byte = 1024
+        byte). Nella prima riga: sfondo <span class="hex">#1155CC</span>, testo bianco in grassetto (clic destro →
+        <span class="menu">Proprietà tabella</span>).</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">E3</span><strong>Un'immagine con didascalia.</strong> Inserisci la foto di una scheda
+        madre (<span class="menu">Inserisci → Immagine</span>), centrala e scrivi sotto una didascalia in Lora 10 pt corsivo,
+        centrata, con la <strong>fonte</strong> dell'immagine.</p>
+    </div>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — Google Documenti: stili, caratteri, colori ed elenchi in un articolo sull'hardware —
+    1ª ITT — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
