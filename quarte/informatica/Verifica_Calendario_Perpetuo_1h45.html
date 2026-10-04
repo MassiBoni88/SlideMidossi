@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Calendario Perpetuo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── TABELLA RESTO → GIORNO ── */
+    .week-table thead th,
+    .week-table tbody td { text-align: center; padding: 6px 4px; }
+    .week-table thead th:first-child,
+    .week-table tbody td:first-child { text-align: left; padding-left: 12px; width: 110px; }
+    .week-table thead th:not(:first-child) {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 13.5px;
+    }
+
+    /* ── BOX ALGORITMO ── */
+    .algo {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 14px 18px 8px;
+      margin: 10px 0 18px;
+    }
+    .algo .idea {
+      line-height: 1.65;
+      margin-bottom: 10px;
+    }
+    .algo ol {
+      list-style: none;
+      counter-reset: passo;
+      margin: 0 0 6px 0;
+    }
+    .algo ol li {
+      counter-increment: passo;
+      position: relative;
+      padding: 0 0 8px 36px;
+      line-height: 1.6;
+    }
+    .algo ol li::before {
+      content: counter(passo);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      background: #1b3a5c;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 23px;
+      text-align: center;
+    }
+    .algo code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 20px 16px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      table, pre.out, .algo, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>CALENDARIO PERPETUO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: funzioni, if/else, cicli for e while,<br>array, operatore modulo %</span>
+      <span class="time">Tempo a disposizione: 1 ora e 45 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    La segreteria della scuola sta preparando il nuovo <strong>diario scolastico</strong> e ti chiede di
+    realizzare un <strong>calendario perpetuo</strong>: un programma C++ che, ricevuti <strong>giorno, mese e anno</strong>
+    come numeri interi, dica in quale <strong>giorno della settimana</strong> cade quella data.
+    In che giorno sei nato? In che giorno cadrà Natale quest'anno? Che giorno era quando l'uomo è sbarcato sulla Luna?
+    Il programma deve inoltre <strong>stampare il calendario di un mese</strong>, con i numeri allineati sotto le
+    colonne da lunedì a domenica, e (per i più superstiziosi) contare i <strong>venerdì 17</strong> di un anno.
+    Non puoi usare librerie che conoscono già il calendario: il giorno della settimana va
+    <strong>calcolato da te</strong>, seguendo l'algoritmo descritto nella Parte 3.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Le regole del calendario</h2>
+
+  <h3>1a. Anni bisestili (calendario gregoriano):</h3>
+  <p>Un anno è <strong>bisestile</strong> (e febbraio ha 29 giorni) se:</p>
+  <ul>
+    <li>è divisibile per <strong>4</strong> <strong>ma non</strong> per <strong>100</strong>, <strong>oppure</strong></li>
+    <li>è divisibile per <strong>400</strong>.</li>
+  </ul>
+  <table class="center-table">
+    <thead>
+      <tr><th>Anno</th><th>Divisibile per 4?</th><th>Divisibile per 100?</th><th>Divisibile per 400?</th><th>Bisestile?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2024</td><td>sì</td><td>no</td><td>no</td><td><strong>sì</strong></td></tr>
+      <tr><td>2026</td><td>no</td><td>no</td><td>no</td><td><strong>no</strong></td></tr>
+      <tr><td>1900</td><td>sì</td><td>sì</td><td>no</td><td><strong>no</strong></td></tr>
+      <tr><td>2000</td><td>sì</td><td>sì</td><td>sì</td><td><strong>sì</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Giorni di ciascun mese:</h3>
+  <p><em>«Trenta giorni ha novembre, con april, giugno e settembre; di ventotto ce n'è uno, tutti gli altri ne han trentuno.»</em></p>
+  <table>
+    <thead>
+      <tr><th>Mesi</th><th>Numero di giorni</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>aprile (4), giugno (6), settembre (9), novembre (11)</td><td><code>30</code></td></tr>
+      <tr><td>febbraio (2)</td><td><code>29</code> se l'anno è bisestile, altrimenti <code>28</code></td></tr>
+      <tr><td>gennaio (1), marzo (3), maggio (5), luglio (7), agosto (8), ottobre (10), dicembre (12)</td><td><code>31</code></td></tr>
+      <tr><td>numero di mese non compreso fra 1 e 12</td><td><code>0</code> (mese inesistente)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> La voce contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo dopo aver completato tutte le altre, dà punteggio aggiuntivo.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>bisestile(int anno)</code></td>
+        <td>Restituisce <code>true</code> se l'anno è bisestile, <code>false</code> altrimenti (regola 1a)</td>
+      </tr>
+      <tr>
+        <td><code>giorniNelMese(int mese, int anno)</code></td>
+        <td>Restituisce quanti giorni ha il mese (tabella 1b); per febbraio <strong>richiama</strong> <code>bisestile</code>. Se il mese non è compreso fra 1 e 12 restituisce <code>0</code></td>
+      </tr>
+      <tr>
+        <td><code>dataValida(int giorno, int mese, int anno)</code></td>
+        <td>Restituisce <code>true</code> se la data esiste davvero: anno <strong>almeno 1900</strong>, mese da 1 a 12, giorno da 1 al numero di giorni di quel mese (richiamando <code>giorniNelMese</code>); altrimenti <code>false</code></td>
+      </tr>
+      <tr>
+        <td><code>giornoSettimana(int giorno, int mese, int anno)</code></td>
+        <td>Applica l'<strong>algoritmo 3a</strong> e restituisce un <code>int</code> da <code>0</code> (lunedì) a <code>6</code> (domenica). Usa due cicli <code>for</code> e richiama <code>bisestile</code> e <code>giorniNelMese</code></td>
+      </tr>
+      <tr>
+        <td><code>nomeGiorno(int numero)</code></td>
+        <td>Restituisce la <code>string</code> con il nome del giorno, prendendolo da un <strong>array di 7 stringhe</strong>: <code>0</code> → "lunedì", <code>1</code> → "martedì", …, <code>6</code> → "domenica"; restituisce "errore" se il numero non è compreso fra 0 e 6</td>
+      </tr>
+      <tr>
+        <td><code>stampaCalendario(int mese, int anno)</code></td>
+        <td>Funzione <code>void</code>: stampa il calendario del mese con i giorni incolonnati da lunedì a domenica (vedi 3b), richiamando <code>giornoSettimana</code> e <code>giorniNelMese</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>contaVenerdi17(int anno)</code></td>
+        <td>Con un ciclo <code>for</code> sui 12 mesi conta quanti <strong>venerdì 17</strong> ci sono nell'anno e restituisce il numero trovato (vedi 3c)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Gli algoritmi</h2>
+
+  <h3>3a. Come si trova il giorno della settimana di una data</h3>
+  <div class="algo">
+    <p class="idea">
+      <strong>L'idea.</strong> I giorni della settimana si ripetono sempre nello stesso ordine, ogni 7 giorni.
+      Se conosco il giorno della settimana di una <strong>data di partenza</strong> e conto quanti giorni sono passati
+      da allora, non mi interessa quante settimane complete sono trascorse: conta solo quanti giorni
+      <strong>avanzano</strong> dopo l'ultima settimana completa, cioè il <strong>resto della divisione per 7</strong>.
+      La nostra data di partenza è <strong>lunedì 1° gennaio 1900</strong>.
+    </p>
+    <ol>
+      <li><strong>Prepara il contatore.</strong> Crea una variabile <code>totale</code> che vale 0: conterà i giorni
+        passati dal 1° gennaio 1900 fino alla data scelta.</li>
+      <li><strong>Conta gli anni interi.</strong> Per ogni anno dal 1900 fino all'anno <em>precedente</em> a quello
+        della data, aggiungi al totale 366 giorni se quell'anno è bisestile, altrimenti 365.</li>
+      <li><strong>Conta i mesi interi.</strong> Per ogni mese da gennaio fino al mese <em>precedente</em> a quello della
+        data, aggiungi al totale i giorni di quel mese, calcolati nell'anno della data
+        (così febbraio vale 28 oppure 29 giorni).</li>
+      <li><strong>Conta i giorni del mese.</strong> Aggiungi al totale <code>giorno − 1</code>: il giorno della data
+        non è ancora “passato” (se la data è il 1° del mese, aggiungi 0).</li>
+      <li><strong>Togli le settimane complete.</strong> Calcola il resto della divisione del totale per 7
+        con l'operatore <code>%</code>: ottieni un numero da 0 a 6.</li>
+      <li><strong>Leggi il risultato.</strong> Poiché si parte contando da un lunedì, il resto indica direttamente il
+        giorno della settimana, secondo la tabella qui sotto. Questo numero è il valore restituito da
+        <code>giornoSettimana</code>.</li>
+    </ol>
+  </div>
+
+  <table class="week-table">
+    <thead>
+      <tr><th>Resto</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Giorno</td><td>lunedì</td><td>martedì</td><td>mercoledì</td><td>giovedì</td><td>venerdì</td><td>sabato</td><td>domenica</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Esempio svolto – che giorno era il 15 marzo 1901?</strong></p>
+  <table>
+    <thead>
+      <tr><th>Passo</th><th>Calcolo</th><th>Totale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2 – anni interi</td><td>solo il 1900, che <strong>non</strong> è bisestile (divisibile per 100 ma non per 400): 365</td><td>365</td></tr>
+      <tr><td>3 – mesi interi</td><td>gennaio 31 + febbraio 28 (il 1901 non è bisestile) = 59</td><td>424</td></tr>
+      <tr><td>4 – giorni del mese</td><td>15 − 1 = 14</td><td>438</td></tr>
+      <tr><td>5 – resto</td><td>438 % 7 = 4 &nbsp;(perché 7 × 62 = 434 e avanzano 4)</td><td>4</td></tr>
+      <tr><td>6 – risultato</td><td>il resto 4 corrisponde a…</td><td><strong>venerdì</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3b. Stampa del calendario di un mese</h3>
+  <ol>
+    <li>stampa la riga di intestazione <code>&nbsp;&nbsp;Lu&nbsp;&nbsp;Ma&nbsp;&nbsp;Me&nbsp;&nbsp;Gi&nbsp;&nbsp;Ve&nbsp;&nbsp;Sa&nbsp;&nbsp;Do</code> (ogni colonna è larga 4 caratteri)</li>
+    <li>con <code>giornoSettimana(1, mese, anno)</code> calcola in quale colonna cade il <strong>giorno 1</strong>
+      del mese e salvalo in una variabile <code>primo</code> (0 = lunedì … 6 = domenica)</li>
+    <li>stampa <code>primo</code> caselle vuote di 4 spazi ciascuna, così il giorno 1 finisce sotto la colonna giusta</li>
+    <li>con un ciclo <code>for</code> stampa i giorni da 1 a <code>giorniNelMese(mese, anno)</code>, ognuno largo 4
+      caratteri; <strong>dopo ogni domenica vai a capo</strong>: succede quando <code>(primo + giorno) % 7 == 0</code></li>
+    <li>alla fine vai a capo, se l'ultima riga non è già stata chiusa da una domenica</li>
+  </ol>
+
+  <h3><span class="star">&#9733;</span> 3c. Venerdì 17:</h3>
+  <ol>
+    <li>il contatore parte da 0</li>
+    <li>per ogni mese da 1 a 12: <strong>se</strong> <code>giornoSettimana(17, mese, anno)</code> restituisce
+      <code>4</code> (venerdì), aumenta il contatore di 1</li>
+    <li>alla fine restituisce il contatore</li>
+  </ol>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Giorno della settimana</td>
+        <td>chiede giorno, mese e anno; <strong>finché</strong> <code>dataValida</code> restituisce <code>false</code> stampa
+          "Data non valida" e li richiede; poi stampa il risultato usando <code>giornoSettimana</code> e
+          <code>nomeGiorno</code>, ad esempio: <code>Il 2/10/2026 cade di venerdì</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Calendario del mese</td>
+        <td>chiede mese e anno; se non sono validi (mese da 1 a 12, anno almeno 1900) stampa un messaggio di errore,
+          altrimenti chiama <code>stampaCalendario</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 3</td>
+        <td>Venerdì 17</td>
+        <td>chiede un anno (almeno 1900), chiama <code>contaVenerdi17</code> e stampa ad esempio
+          <code>Nel 2026 ci sono 2 venerdì 17</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> prova il programma con questi dati. Il tuo programma deve stampare
+    esattamente i valori delle tabelle seguenti.
+  </div>
+
+  <h3>Voce 1 – Giorno della settimana</h3>
+  <table>
+    <thead>
+      <tr><th>Data inserita</th><th>Perché è interessante</th><th>Risultato atteso</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1 / 1 / 1900</td><td>data di partenza: totale 0</td><td>lunedì</td></tr>
+      <tr><td>15 / 3 / 1901</td><td>esempio svolto</td><td>venerdì</td></tr>
+      <tr><td>2 / 6 / 1946</td><td>referendum: nasce la Repubblica Italiana</td><td>domenica</td></tr>
+      <tr><td>20 / 7 / 1969</td><td>allunaggio dell'Apollo 11</td><td>domenica</td></tr>
+      <tr><td>9 / 11 / 1989</td><td>caduta del Muro di Berlino</td><td>giovedì</td></tr>
+      <tr><td>29 / 2 / 2000</td><td>il 2000 è bisestile (divisibile per 400)</td><td>martedì</td></tr>
+      <tr><td>2 / 10 / 2026</td><td>data di oggi</td><td>venerdì</td></tr>
+      <tr><td>25 / 12 / 2026</td><td>Natale di quest'anno</td><td>venerdì</td></tr>
+      <tr><td>29 / 2 / 1900</td><td>il 1900 <strong>non</strong> è bisestile</td><td>Data non valida</td></tr>
+      <tr><td>31 / 4 / 2026</td><td>aprile ha 30 giorni</td><td>Data non valida</td></tr>
+      <tr><td>10 / 10 / 1899</td><td>prima del 1900</td><td>Data non valida</td></tr>
+    </tbody>
+  </table>
+
+  <p>Se il giorno restituito è sbagliato, stampa i valori intermedi di <code>giornoSettimana</code> e confrontali con questi:</p>
+  <table class="check-table">
+    <thead>
+      <tr><th>Data</th><th>Anni interi</th><th>Mesi interi</th><th>giorno − 1</th><th>Totale</th><th>Totale % 7</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>15 / 3 / 1901</td><td>365</td><td>59</td><td>14</td><td>438</td><td>4</td></tr>
+      <tr><td>29 / 2 / 2000</td><td>36524</td><td>31</td><td>28</td><td>36583</td><td>1</td></tr>
+      <tr><td>2 / 10 / 2026</td><td>46021</td><td>273</td><td>1</td><td>46295</td><td>4</td></tr>
+      <tr><td>25 / 12 / 2026</td><td>46021</td><td>334</td><td>24</td><td>46379</td><td>4</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Voce 2 – Calendario del mese</h3>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Mese 10, anno 2026 (il giorno 1 è giovedì)</div>
+<pre class="out">  Lu  Ma  Me  Gi  Ve  Sa  Do
+               1   2   3   4
+   5   6   7   8   9  10  11
+  12  13  14  15  16  17  18
+  19  20  21  22  23  24  25
+  26  27  28  29  30  31</pre>
+    </div>
+    <div>
+      <div class="out-label">Mese 3, anno 2026 (il giorno 1 è domenica)</div>
+<pre class="out">  Lu  Ma  Me  Gi  Ve  Sa  Do
+                           1
+   2   3   4   5   6   7   8
+   9  10  11  12  13  14  15
+  16  17  18  19  20  21  22
+  23  24  25  26  27  28  29
+  30  31</pre>
+    </div>
+  </div>
+
+  <h3><span class="star">&#9733;</span> Voce 3 – Venerdì 17</h3>
+  <table class="center-table">
+    <thead>
+      <tr><th>Anno</th><th>Venerdì 17 trovati</th><th>In quali mesi (per controllo)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2020</td><td>3</td><td>gennaio, aprile, luglio</td></tr>
+      <tr><td>2024</td><td>1</td><td>maggio</td></tr>
+      <tr><td>2026</td><td>2</td><td>aprile, luglio</td></tr>
+      <tr><td>2027</td><td>2</td><td>settembre, dicembre</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> il resto della divisione intera si calcola con l'operatore <code>%</code>:
+    <code>438 % 7</code> vale <code>4</code>. Lo stesso operatore serve per le regole dei bisestili:
+    un anno è divisibile per 4 se <code>anno % 4 == 0</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 4.
+    Per controllare mese e anno nella voce 2 puoi riusare <code>dataValida(1, mese, anno)</code>: il giorno 1
+    esiste in ogni mese, quindi quella data è valida solo se mese e anno lo sono.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per incolonnare il calendario usa <code>setw</code> della libreria
+    <code>&lt;iomanip&gt;</code>: <code>cout &lt;&lt; setw(4) &lt;&lt; 7;</code> stampa <code>"&nbsp;&nbsp;&nbsp;7"</code>
+    (tre spazi e la cifra), mentre <code>cout &lt;&lt; setw(4) &lt;&lt; 25;</code> stampa <code>"&nbsp;&nbsp;25"</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Date</td>
+        <td>Dal 1° gennaio 1900 in poi; giorno, mese e anno sono tre numeri interi letti separatamente da tastiera</td>
+      </tr>
+      <tr>
+        <td>Giorni della settimana</td>
+        <td><code>giornoSettimana</code> restituisce un numero: 0 = lunedì, 1 = martedì, …, 6 = domenica</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>I nomi dei 7 giorni stanno in un array di <code>string</code> dichiarato dentro <code>nomeGiorno</code></td>
+      </tr>
+      <tr>
+        <td>Librerie</td>
+        <td>Vietato usare <code>&lt;ctime&gt;</code>, <code>&lt;chrono&gt;</code> o altre funzioni che calcolano già il giorno della settimana</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> ogni regola va scritta <em>una volta sola</em> e poi <em>richiamata</em>:
+    <code>giorniNelMese</code> richiama <code>bisestile</code>, <code>dataValida</code> richiama
+    <code>giorniNelMese</code>, <code>giornoSettimana</code> richiama <code>bisestile</code> e
+    <code>giorniNelMese</code>, <code>stampaCalendario</code> richiama <code>giornoSettimana</code> e
+    <code>giorniNelMese</code>.
+  </div>
+
+  <div class="nota">
+    <strong>Nota:</strong> se la console mostra simboli strani al posto delle lettere accentate, nell'array di
+    <code>nomeGiorno</code> scrivi i nomi con l'apostrofo (<code>"lunedi'"</code>, <code>"martedi'"</code>…).
+    Curiosità: il calendario che usiamo, detto <strong>gregoriano</strong>, fu introdotto da papa Gregorio XIII
+    nel 1582; in Italia, il giorno dopo giovedì 4 ottobre 1582 fu direttamente venerdì 15 ottobre.
+  </div>
+
+</body>
+</html>
