@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packet Tracer: server DNS e server Email — guida rapida</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f2f7fc; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.88; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px; margin-right: 4px;
+    }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 20px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { line-height: 1.7; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    td.key { font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d; white-space: nowrap; }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin: 14px 0; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin: 14px 0; line-height: 1.6; }
+    .checkpoint { background: #f0fff4; border-left: 4px solid #38a169; border-radius: 4px;
+                  padding: 12px 16px; font-size: 0.88rem; margin-top: 16px; line-height: 1.6; }
+    .checkpoint strong:first-child { color: #22543d; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-gui { background: #fefcbf; color: #744210; }
+    .tag-cli { background: #c3dafe; color: #2a4365; }
+    .tag-dns { background: #bee3f8; color: #2c5282; }
+    .tag-smtp { background: #feebc8; color: #7b341e; }
+    .tag-pop { background: #c6f6d5; color: #22543d; }
+
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+    pre.cli {
+      background: #1a202c; color: #e2e8f0; border-radius: 6px;
+      padding: 14px 16px; font-family: 'Courier New', monospace;
+      font-size: 0.82rem; line-height: 1.6; overflow-x: auto; margin: 10px 0;
+    }
+    pre.cli .kw  { color: #f6ad55; }
+    pre.cli .val { color: #68d391; }
+
+    ol.steps { margin: 6px 0 0 20px; }
+    ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.92rem; }
+
+    /* figure */
+    figure.fig { margin: 16px 0 6px; }
+    figure.fig .fig-title { font-size: 0.85rem; font-weight: bold; color: #1a365d; margin-bottom: 8px; }
+    figure.fig figcaption { font-size: 0.8rem; color: #718096; margin-top: 6px; }
+    .topo svg, .flow svg { width: 100%; height: auto; display: block; }
+    .svg-scroll { overflow-x: auto; }
+
+    /* finestre di Packet Tracer ricostruite */
+    .ptwin { border: 1px solid #cbd5e0; border-radius: 8px; background: #fff; overflow: hidden;
+             font-family: Arial, sans-serif; font-size: 0.82rem; color: #2d3748; }
+    .ptwin .bar { display: flex; justify-content: space-between; align-items: center;
+                  background: #edf2f7; padding: 7px 14px; font-weight: bold; }
+    .ptwin .bar .x { color: #718096; font-weight: normal; }
+    .ptwin .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px 0; border-bottom: 1px solid #cbd5e0; }
+    .ptwin .tab { padding: 4px 14px; border: 1px solid #cbd5e0; border-bottom: none;
+                  border-radius: 5px 5px 0 0; background: #f7fafc; color: #4a5568;
+                  display: inline-flex; align-items: center; gap: 6px; }
+    .ptwin .tab.on { background: #ebf8ff; border: 1.5px solid #3182ce; border-bottom: none; color: #1a365d; font-weight: bold; }
+    .ptwin .body { display: grid; grid-template-columns: 185px 1fr; gap: 12px; padding: 12px; }
+    .ptwin .side { border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; }
+    .ptwin .side .hd { font-size: 0.68rem; color: #718096; font-weight: bold; letter-spacing: 0.06em;
+                       text-transform: uppercase; margin: 6px 4px 3px; }
+    .ptwin .side .hd:first-child { margin-top: 0; }
+    .ptwin .side .it { padding: 3px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .ptwin .side .it.on { background: #ebf8ff; outline: 1.5px solid #3182ce; font-weight: bold; color: #1a365d; }
+    .ptwin .main { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; min-width: 0; }
+    .ptwin .main h5 { text-align: center; font-size: 0.92rem; margin-bottom: 10px; }
+    .ptwin .main h6 { font-size: 0.78rem; margin: 12px 0 4px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; }
+    .ptwin .row { display: flex; align-items: center; gap: 10px; margin: 6px 0; flex-wrap: wrap; }
+    .ptwin .lbl { min-width: 130px; }
+    .ptwin .fld { flex: 1; min-width: 140px; border: 1px solid #a0aec0; border-radius: 3px;
+                  padding: 3px 8px; font-family: 'Courier New', monospace; background: #fff; min-height: 1.6em; }
+    .ptwin .fld.hl { border: 2px solid #3182ce; background: #ebf8ff; font-weight: bold; color: #1a365d; }
+    .ptwin .fld.empty { color: #a0aec0; font-style: italic; font-family: Arial, sans-serif; }
+    .ptwin .opt { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; }
+    .ptwin .opt::before { content: ""; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid #718096; background: #fff; }
+    .ptwin .opt.on { font-weight: bold; }
+    .ptwin .opt.on::before { background: radial-gradient(circle, #2b6cb0 0 3.5px, #fff 4px); border-color: #2b6cb0; }
+    .ptwin .chk::before { content: "☑ "; color: #2b6cb0; }
+    .ptwin .btn { border: 1px solid #a0aec0; border-radius: 4px; padding: 2px 14px; background: #f7fafc; }
+    .ptwin .btn.hl { border: 1.5px solid #3182ce; background: #ebf8ff; font-weight: bold; color: #1a365d; }
+    .ptwin .list { border: 1px solid #a0aec0; border-radius: 3px; flex: 1; min-width: 140px; }
+    .ptwin .list div { padding: 3px 8px; border-bottom: 1px solid #e2e8f0; }
+    .ptwin .list div:last-child { border-bottom: none; }
+    .ptwin table { font-size: 0.78rem; margin-top: 8px; }
+    .ptwin th { background: #edf2f7; color: #2d3748; padding: 4px 8px; font-weight: bold; }
+    .ptwin td { padding: 4px 8px; }
+    .ptwin .dialog { margin: 14px; border: 1px solid #cbd5e0; border-radius: 6px; padding: 10px 16px 14px; }
+    .ptwin .dialog .dbar { display: flex; justify-content: space-between; font-weight: bold; margin: -10px -16px 8px;
+                           padding: 6px 16px; background: #f7fafc; border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0; }
+    .ptwin .dialog .lbl { min-width: 170px; padding-left: 14px; }
+    .mk { display: inline-flex; width: 20px; height: 20px; flex: none; border-radius: 50%;
+          border: 2px solid #3182ce; color: #2b6cb0; background: #fff;
+          font-weight: bold; font-size: 0.7rem; align-items: center; justify-content: center; }
+
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      header { padding: 20px; }
+      header h1 { font-size: 1.35rem; }
+      .card { padding: 20px 16px; }
+      .ptwin .body { grid-template-columns: 1fr; }
+      .ptwin .side { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+      .ptwin .side .hd { width: 100%; margin: 2px 4px; }
+      .ptwin .lbl, .ptwin .dialog .lbl { min-width: 100%; padding-left: 0; }
+      .ptwin .dialog { margin: 10px; padding: 10px 12px 12px; }
+      .topo svg, .flow svg { min-width: 640px; }
+    }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 13px; }
+      header { padding: 18px 24px; margin-bottom: 16px; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 16px 20px; margin-bottom: 14px; }
+      .card h2, .card h3 { break-after: avoid; page-break-after: avoid; }
+      table, pre.cli, figure.fig, .info-box, .warn-box, .checkpoint { page-break-inside: avoid; }
+      header, th, .tag, pre.cli, .ptwin, .mk { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      header { background: #1a365d !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Packet Tracer: server DNS e server Email — guida rapida</h1>
+    <p>Un PC invia un'email a un altro scrivendo il nome del server di posta al posto dell'indirizzo IP</p>
+    <span class="badge">Cisco Packet Tracer 8.x</span>
+    <span class="badge">Sistemi e Reti — ITT E. Midossi</span>
+    <span class="badge">DNS · SMTP · POP3</span>
+  </header>
+
+  <!-- OBIETTIVO -->
+  <div class="card">
+    <h2>Obiettivo</h2>
+    <p>
+      Alla fine del laboratorio <strong>Mario</strong> (PC0) invia un'email a <strong>Lucia</strong> (PC1) scrivendo il nome
+      <strong>mail.midossi.lab</strong> al posto dell'indirizzo IP: il server DNS traduce il nome in indirizzo, il server
+      Email consegna il messaggio.
+    </p>
+    <p>
+      I protocolli in gioco sono tre: <strong>DNS</strong> <span class="tag tag-dns">porta 53</span> risolve i nomi,
+      <strong>SMTP</strong> <span class="tag tag-smtp">porta 25</span> invia la posta al server,
+      <strong>POP3</strong> <span class="tag tag-pop">porta 110</span> la scarica dal server al client.
+      Serve Cisco Packet Tracer 8.x; le voci di menu restano in inglese e nella guida le trovi scritte così, in grassetto.
+    </p>
+  </div>
+
+  <!-- TOPOLOGIA -->
+  <div class="card">
+    <h2>Topologia e piano di indirizzamento</h2>
+    <p>
+      La rete è una sola LAN <code>192.168.10.0/24</code> con uno switch, due server e due PC; non serve un router,
+      quindi il <strong>Default Gateway</strong> resta vuoto.
+    </p>
+
+    <figure class="fig topo">
+      <div class="fig-title">Tutti i dispositivi usano 192.168.10.2 come server DNS</div>
+      <div class="svg-scroll"><svg viewBox="0 0 760 280" role="img" aria-label="Topologia: lo switch 2960 al centro collega il server DNS (192.168.10.2, porta Fa0/1), il server Email MAIL (192.168.10.3, porta Fa0/2), PC-Mario (192.168.10.11, porta Fa0/3) e PC-Lucia (192.168.10.12, porta Fa0/4).">
+        <g fill="none" stroke="#718096" stroke-width="1.5">
+          <polyline points="214,40 310,40 310,112"/>
+          <polyline points="546,40 450,40 450,112"/>
+          <polyline points="214,214 310,214 310,152"/>
+          <polyline points="546,214 450,214 450,152"/>
+        </g>
+        <g font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#4a5568">
+          <text x="252" y="33">Fa0/1</text><text x="478" y="33">Fa0/2</text>
+          <text x="252" y="207">Fa0/3</text><text x="478" y="207">Fa0/4</text>
+        </g>
+        <g font-family="Segoe UI, Arial, sans-serif" text-anchor="middle">
+          <rect x="20" y="12" width="194" height="58" rx="7" fill="#ebf8ff" stroke="#3182ce" stroke-width="2.5"/>
+          <text x="117" y="34" font-size="13" font-weight="bold" fill="#1a202c">Server DNS (DNS)</text>
+          <text x="117" y="50" font-size="11" fill="#2d3748">192.168.10.2</text>
+          <text x="117" y="63" font-size="11" fill="#4a5568">record: mail.midossi.lab</text>
+
+          <rect x="546" y="12" width="194" height="58" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="643" y="34" font-size="13" font-weight="bold" fill="#1a202c">Server Email (MAIL)</text>
+          <text x="643" y="50" font-size="11" fill="#2d3748">192.168.10.3</text>
+          <text x="643" y="63" font-size="11" fill="#4a5568">dominio: midossi.lab</text>
+
+          <rect x="280" y="104" width="200" height="52" rx="7" fill="#edf2f7" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="380" y="127" font-size="13" font-weight="bold" fill="#1a202c">Switch 2960</text>
+          <text x="380" y="143" font-size="11" fill="#4a5568">LAN 192.168.10.0/24</text>
+
+          <rect x="20" y="186" width="194" height="58" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="117" y="208" font-size="13" font-weight="bold" fill="#1a202c">PC-Mario</text>
+          <text x="117" y="224" font-size="11" fill="#2d3748">192.168.10.11</text>
+          <text x="117" y="237" font-size="11" fill="#4a5568">mario@midossi.lab</text>
+
+          <rect x="546" y="186" width="194" height="58" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="643" y="208" font-size="13" font-weight="bold" fill="#1a202c">PC-Lucia</text>
+          <text x="643" y="224" font-size="11" fill="#2d3748">192.168.10.12</text>
+          <text x="643" y="237" font-size="11" fill="#4a5568">lucia@midossi.lab</text>
+
+          <text x="380" y="272" font-size="11" fill="#718096">Cavi Copper Straight-Through: FastEthernet0 sul dispositivo, porta Fa0/x sullo switch</text>
+        </g>
+      </svg></div>
+      <figcaption>Topologia del laboratorio · 1 switch, 2 server, 2 PC</figcaption>
+    </figure>
+    <p>Lo switch mette tutti sulla stessa rete; il server DNS, evidenziato, risponde alle richieste di nomi di tutti gli altri.</p>
+
+    <h3>Piano di indirizzamento</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dispositivo</th><th>Display Name</th><th>Indirizzo IP</th><th>Subnet mask</th><th>DNS Server</th><th>Porta switch</th></tr></thead>
+      <tbody>
+        <tr><td>Server DNS</td><td><strong>DNS</strong></td><td class="key">192.168.10.2</td><td class="key">255.255.255.0</td><td class="key">192.168.10.2</td><td>Fa0/1</td></tr>
+        <tr><td>Server Email</td><td><strong>MAIL</strong></td><td class="key">192.168.10.3</td><td class="key">255.255.255.0</td><td class="key">192.168.10.2</td><td>Fa0/2</td></tr>
+        <tr><td>PC0</td><td><strong>PC-Mario</strong></td><td class="key">192.168.10.11</td><td class="key">255.255.255.0</td><td class="key">192.168.10.2</td><td>Fa0/3</td></tr>
+        <tr><td>PC1</td><td><strong>PC-Lucia</strong></td><td class="key">192.168.10.12</td><td class="key">255.255.255.0</td><td class="key">192.168.10.2</td><td>Fa0/4</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Come costruirla</h3>
+    <ol class="steps">
+      <li>Dal pannello dei dispositivi in basso a sinistra trascina nell'area di lavoro uno switch <strong>2960</strong>
+        (<strong>Network Devices &gt; Switches</strong>), due <strong>Server-PT</strong> e due <strong>PC-PT</strong> (<strong>End Devices</strong>).</li>
+      <li>Collega ogni dispositivo allo switch con il cavo <strong>Copper Straight-Through</strong> (linea nera continua): sul PC
+        o sul server scegli <strong>FastEthernet0</strong>, sullo switch la porta indicata in tabella.</li>
+      <li>Rinomina i dispositivi con il nome della colonna Display Name: clic sul nome sotto l'icona, oppure
+        <strong>Config &gt; Settings &gt; Display Name</strong>.</li>
+      <li>Aspetta che i triangolini sui collegamenti diventino verdi; per non attendere premi <strong>Fast Forward Time</strong> in basso.</li>
+    </ol>
+  </div>
+
+  <!-- PASSO 1 -->
+  <div class="card">
+    <h2>Passo 1 — Indirizzi IP statici <span class="tag tag-gui">Config</span></h2>
+    <p>
+      Ogni dispositivo riceve un IP fisso e usa <strong>192.168.10.2</strong> come DNS Server: senza questa voce il PC non sa
+      a chi chiedere la traduzione dei nomi. Gli indirizzi si inseriscono dalla scheda <strong>Config</strong> in alto, che
+      hanno sia i PC sia i server: l'indirizzo IP e la subnet mask nell'interfaccia <strong>FastEthernet0</strong>,
+      gateway e DNS nelle impostazioni generali <strong>Settings</strong>.
+    </p>
+
+    <figure class="fig">
+      <div class="fig-title">Config &gt; FastEthernet0: indirizzo IP e subnet mask dell'interfaccia</div>
+      <div class="ptwin" role="img" aria-label="Finestra di PC-Mario, scheda Config, interfaccia FastEthernet0: IP Configuration su Static, IPv4 Address 192.168.10.11, Subnet Mask 255.255.255.0.">
+        <div class="bar"><span>PC-Mario</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab on">Config <span class="mk">1</span></span><span class="tab">Desktop</span><span class="tab">Programming</span><span class="tab">Attributes</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="hd">Global</div>
+            <div class="it">Settings</div>
+            <div class="it">Algorithm Settings</div>
+            <div class="hd">Interface</div>
+            <div class="it on">FastEthernet0 <span class="mk">2</span></div>
+            <div class="it">Bluetooth</div>
+          </div>
+          <div class="main">
+            <h5>FastEthernet0</h5>
+            <div class="row"><span class="lbl">Port Status</span><span class="chk">On</span></div>
+            <div class="row"><span class="lbl">Bandwidth</span><span class="opt on">100 Mbps</span><span class="opt">10 Mbps</span><span class="chk">Auto</span></div>
+            <h6>IP Configuration</h6>
+            <div class="row"><span class="opt">DHCP</span><span class="opt on">Static</span><span class="mk">3</span></div>
+            <div class="row"><span class="lbl">IPv4 Address</span><span class="fld hl">192.168.10.11</span></div>
+            <div class="row"><span class="lbl">Subnet Mask</span><span class="fld hl">255.255.255.0</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>PC-Mario · scheda Config &gt; INTERFACE &gt; FastEthernet0</figcaption>
+    </figure>
+
+    <figure class="fig">
+      <div class="fig-title">Config &gt; Settings: Default Gateway e DNS Server</div>
+      <div class="ptwin" role="img" aria-label="Finestra di PC-Mario, scheda Config, Settings: Gateway/DNS IPv4 su Static, Default Gateway vuoto, DNS Server 192.168.10.2.">
+        <div class="bar"><span>PC-Mario</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab on">Config</span><span class="tab">Desktop</span><span class="tab">Programming</span><span class="tab">Attributes</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="hd">Global</div>
+            <div class="it on">Settings <span class="mk">4</span></div>
+            <div class="it">Algorithm Settings</div>
+            <div class="hd">Interface</div>
+            <div class="it">FastEthernet0</div>
+            <div class="it">Bluetooth</div>
+          </div>
+          <div class="main">
+            <h5>Global Settings</h5>
+            <div class="row"><span class="lbl">Display Name</span><span class="fld">PC-Mario</span></div>
+            <h6>Gateway/DNS IPv4</h6>
+            <div class="row"><span class="opt">DHCP</span><span class="opt on">Static</span></div>
+            <div class="row"><span class="lbl">Default Gateway</span><span class="fld empty">vuoto</span></div>
+            <div class="row"><span class="lbl">DNS Server</span><span class="fld hl">192.168.10.2</span><span class="mk">5</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>PC-Mario · scheda Config &gt; GLOBAL &gt; Settings</figcaption>
+    </figure>
+
+    <p class="muted">I numeri nei cerchi corrispondono ai passi qui sotto; i campi evidenziati sono quelli da compilare.</p>
+    <ol class="steps">
+      <li>Clic sul dispositivo e, in alto, apri la scheda <strong>Config</strong> (ce l'hanno anche i Server-PT).</li>
+      <li>Nella colonna di sinistra, sotto <strong>INTERFACE</strong>, seleziona l'interfaccia <strong>FastEthernet0</strong>.</li>
+      <li>In <strong>IP Configuration</strong> scegli <strong>Static</strong> e compila <strong>IPv4 Address</strong> e
+        <strong>Subnet Mask</strong> come nella tabella sopra.</li>
+      <li>Sempre nella colonna di sinistra, sotto <strong>GLOBAL</strong>, apri <strong>Settings</strong>.</li>
+      <li>In <strong>Gateway/DNS IPv4</strong> scegli <strong>Static</strong> e scrivi <strong>DNS Server</strong>
+        <code>192.168.10.2</code>; <strong>Default Gateway</strong> resta vuoto.</li>
+      <li>Chiudi la finestra: i valori si salvano da soli. Ripeti su tutti e quattro i dispositivi, server compresi.</li>
+    </ol>
+    <div class="info-box">
+      In Packet Tracer l'interfaccia <strong>FastEthernet0</strong> contiene solo indirizzo IP e subnet mask:
+      <strong>Default Gateway</strong> e <strong>DNS Server</strong> valgono per tutto il dispositivo e per questo stanno
+      in <strong>Settings</strong>.
+    </div>
+    <div class="checkpoint">
+      <strong>Prima di andare avanti:</strong> da <strong>PC-Mario &gt; Desktop &gt; Command Prompt</strong> scrivi
+      <code>ping 192.168.10.3</code>: se il server Email non risponde, ricontrolla indirizzi e cavi.
+    </div>
+  </div>
+
+  <!-- PASSO 2 -->
+  <div class="card">
+    <h2>Passo 2 — Server DNS <span class="tag tag-gui">Services</span></h2>
+    <p>
+      Il server DNS custodisce un elenco di record «nome → indirizzo»: basta un record di tipo A perché i PC trovino il
+      server di posta con il nome <strong>mail.midossi.lab</strong>.
+    </p>
+
+    <figure class="fig">
+      <div class="fig-title">Server DNS: DNS Service su On e due record di tipo A</div>
+      <div class="ptwin" role="img" aria-label="Finestra del server DNS, scheda Services, servizio DNS: DNS Service su On; record A mail.midossi.lab 192.168.10.3 e dns.midossi.lab 192.168.10.2.">
+        <div class="bar"><span>DNS</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab">Config</span><span class="tab on">Services <span class="mk">1</span></span><span class="tab">Desktop</span><span class="tab">Programming</span><span class="tab">Attributes</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="hd">Services</div>
+            <div class="it">HTTP</div><div class="it">DHCP</div><div class="it">DHCPv6</div><div class="it">TFTP</div>
+            <div class="it on">DNS <span class="mk">1</span></div>
+            <div class="it">SYSLOG</div><div class="it">AAA</div><div class="it">NTP</div><div class="it">EMAIL</div><div class="it">FTP</div><div class="it">IoT</div>
+          </div>
+          <div class="main">
+            <h5>DNS</h5>
+            <div class="row"><span class="lbl">DNS Service</span><span class="opt on">On</span><span class="opt">Off</span><span class="mk">2</span></div>
+            <h6>Resource Records</h6>
+            <div class="row"><span class="lbl">Name</span><span class="fld hl">mail.midossi.lab</span></div>
+            <div class="row"><span class="lbl">Type</span><span class="fld">A Record ▾</span></div>
+            <div class="row"><span class="lbl">Address</span><span class="fld hl">192.168.10.3</span><span class="mk">3</span></div>
+            <div class="row"><span class="lbl"></span><span class="btn hl">Add</span><span class="btn">Save</span><span class="btn">Remove</span></div>
+            <div class="table-wrap">
+            <table>
+              <thead><tr><th>No.</th><th>Name</th><th>Type</th><th>Detail</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>mail.midossi.lab</td><td>A Record</td><td>192.168.10.3</td></tr>
+                <tr><td>1</td><td>dns.midossi.lab</td><td>A Record</td><td>192.168.10.2 <span class="mk">4</span></td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Server DNS · scheda Services &gt; DNS</figcaption>
+    </figure>
+
+    <p class="muted">I numeri nei cerchi corrispondono ai passi qui sotto; i campi evidenziati sono quelli da compilare.</p>
+    <ol class="steps">
+      <li>Clic sul server <strong>DNS</strong> &gt; scheda <strong>Services</strong> &gt; nella colonna di sinistra <strong>DNS</strong>.</li>
+      <li>In alto imposta <strong>DNS Service</strong> su <strong>On</strong>: di default è Off ed è l'errore più comune.</li>
+      <li>In <strong>Resource Records</strong> scrivi <strong>Name</strong> <code>mail.midossi.lab</code>, lascia
+        <strong>Type</strong> su <strong>A Record</strong>, scrivi <strong>Address</strong> <code>192.168.10.3</code> e premi <strong>Add</strong>.</li>
+      <li>Ripeti con <strong>Name</strong> <code>dns.midossi.lab</code> e <strong>Address</strong> <code>192.168.10.2</code>
+        (facoltativo, serve per raggiungere il server DNS con il suo nome).</li>
+      <li>Controlla che i due record compaiano nella tabella in basso; per correggerne uno selezionalo, modificalo e premi
+        <strong>Save</strong>, per toglierlo <strong>Remove</strong>.</li>
+    </ol>
+    <div class="info-box">
+      Il tipo <strong>A Record</strong> associa un nome a un indirizzo IPv4; un <strong>CNAME</strong> crea invece un alias,
+      per esempio <code>posta.midossi.lab</code> → <code>mail.midossi.lab</code>.
+    </div>
+  </div>
+
+  <!-- PASSO 3 -->
+  <div class="card">
+    <h2>Passo 3 — Server Email <span class="tag tag-gui">Services</span></h2>
+    <p>
+      Il server Email gestisce il dominio <strong>midossi.lab</strong> e le caselle dei due utenti, che avranno gli indirizzi
+      <strong>mario@midossi.lab</strong> e <strong>lucia@midossi.lab</strong> (utente + @ + dominio).
+    </p>
+
+    <figure class="fig">
+      <div class="fig-title">Server Email: SMTP e POP3 su On, dominio midossi.lab, utenti mario e lucia</div>
+      <div class="ptwin" role="img" aria-label="Finestra del server MAIL, scheda Services, servizio EMAIL: SMTP e POP3 su On, Domain Name midossi.lab confermato con Set, utenti mario e lucia con password 1234.">
+        <div class="bar"><span>MAIL</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab">Config</span><span class="tab on">Services <span class="mk">1</span></span><span class="tab">Desktop</span><span class="tab">Programming</span><span class="tab">Attributes</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="hd">Services</div>
+            <div class="it">HTTP</div><div class="it">DHCP</div><div class="it">DHCPv6</div><div class="it">TFTP</div><div class="it">DNS</div>
+            <div class="it">SYSLOG</div><div class="it">AAA</div><div class="it">NTP</div>
+            <div class="it on">EMAIL <span class="mk">1</span></div>
+            <div class="it">FTP</div><div class="it">IoT</div>
+          </div>
+          <div class="main">
+            <h5>EMAIL</h5>
+            <div class="row"><span class="lbl">SMTP Service</span><span class="opt on">On</span><span class="opt">Off</span></div>
+            <div class="row"><span class="lbl">POP3 Service</span><span class="opt on">On</span><span class="opt">Off</span><span class="mk">2</span></div>
+            <div class="row"><span class="lbl">Domain Name</span><span class="fld hl">midossi.lab</span><span class="btn hl">Set</span><span class="mk">3</span></div>
+            <h6>User Setup</h6>
+            <div class="row"><span class="lbl">User</span><span class="fld hl">lucia</span></div>
+            <div class="row"><span class="lbl">Password</span><span class="fld hl">1234</span><span class="btn hl">+</span><span class="btn">−</span><span class="mk">4</span></div>
+            <div class="row"><span class="lbl"></span><span class="list"><div>mario</div><div>lucia</div></span><span class="mk">5</span></div>
+            <div class="row"><span class="lbl"></span><span class="btn">Change Password</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Server Email · scheda Services &gt; EMAIL</figcaption>
+    </figure>
+
+    <div class="warn-box">
+      Il pulsante <strong>Set</strong> e il pulsante <strong>+</strong> sono quelli che si dimenticano più spesso: senza di loro
+      dominio e utenti non vengono salvati.
+    </div>
+    <ol class="steps">
+      <li>Clic sul server <strong>MAIL</strong> &gt; scheda <strong>Services</strong> &gt; nella colonna di sinistra <strong>EMAIL</strong>.</li>
+      <li>Verifica che <strong>SMTP Service</strong> e <strong>POP3 Service</strong> siano su <strong>On</strong>.</li>
+      <li>In <strong>Domain Name</strong> scrivi <code>midossi.lab</code> e premi <strong>Set</strong>: senza Set il dominio non viene registrato.</li>
+      <li>In <strong>User Setup</strong> scrivi <strong>User</strong> <code>mario</code>, <strong>Password</strong> <code>1234</code> e premi <strong>+</strong>.</li>
+      <li>Ripeti con <code>lucia</code> / <code>1234</code>. Gli utenti compaiono nell'elenco sotto; <strong>−</strong> elimina
+        l'utente selezionato, <strong>Change Password</strong> ne cambia la password.</li>
+    </ol>
+  </div>
+
+  <!-- PASSO 4 -->
+  <div class="card">
+    <h2>Passo 4 — Client di posta sui PC <span class="tag tag-gui">Desktop</span></h2>
+    <p>
+      Ogni PC ha già un programma di posta in <strong>Desktop &gt; Email</strong>: va configurato una volta con i dati
+      dell'utente e con il nome del server.
+    </p>
+
+    <figure class="fig">
+      <div class="fig-title">Configure Mail su PC-Mario: i server si indicano con il nome mail.midossi.lab</div>
+      <div class="ptwin" role="img" aria-label="Finestra Configure Mail di PC-Mario: Your Name Mario, Email Address mario@midossi.lab, Incoming e Outgoing Mail Server mail.midossi.lab, User Name mario, Password 1234.">
+        <div class="bar"><span>PC-Mario</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab">Config</span><span class="tab on">Desktop <span class="mk">1</span></span><span class="tab">Programming</span><span class="tab">Attributes</span>
+        </div>
+        <div class="dialog">
+          <div class="dbar"><span>Configure Mail</span><span>X</span></div>
+          <h6 style="font-size:0.8rem;margin:6px 0 4px">User Information</h6>
+          <div class="row"><span class="lbl">Your Name:</span><span class="fld">Mario</span></div>
+          <div class="row"><span class="lbl">Email Address:</span><span class="fld">mario@midossi.lab</span></div>
+          <h6 style="font-size:0.8rem;margin:12px 0 4px">Server Information</h6>
+          <div class="row"><span class="lbl">Incoming Mail Server:</span><span class="fld hl">mail.midossi.lab</span></div>
+          <div class="row"><span class="lbl">Outgoing Mail Server:</span><span class="fld hl">mail.midossi.lab</span></div>
+          <h6 style="font-size:0.8rem;margin:12px 0 4px">Logon Information</h6>
+          <div class="row"><span class="lbl">User Name:</span><span class="fld">mario</span></div>
+          <div class="row"><span class="lbl">Password:</span><span class="fld">••••</span></div>
+          <div class="row"><span class="lbl"></span><span class="btn hl">Save</span><span class="btn">Clear</span><span class="mk">2</span></div>
+        </div>
+      </div>
+      <figcaption>PC-Mario · Desktop &gt; Email &gt; Configure Mail</figcaption>
+    </figure>
+    <p>I due campi evidenziati sono quelli che fanno lavorare il DNS: il PC deve prima scoprire quale IP corrisponde a mail.midossi.lab.</p>
+
+    <h3>Dati da inserire</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Campo</th><th>PC-Mario</th><th>PC-Lucia</th></tr></thead>
+      <tbody>
+        <tr><td>Your Name</td><td>Mario</td><td>Lucia</td></tr>
+        <tr><td>Email Address</td><td class="key">mario@midossi.lab</td><td class="key">lucia@midossi.lab</td></tr>
+        <tr><td>Incoming Mail Server</td><td class="key">mail.midossi.lab</td><td class="key">mail.midossi.lab</td></tr>
+        <tr><td>Outgoing Mail Server</td><td class="key">mail.midossi.lab</td><td class="key">mail.midossi.lab</td></tr>
+        <tr><td>User Name</td><td class="key">mario</td><td class="key">lucia</td></tr>
+        <tr><td>Password</td><td class="key">1234</td><td class="key">1234</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <ol class="steps" style="margin-top:14px">
+      <li>Clic su <strong>PC-Mario</strong> &gt; <strong>Desktop</strong> &gt; <strong>Email</strong>: al primo avvio si apre la finestra <strong>Configure Mail</strong>.</li>
+      <li>Compila i campi con la colonna PC-Mario e premi <strong>Save</strong>: si apre la casella di posta.</li>
+      <li>Ripeti su <strong>PC-Lucia</strong> con la sua colonna.</li>
+    </ol>
+    <div class="info-box">
+      Nei campi dei server scriviamo apposta il nome e non l'IP: così ogni invio passa prima dal DNS. Con
+      <code>192.168.10.3</code> la posta funzionerebbe lo stesso, ma il DNS non verrebbe messo alla prova.
+    </div>
+  </div>
+
+  <!-- PASSO 5 -->
+  <div class="card">
+    <h2>Passo 5 — Verifica</h2>
+    <p>Il laboratorio è riuscito quando <code>nslookup</code> restituisce <strong>192.168.10.3</strong> e Lucia riceve il messaggio di Mario.</p>
+
+    <h3>A. Il DNS risponde</h3>
+    <p>Da <strong>PC-Mario &gt; Desktop &gt; Command Prompt</strong>:</p>
+<pre class="cli">C:\&gt;<span class="kw">nslookup mail.midossi.lab</span>
+C:\&gt;<span class="kw">ping mail.midossi.lab</span></pre>
+    <p>
+      L'output di nslookup deve riportare <strong>Name: mail.midossi.lab</strong> e <strong>Address: 192.168.10.3</strong>;
+      il ping deve ricevere risposta da 192.168.10.3.
+    </p>
+
+    <h3>B. Invio e ricezione</h3>
+    <ol class="steps">
+      <li>Su PC-Mario, nella casella di posta, premi <strong>Compose</strong>.</li>
+      <li>Scrivi <strong>To</strong> <code>lucia@midossi.lab</code>, <strong>Subject</strong> <code>Prova</code>, un breve testo e
+        premi <strong>Send</strong>: in basso compare <strong>Send Mail Success</strong>.</li>
+      <li>Su PC-Lucia premi <strong>Receive</strong>: il messaggio compare nell'elenco con <strong>Receive Mail Success</strong>.
+        Selezionalo per leggerlo, <strong>Reply</strong> per rispondere.</li>
+    </ol>
+
+    <h3>C. Il percorso di una mail</h3>
+    <figure class="fig flow">
+      <div class="fig-title">Ogni invio e ogni ricezione passano prima dal DNS</div>
+      <div class="svg-scroll"><svg viewBox="0 0 760 330" role="img" aria-label="Percorso di una mail in 7 passaggi. Quando Mario preme Send: 1 richiesta DNS per mail.midossi.lab, 2 risposta 192.168.10.3, 3 invio SMTP porta 25 al server MAIL. Quando Lucia preme Receive: 4 richiesta DNS, 5 risposta 192.168.10.3, 6 richiesta POP3 porta 110 al server MAIL, 7 consegna della mail a Lucia.">
+        <defs>
+          <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3182ce"/></marker>
+          <marker id="aO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dd6b20"/></marker>
+          <marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#38a169"/></marker>
+        </defs>
+        <g fill="none" stroke-width="2">
+          <polyline points="110,128 110,40 312,40" stroke="#3182ce" marker-end="url(#aB)"/>
+          <polyline points="320,64 140,64 140,122" stroke="#3182ce" stroke-dasharray="6 4" marker-end="url(#aB)"/>
+          <polyline points="130,184 130,262 312,262" stroke="#dd6b20" marker-end="url(#aO)"/>
+          <polyline points="650,128 650,40 448,40" stroke="#3182ce" marker-end="url(#aB)"/>
+          <polyline points="440,64 620,64 620,122" stroke="#3182ce" stroke-dasharray="6 4" marker-end="url(#aB)"/>
+          <polyline points="630,184 630,250 448,250" stroke="#38a169" marker-end="url(#aG)"/>
+          <polyline points="440,276 680,276 680,190" stroke="#38a169" stroke-dasharray="6 4" marker-end="url(#aG)"/>
+        </g>
+        <g font-family="Segoe UI, Arial, sans-serif" text-anchor="middle">
+          <rect x="320" y="20" width="120" height="50" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="380" y="41" font-size="13" font-weight="bold" fill="#1a202c">DNS</text>
+          <text x="380" y="58" font-size="11" fill="#4a5568">192.168.10.2</text>
+          <rect x="320" y="238" width="120" height="50" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="380" y="259" font-size="13" font-weight="bold" fill="#1a202c">MAIL</text>
+          <text x="380" y="276" font-size="11" fill="#4a5568">192.168.10.3</text>
+          <rect x="40" y="128" width="150" height="56" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="115" y="152" font-size="13" font-weight="bold" fill="#1a202c">PC-Mario</text>
+          <text x="115" y="169" font-size="11" fill="#4a5568">invia (Send)</text>
+          <rect x="570" y="128" width="150" height="56" rx="7" fill="#fff" stroke="#a0aec0" stroke-width="1.5"/>
+          <text x="645" y="152" font-size="13" font-weight="bold" fill="#1a202c">PC-Lucia</text>
+          <text x="645" y="169" font-size="11" fill="#4a5568">riceve (Receive)</text>
+        </g>
+        <g font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#2d3748">
+          <text x="120" y="33">1 · DNS: mail.midossi.lab?</text>
+          <text x="150" y="80">2 · risposta: 192.168.10.3</text>
+          <text x="140" y="255">3 · SMTP, porta 25: invio</text>
+          <text x="470" y="33">4 · DNS: mail.midossi.lab?</text>
+          <text x="470" y="80">5 · risposta: 192.168.10.3</text>
+          <text x="470" y="243">6 · POP3, porta 110</text>
+          <text x="540" y="294">7 · consegna della mail</text>
+        </g>
+        <g font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#4a5568">
+          <line x1="40" y1="318" x2="70" y2="318" stroke="#3182ce" stroke-width="2"/><text x="78" y="322">DNS, porta 53</text>
+          <line x1="210" y1="318" x2="240" y2="318" stroke="#dd6b20" stroke-width="2"/><text x="248" y="322">SMTP, porta 25</text>
+          <line x1="385" y1="318" x2="415" y2="318" stroke="#38a169" stroke-width="2"/><text x="423" y="322">POP3, porta 110</text>
+          <line x1="560" y1="318" x2="590" y2="318" stroke="#a0aec0" stroke-width="2" stroke-dasharray="6 4"/><text x="598" y="322">tratteggio = risposta</text>
+        </g>
+      </svg></div>
+      <figcaption>Percorso di una mail · 7 passaggi, 3 protocolli</figcaption>
+    </figure>
+    <p>
+      I passaggi 1–3 avvengono quando Mario preme <strong>Send</strong>, i passaggi 4–7 quando Lucia preme
+      <strong>Receive</strong>: prima di parlare con il server di posta, ogni PC chiede al DNS l'indirizzo di
+      <strong>mail.midossi.lab</strong>.
+    </p>
+  </div>
+
+  <!-- ERRORI FREQUENTI -->
+  <div class="card">
+    <h2>Errori frequenti</h2>
+    <p>Quasi tutti i problemi nascono da un interruttore rimasto su Off o da un campo scritto in modo diverso tra server e client.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sintomo</th><th>Causa probabile</th><th>Soluzione</th></tr></thead>
+      <tbody>
+        <tr><td>nslookup non restituisce l'indirizzo</td><td>Sul PC manca il DNS Server</td>
+            <td><strong>Config &gt; Settings</strong>: DNS Server <code>192.168.10.2</code></td></tr>
+        <tr><td>nslookup risponde ma non trova il nome</td><td><strong>DNS Service</strong> su Off, oppure record scritto male</td>
+            <td><strong>Services &gt; DNS</strong>: On, ricontrolla Name e Address, poi <strong>Save</strong></td></tr>
+        <tr><td>L'invio fallisce (messaggio <em>Failed</em> in basso)</td><td>Outgoing Mail Server errato, <strong>SMTP</strong> su Off, dominio non confermato con <strong>Set</strong></td>
+            <td>Ricontrolla Configure Mail e <strong>Services &gt; EMAIL</strong></td></tr>
+        <tr><td>La ricezione fallisce</td><td>User Name o Password sbagliati, utente non creato, <strong>POP3</strong> su Off</td>
+            <td>Confronta con <strong>User Setup</strong> sul server MAIL</td></tr>
+        <tr><td>La mail non arriva a Lucia</td><td>Dominio diverso nell'indirizzo (per esempio lucia@midossi.it)</td>
+            <td>Usa lo stesso dominio impostato sul server: midossi.lab</td></tr>
+        <tr><td>Il ping non risponde</td><td>Collegamenti non ancora verdi, cavo sbagliato, subnet mask diversa</td>
+            <td>Cavo <strong>Copper Straight-Through</strong>, <strong>Fast Forward Time</strong>, mask
+              <code>255.255.255.0</code> in <strong>Config &gt; FastEthernet0</strong></td></tr>
+        <tr><td>Esercizio avanzato: l'altra LAN non risponde al ping</td><td>Interfaccia del router spenta o senza indirizzo, Default Gateway mancante</td>
+            <td>Router &gt; <strong>Config &gt; GigabitEthernet0/x</strong>: Port Status On e indirizzo; sui PC e server
+              <strong>Config &gt; Settings</strong>: Default Gateway</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- AVANZATO -->
+  <div class="card">
+    <h2>Esercizio avanzato — due domini</h2>
+    <p>
+      <strong>Obiettivo:</strong> Mario (mario@midossi.lab) scrive ad Anna, che ha la casella su un secondo server di posta
+      del dominio <strong>liceo.lab</strong>, in un'altra rete.
+    </p>
+    <ol class="steps">
+      <li>Aggiungi un router <strong>2911</strong>, un secondo switch e la LAN <code>192.168.20.0/24</code> con il server
+        <strong>MAIL2</strong> (192.168.20.3, dominio <code>liceo.lab</code>, utente <code>anna</code>) e <strong>PC-Anna</strong>
+        (192.168.20.11). Collega con cavo <strong>Copper Straight-Through</strong> il primo switch alla porta
+        <strong>GigabitEthernet0/0</strong> del router e il secondo switch alla <strong>GigabitEthernet0/1</strong>.</li>
+      <li>Su MAIL2 e PC-Anna inserisci indirizzo IP e subnet mask come al Passo 1, da <strong>Config &gt; FastEthernet0</strong>.</li>
+      <li>Configura le due interfacce del router, sempre dalla scheda <strong>Config</strong> (figura sotto):
+        <ol type="a" class="steps">
+          <li>clic sul router &gt; scheda <strong>Config</strong> in alto;</li>
+          <li>nella colonna di sinistra, sotto <strong>INTERFACE</strong>, seleziona <strong>GigabitEthernet0/0</strong>;</li>
+          <li>spunta <strong>Port Status: On</strong>, poi scrivi <strong>IPv4 Address</strong> <code>192.168.10.1</code> e
+            <strong>Subnet Mask</strong> <code>255.255.255.0</code>;</li>
+          <li>ripeti con <strong>GigabitEthernet0/1</strong>: Port Status On, <code>192.168.20.1</code> / <code>255.255.255.0</code>.</li>
+        </ol>
+      </li>
+      <li>Imposta il <strong>Default Gateway</strong> su tutti i dispositivi da <strong>Config &gt; Settings</strong>:
+        192.168.10.1 nella prima LAN, 192.168.20.1 nella seconda.</li>
+      <li>Sul server DNS aggiungi tre A Record: <code>midossi.lab</code> → 192.168.10.3, <code>liceo.lab</code> →
+        192.168.20.3, <code>mail.liceo.lab</code> → 192.168.20.3.</li>
+      <li>Anche MAIL2 e PC-Anna usano 192.168.10.2 come <strong>DNS Server</strong> (<strong>Config &gt; Settings</strong>).</li>
+    </ol>
+
+    <figure class="fig">
+      <div class="fig-title">Router: Config &gt; GigabitEthernet0/0, porta accesa e indirizzo del gateway della prima LAN</div>
+      <div class="ptwin" role="img" aria-label="Finestra del router 2911, scheda Config, interfaccia GigabitEthernet0/0: Port Status On, IPv4 Address 192.168.10.1, Subnet Mask 255.255.255.0.">
+        <div class="bar"><span>Router0</span><span class="x">×</span></div>
+        <div class="tabs">
+          <span class="tab">Physical</span><span class="tab on">Config <span class="mk">a</span></span><span class="tab">CLI</span><span class="tab">Attributes</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="hd">Global</div>
+            <div class="it">Settings</div>
+            <div class="it">Algorithm Settings</div>
+            <div class="hd">Routing</div>
+            <div class="it">Static</div>
+            <div class="it">RIP</div>
+            <div class="hd">Switching</div>
+            <div class="it">VLAN Database</div>
+            <div class="hd">Interface</div>
+            <div class="it on">GigabitEthernet0/0 <span class="mk">b</span></div>
+            <div class="it">GigabitEthernet0/1</div>
+            <div class="it">GigabitEthernet0/2</div>
+          </div>
+          <div class="main">
+            <h5>GigabitEthernet0/0</h5>
+            <div class="row"><span class="lbl">Port Status</span><span class="chk" style="font-weight:bold">On</span><span class="mk">c</span></div>
+            <div class="row"><span class="lbl">Bandwidth</span><span class="opt on">1000 Mbps</span><span class="opt">100 Mbps</span><span class="chk">Auto</span></div>
+            <div class="row"><span class="lbl">Duplex</span><span class="opt">Half</span><span class="opt on">Full</span><span class="chk">Auto</span></div>
+            <h6>IP Configuration</h6>
+            <div class="row"><span class="lbl">IPv4 Address</span><span class="fld hl">192.168.10.1</span></div>
+            <div class="row"><span class="lbl">Subnet Mask</span><span class="fld hl">255.255.255.0</span><span class="mk">c</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Router0 · scheda Config &gt; INTERFACE &gt; GigabitEthernet0/0 (poi lo stesso per GigabitEthernet0/1 con 192.168.20.1)</figcaption>
+    </figure>
+    <div class="warn-box">
+      Le interfacce del router sono <strong>spente di default</strong>: senza la spunta su <strong>Port Status: On</strong>
+      il collegamento verso lo switch resta rosso e le due LAN non si vedono.
+    </div>
+    <div class="info-box">
+      <strong>Perché i record con il solo nome del dominio:</strong> per consegnare la posta a un altro dominio, il server MAIL
+      chiede al DNS l'indirizzo della parte dopo la @. Nelle reti reali questo compito spetta al record <strong>MX</strong>;
+      in Packet Tracer si usa un record A con il nome del dominio.
+    </div>
+  </div>
+
+  <footer>Sistemi e Reti — ITT E. Midossi · Guida rapida di laboratorio Cisco Packet Tracer</footer>
+</div>
+</body>
+</html>
