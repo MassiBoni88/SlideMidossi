@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Negozio di Ricondizionati</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── TABELLA MAGAZZINO ── */
+    .stock-table td:first-child,
+    .stock-table th:first-child { text-align: center; width: 36px; }
+    .stock-table td:nth-child(n+4),
+    .stock-table th:nth-child(n+4) { text-align: center; white-space: nowrap; }
+    .stock-table td:last-child,
+    .stock-table th:last-child { text-align: right; }
+    .stock-table td:nth-child(3) { font-size: 12.3px; color: #33475b; }
+
+    .os-table tbody td:first-child { white-space: nowrap; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 20px 16px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>NEGOZIO DI RICONDIZIONATI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: struct annidate, struct come valore di ritorno,<br>array di struct, funzioni, if/else, cicli for e while</span>
+      <span class="time">Tempo a disposizione: 1 ora e 45 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Il negozio <strong>SecondaVita Tech</strong> ritira smartphone e portatili usati, li controlla e li rimette in
+    vendita come <strong>ricondizionati</strong>. In magazzino ci sono <strong>iPhone</strong> e smartphone
+    <strong>Android</strong>, <strong>MacBook</strong> e laptop con <strong>Windows</strong> o <strong>Linux</strong>,
+    ognuno con la sua storia: c'è chi ha la batteria stanca, chi lo schermo rotto, chi funziona benissimo ma
+    <strong>non riceve più aggiornamenti</strong> (dal 14 ottobre 2025 è terminato il supporto di Windows 10, e chi non
+    può passare a Windows 11 resta senza patch di sicurezza).
+    Il tuo compito è scrivere il programma C++ che, per ogni dispositivo, stabilisce il <strong>grado</strong> di
+    conservazione, quanti <strong>anni di aggiornamenti</strong> gli restano e il <strong>prezzo di vendita</strong>,
+    stampa l'<strong>etichetta</strong> da esporre in vetrina e aiuta i clienti a scegliere il dispositivo giusto
+    per il loro <strong>budget</strong>. Le regole del negozio sono nella Parte 3: <strong>come</strong> tradurle in
+    codice lo decidi tu.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Strutture dati</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Hardware</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>ram</code></td><td>memoria RAM in GB (intero, es. 8)</td></tr>
+      <tr><td><code>memoria</code></td><td>spazio di archiviazione in GB (intero, es. 256)</td></tr>
+      <tr><td><code>batteria</code></td><td>salute della batteria in percentuale (intero da 0 a 100)</td></tr>
+      <tr><td><code>schermoIntegro</code></td><td><code>true</code> se lo schermo è intatto, <code>false</code> se è rotto (tipo <code>bool</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Dispositivo</strong>, che contiene <strong>Hardware</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>modello</code></td><td>nome del modello (es. "iPhone 16", "ThinkPad T480")</td></tr>
+      <tr><td><code>tipo</code></td><td>"smartphone" oppure "laptop"</td></tr>
+      <tr><td><code>sistema</code></td><td>sistema operativo: "iOS", "Android", "macOS", "Windows" oppure "Linux"</td></tr>
+      <tr><td><code>anno</code></td><td>anno di uscita del modello sul mercato</td></tr>
+      <tr><td><code>prezzoNuovo</code></td><td>prezzo del dispositivo da nuovo, in euro (numero con virgola)</td></tr>
+      <tr><td><code>hw</code></td><td>dati dell'hardware</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1c. Definisci infine la struct <strong>Valutazione</strong>, che contiene il giudizio del negozio su un dispositivo:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>grado</code></td><td>un carattere: <code>'A'</code>, <code>'B'</code> oppure <code>'C'</code> (regola 3a)</td></tr>
+      <tr><td><code>anniAggiornamenti</code></td><td>anni di aggiornamenti ancora garantiti; <code>0</code> se sono terminati (regola 3b)</td></tr>
+      <tr><td><code>prezzo</code></td><td>prezzo di vendita in euro (regola 3c)</td></tr>
+    </tbody>
+  </table>
+  <p>Una Valutazione non si legge da tastiera: la calcola il programma. Dichiara i campi di Hardware e Dispositivo
+    <strong>esattamente nell'ordine delle tabelle</strong>, perché i dati di prova della Parte 4 lo danno per scontato.</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti tre funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>valuta(Dispositivo d, int annoCorrente)</code></td>
+        <td>Applica le regole 3a, 3b e 3c e restituisce la <strong>Valutazione</strong> del dispositivo:
+          grado, anni di aggiornamenti rimasti e prezzo di vendita</td>
+      </tr>
+      <tr>
+        <td><code>stampaEtichetta(Dispositivo d, int annoCorrente)</code></td>
+        <td>Stampa l'etichetta da vetrina del dispositivo, <strong>identica</strong> agli
+          esempi della regola 3d. Per grado, aggiornamenti e prezzo richiama <code>valuta</code></td>
+      </tr>
+      <tr>
+        <td><code>cercaPerCliente(Dispositivo mag[], int n, string tipo, double budget, int annoCorrente)</code></td>
+        <td>Restituisce la <strong>posizione nell'array</strong> del dispositivo più adatto al cliente secondo la
+          regola 3e, oppure <code>-1</code> se nessun dispositivo va bene</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Le regole del negozio</h2>
+
+  <h3>3a. Grado di conservazione:</h3>
+  <table>
+    <thead>
+      <tr><th>Condizione</th><th>Grado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>schermo integro <strong>e</strong> batteria almeno all'85%</td><td><code>'A'</code></td></tr>
+      <tr><td>schermo integro <strong>e</strong> batteria dal 70% all'84%</td><td><code>'B'</code></td></tr>
+      <tr><td>in tutti gli altri casi (batteria sotto il 70% <strong>oppure</strong> schermo rotto)</td><td><code>'C'</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3b. Anni di aggiornamenti rimasti:</h3>
+  <p>Ogni sistema operativo garantisce gli aggiornamenti per un certo numero di anni <strong>a partire dall'anno di
+    uscita</strong> del dispositivo. Per esempio, un iPhone uscito nel 2021 nel 2026 ha ancora 2021 + 7 − 2026 = 2 anni
+    di aggiornamenti. Gli anni rimasti non sono mai negativi: se il periodo è già finito valgono <code>0</code>.</p>
+  <table class="os-table">
+    <thead>
+      <tr><th>Sistema</th><th>Anni garantiti dall'anno di uscita</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>iOS, macOS</td><td><code>7</code></td></tr>
+      <tr><td>Android</td><td><code>4</code></td></tr>
+      <tr><td>Windows</td><td><code>10</code>, ma <strong>solo</strong> se il dispositivo può passare a Windows 11: per il negozio
+        deve essere uscito <strong>dal 2018 in poi</strong> e avere <strong>almeno 8 GB</strong> di RAM.
+        Altrimenti resta fermo a Windows 10, che non è più aggiornato: <code>0</code> anni rimasti</td></tr>
+      <tr><td>Linux</td><td>caso speciale: gli anni rimasti sono <strong>sempre 5</strong>, qualunque sia l'età del
+        dispositivo (si può installare l'ultima versione della distribuzione)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3c. Prezzo di vendita:</h3>
+  <p>L'<strong>età</strong> del dispositivo è il numero di anni passati dall'anno di uscita all'anno corrente.
+    Il prezzo di vendita è una percentuale del prezzo da nuovo, che dipende da età e grado:</p>
+  <table class="center-table">
+    <thead>
+      <tr><th>Età</th><th>Grado A</th><th>Grado B</th><th>Grado C</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>da 0 a 2 anni</td><td>70%</td><td>60%</td><td>50%</td></tr>
+      <tr><td>da 3 a 5 anni</td><td>50%</td><td>40%</td><td>30%</td></tr>
+      <tr><td>6 anni o più</td><td>30%</td><td>20%</td><td>10%</td></tr>
+    </tbody>
+  </table>
+  <p>Se gli aggiornamenti sono terminati (0 anni rimasti), il prezzo così ottenuto si <strong>dimezza</strong>:
+    pochi vogliono un dispositivo senza patch di sicurezza.</p>
+
+  <h3>3d. L'etichetta da vetrina:</h3>
+  <p>Osserva gli esempi: il tuo programma deve stampare etichette <strong>identiche</strong>. Alcune parti cambiano da
+    un dispositivo all'altro: la nota sullo schermo, la frase sugli aggiornamenti (occhio al singolare!), la scritta
+    <code>(dimezzato)</code> e la riga finale che inizia con <code>&gt;&gt;</code>, che compare solo quando gli
+    aggiornamenti sono terminati e non è uguale per laptop e smartphone. Le righe di <code>=</code> sono 40.</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">MacBook Air M1</div>
+<pre class="out">========================================
+MacBook Air M1 (laptop macOS, 2020)
+8 GB RAM | 256 GB | batteria 85%
+Grado A | aggiornamenti: ancora 1 anno
+Prezzo: 347.70 euro
+========================================</pre>
+    </div>
+    <div>
+      <div class="out-label">Galaxy A55</div>
+<pre class="out">========================================
+Galaxy A55 (smartphone Android, 2024)
+8 GB RAM | 128 GB | batteria 88% | SCHERMO ROTTO
+Grado C | aggiornamenti: ancora 2 anni
+Prezzo: 249.50 euro
+========================================</pre>
+    </div>
+    <div>
+      <div class="out-label">Acer Aspire 3</div>
+<pre class="out">========================================
+Acer Aspire 3 (laptop Windows, 2022)
+4 GB RAM | 256 GB | batteria 92%
+Grado A | aggiornamenti: TERMINATI
+Prezzo: 137.25 euro (dimezzato)
+&gt;&gt; Consiglio: installa Linux!
+========================================</pre>
+    </div>
+    <div>
+      <div class="out-label">Galaxy S21</div>
+<pre class="out">========================================
+Galaxy S21 (smartphone Android, 2021)
+8 GB RAM | 128 GB | batteria 84%
+Grado B | aggiornamenti: TERMINATI
+Prezzo: 175.80 euro (dimezzato)
+&gt;&gt; Attenzione: niente patch di sicurezza
+========================================</pre>
+    </div>
+  </div>
+
+  <h3>3e. Il dispositivo giusto per un cliente:</h3>
+  <p>Il cliente dice che <strong>tipo</strong> di dispositivo cerca e quanto può spendere. Tra i dispositivi di quel
+    tipo con prezzo di vendita <strong>non superiore al budget</strong>, il più adatto è quello con
+    <strong>più anni di aggiornamenti</strong> rimasti; a parità di anni, vince il <strong>più economico</strong>.</p>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Nel <code>main</code> dichiara l'anno corrente e un array di massimo <strong>20 dispositivi</strong>, già
+    caricato con i dati di prova del magazzino. Copia queste righe così come sono:</p>
+
+<pre class="code">int annoCorrente = 2026;
+
+Dispositivo magazzino[20] = {
+    {"iPhone 16",           "smartphone", "iOS",     2024,  979.00, {8, 128, 97, true}},
+    {"iPhone 11",           "smartphone", "iOS",     2019,  839.00, {4,  64, 79, true}},
+    {"Galaxy S21",          "smartphone", "Android", 2021,  879.00, {8, 128, 84, true}},
+    {"Galaxy A55",          "smartphone", "Android", 2024,  499.00, {8, 128, 88, false}},
+    {"MacBook Air M1",      "laptop",     "macOS",   2020, 1159.00, {8, 256, 85, true}},
+    {"ThinkPad T480",       "laptop",     "Windows", 2018, 1399.00, {8, 256, 70, true}},
+    {"Acer Aspire 3",       "laptop",     "Windows", 2022,  549.00, {4, 256, 92, true}},
+    {"Framework Laptop 13", "laptop",     "Linux",   2021, 1049.00, {16, 512, 81, false}},
+    {"Dell Latitude E7470", "laptop",     "Windows", 2016, 1249.00, {16, 512, 64, true}}
+};
+int n = 9;</pre>
+
+  <p>Poi implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Mostra magazzino</td>
+        <td>per ogni dispositivo stampa <code>Dispositivo n. 1</code>, <code>Dispositivo n. 2</code>, … seguito dalla
+          sua etichetta; alla fine stampa il <strong>valore del magazzino</strong> (somma dei prezzi di vendita) e quanti
+          dispositivi non ricevono più aggiornamenti, ad esempio <code>Senza aggiornamenti: 4 dispositivi su 9</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Ritira un dispositivo</td>
+        <td>se il magazzino è pieno stampa "Magazzino pieno"; altrimenti legge da tastiera tutti i dati del nuovo
+          dispositivo, <strong>rileggendo</strong> l'anno finché è successivo ad <code>annoCorrente</code> e la batteria
+          finché non è compresa fra 0 e 100; lo aggiunge al magazzino e ne stampa l'etichetta</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Cerca per un cliente</td>
+        <td>chiede tipo e budget e chiama <code>cercaPerCliente</code>; stampa
+          <code>Ti consigliamo il dispositivo n. 4</code> seguito dall'etichetta del dispositivo, oppure
+          <code>Nessun dispositivo adatto</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 4</td>
+        <td>Vendi un dispositivo</td>
+        <td>chiede il numero del dispositivo (quello mostrato dalla voce 1); se non esiste stampa "Numero non valido",
+          altrimenti stampa ad esempio <code>Venduto: iPhone 16 a 685.30 euro</code> e lo <strong>elimina</strong>
+          dal magazzino, facendo scorrere indietro di un posto tutti i dispositivi che lo seguono</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La voce contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo dopo
+    aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> con i dati di prova il tuo programma deve stampare esattamente i valori
+    delle tabelle seguenti. Ogni prova parte dal magazzino iniziale.
+  </div>
+
+  <h3>Voce 1 – Mostra magazzino</h3>
+  <table class="stock-table">
+    <thead>
+      <tr><th>N.</th><th>Modello</th><th>Da notare</th><th>Grado</th><th>Anni agg.</th><th>%</th><th>Prezzo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>iPhone 16</td><td>quasi nuovo: fascia da 0 a 2 anni</td><td>A</td><td>5</td><td>70</td><td>685.30</td></tr>
+      <tr><td>2</td><td>iPhone 11</td><td>2019 + 7 = 2026: aggiornamenti finiti proprio quest'anno</td><td>B</td><td>0</td><td>20</td><td>83.90</td></tr>
+      <tr><td>3</td><td>Galaxy S21</td><td>batteria all'84%: niente grado A</td><td>B</td><td>0</td><td>40</td><td>175.80</td></tr>
+      <tr><td>4</td><td>Galaxy A55</td><td>batteria ottima, ma schermo rotto</td><td>C</td><td>2</td><td>50</td><td>249.50</td></tr>
+      <tr><td>5</td><td>MacBook Air M1</td><td>batteria all'85%: grado A per un soffio</td><td>A</td><td>1</td><td>30</td><td>347.70</td></tr>
+      <tr><td>6</td><td>ThinkPad T480</td><td>2018 e 8 GB: appena sufficiente per Windows 11</td><td>B</td><td>2</td><td>20</td><td>279.80</td></tr>
+      <tr><td>7</td><td>Acer Aspire 3</td><td>recente, ma con soli 4 GB di RAM</td><td>A</td><td>0</td><td>50</td><td>137.25</td></tr>
+      <tr><td>8</td><td>Framework Laptop 13</td><td>Linux: 5 anni, anche se ha qualche anno</td><td>C</td><td>5</td><td>30</td><td>314.70</td></tr>
+      <tr><td>9</td><td>Dell Latitude E7470</td><td>16 GB di RAM, ma uscito prima del 2018</td><td>C</td><td>0</td><td>10</td><td>62.45</td></tr>
+    </tbody>
+  </table>
+  <p>In fondo all'elenco: <code>Valore del magazzino: 2336.40 euro</code> e <code>Senza aggiornamenti: 4 dispositivi su 9</code>.</p>
+
+  <h3>Voce 2 – Ritira un dispositivo</h3>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Dati da inserire, nell'ordine</div>
+      <ul>
+        <li>modello <code>Pixel 7a</code>, tipo <code>smartphone</code>, sistema <code>Android</code></li>
+        <li>anno <code>2027</code> (va rifiutato), poi <code>2023</code></li>
+        <li>prezzo da nuovo <code>509</code>, RAM <code>8</code>, memoria <code>128</code></li>
+        <li>batteria <code>150</code> (va rifiutata), poi <code>90</code></li>
+        <li>schermo integro <code>1</code></li>
+      </ul>
+    </div>
+    <div>
+      <div class="out-label">Etichetta attesa</div>
+<pre class="out">========================================
+Pixel 7a (smartphone Android, 2023)
+8 GB RAM | 128 GB | batteria 90%
+Grado A | aggiornamenti: ancora 1 anno
+Prezzo: 254.50 euro
+========================================</pre>
+    </div>
+  </div>
+
+  <h3>Voce 3 – Cerca per un cliente</h3>
+  <table>
+    <thead>
+      <tr><th>Tipo</th><th>Budget</th><th>Risultato atteso</th><th>Da notare</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>smartphone</td><td>1000</td><td>n. 1 – iPhone 16</td><td>nessuno ha più anni di aggiornamenti</td></tr>
+      <tr><td>smartphone</td><td>300</td><td>n. 4 – Galaxy A55</td><td>l'iPhone 16 costa troppo</td></tr>
+      <tr><td>smartphone</td><td>200</td><td>n. 2 – iPhone 11</td><td>pari con il Galaxy S21 (0 anni): vince il più economico</td></tr>
+      <tr><td>laptop</td><td>400</td><td>n. 8 – Framework Laptop 13</td><td>il più vecchio fra i candidati, ma con Linux</td></tr>
+      <tr><td>laptop</td><td>300</td><td>n. 6 – ThinkPad T480</td><td>il Framework ora costa troppo</td></tr>
+      <tr><td>laptop</td><td>150</td><td>n. 9 – Dell Latitude E7470</td><td>pari con l'Acer (0 anni): vince il più economico</td></tr>
+      <tr><td>laptop</td><td>50</td><td>Nessun dispositivo adatto</td><td>budget troppo basso</td></tr>
+      <tr><td>tablet</td><td>1000</td><td>Nessun dispositivo adatto</td><td>in magazzino non ci sono tablet</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="star">&#9733;</span> Voce 4 – Vendi un dispositivo</h3>
+  <ul>
+    <li>vendi il n. <code>1</code>: stampa <code>Venduto: iPhone 16 a 685.30 euro</code></li>
+    <li>subito dopo la voce 1 mostra 8 dispositivi, il primo è l'iPhone 11, e termina con
+      <code>Valore del magazzino: 1651.10 euro</code> e <code>Senza aggiornamenti: 4 dispositivi su 8</code></li>
+    <li>la voce 3 con smartphone e budget 1000 ora consiglia il <code>n. 3</code> (Galaxy A55)</li>
+    <li>vendi il n. <code>12</code>: stampa <code>Numero non valido</code></li>
+  </ul>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> il modello può contenere spazi (es. "MacBook Air M1"): leggilo con
+    <code>getline(cin, variabile)</code>, ricordando <code>cin.ignore()</code> prima di ogni <code>getline</code>
+    che segue un <code>cin &gt;&gt;</code>. Tipo e sistema sono parole singole e si leggono con <code>cin &gt;&gt;</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 5.
+    Per stampare i prezzi con due decimali usa <code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code>
+    della libreria <code>&lt;iomanip&gt;</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Anno corrente</td>
+        <td>Variabile <code>annoCorrente</code> del main (vale 2026), passata come parametro alle funzioni che ne hanno bisogno</td>
+      </tr>
+      <tr>
+        <td>Tipo e sistema</td>
+        <td>Una sola parola, scritta esattamente come nella Parte 1, maiuscole comprese: <code>"macOS"</code> e <code>"macos"</code> sono stringhe diverse</td>
+      </tr>
+      <tr>
+        <td>Batteria</td>
+        <td>Valore intero da 0 a 100 (estremi inclusi)</td>
+      </tr>
+      <tr>
+        <td>Schermo</td>
+        <td>Da tastiera si inserisce <code>1</code> (integro) oppure <code>0</code> (rotto)</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Hardware deve essere dichiarata <em>prima</em> di Dispositivo</td>
+      </tr>
+      <tr>
+        <td>Array</td>
+        <td>Massimo 20 dispositivi; la variabile <code>n</code> conta quanti sono presenti</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> le regole della Parte 3 vanno scritte <em>una volta sola</em>, dentro
+    <code>valuta</code>: <code>stampaEtichetta</code>, <code>cercaPerCliente</code> e il main devono
+    <em>richiamarla</em> invece di ricalcolare grado, anni o prezzo. <code>cercaPerCliente</code> restituisce la
+    posizione nell'array (che parte da 0), mentre all'utente si mostra il numero del dispositivo (che parte da 1).
+  </div>
+
+</body>
+</html>
