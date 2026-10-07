@@ -232,6 +232,11 @@
   .mode-table td { font-size: 0.9rem; color: var(--body-text); vertical-align: top; }
   .mode-table .mode-name  { font-weight: 700; white-space: nowrap; }
   .mode-table .mode-flags { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; color: var(--text); }
+  /* Python code highlighting */
+  .py-kw { color: var(--accent4); }
+  .py-fn { color: var(--accent1); }
+  .py-cm { color: var(--muted); }
+
   .flag-key {
     display: inline-flex; align-items: center; justify-content: center;
     width: 26px; height: 26px; border-radius: 5px;
@@ -975,7 +980,7 @@ Gateway:     0.0.0.0</pre>
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">Il DNS — Domain Name System</h2>
-    <span class="section-num">01 / 04</span>
+    <span class="section-num">01 / 05</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1029,7 +1034,7 @@ Gateway:     0.0.0.0</pre>
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">I Resource Record (RR)</h2>
-    <span class="section-num">02 / 04</span>
+    <span class="section-num">02 / 05</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1113,7 +1118,7 @@ Gateway:     0.0.0.0</pre>
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">Come Funziona il DNS</h2>
-    <span class="section-num">03 / 04</span>
+    <span class="section-num">03 / 05</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:11px;">
@@ -1158,6 +1163,47 @@ Gateway:     0.0.0.0</pre>
         </ul>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12b — QUERY RICORSIVE E ITERATIVE IN CODICE
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dns">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Ricorsiva vs Iterativa — in Codice</h2>
+    <span class="section-num">04 / 05</span>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <h3 style="color:var(--accent2)">🪆 Ricorsiva — «delego e aspetto»</h3>
+      <pre style="font-size:0.8rem;"><span class="code-label">PYTHON</span><span class="py-kw">def</span> <span class="py-fn">risolvi_ricorsivo</span>(server, nome):
+    <span class="py-kw">if</span> server.gestisce_la_zona(nome):
+        <span class="py-kw">return</span> server.cerca(nome)  <span class="py-cm"># caso base</span>
+    prossimo = server.chi_gestisce(nome)
+    <span class="py-cm"># delega al server successivo... e ASPETTA</span>
+    <span class="py-kw">return</span> <span class="py-fn">risolvi_ricorsivo</span>(prossimo, nome)</pre>
+      <p style="margin-top:9px;">Ogni server chiama il successivo e <strong>resta in attesa</strong> finché la risposta non risale la catena: è uno <strong>stack distribuito</strong> su più macchine.</p>
+      <p style="margin-top:6px;">Se lo facessero tutti, il <strong>root</strong> dovrebbe tenere aperte milioni di richieste: per questo i root e i TLD <strong>non offrono la ricorsione</strong> (RA = 0).</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent1)">🔁 Iterativa — «faccio io il ciclo»</h3>
+      <pre style="font-size:0.8rem;"><span class="code-label">PYTHON</span><span class="py-kw">def</span> <span class="py-fn">risolvi_iterativo</span>(nome):
+    server = ROOT                    <span class="py-cm"># parto dal root</span>
+    <span class="py-kw">while</span> True:
+        risposta = chiedi(server, nome)
+        <span class="py-kw">if</span> risposta.contiene_ip:   <span class="py-cm"># risposta finale</span>
+            <span class="py-kw">return</span> risposta.ip
+        <span class="py-cm"># rimando: "non lo so, chiedi a lui"</span>
+        server = risposta.rimando</pre>
+      <p style="margin-top:9px;">Il ciclo lo fa solo il <strong>DNS del provider</strong>: ogni server interrogato risponde <strong>subito</strong>, con l'IP oppure con un <strong>rimando</strong> (record NS nella sezione AUTHORITY).</p>
+      <p style="margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--muted);">root → a.dns.it → ns.school.it → name1.di.school.it → <span style="color:var(--accent1);">198.45.30.165</span></p>
+    </div>
+  </div>
+  <div class="callout callout-yellow" style="margin-top:14px;">
+    <span class="callout-icon">📚</span>
+    <span><strong>Analogia:</strong> chiedi al bibliotecario della scuola un libro raro (<strong>query ricorsiva</strong>: tu vuoi solo il libro). Lui telefona alla Biblioteca Nazionale, che risponde «non l'abbiamo, provi a Siena» (<strong>query iterativa</strong>, cioè un rimando), poi chiama Siena, e così via. Si annota i contatti trovati, così la volta dopo fa prima: è la <strong>cache</strong>.</span>
   </div>
 </div>
 
@@ -1319,7 +1365,7 @@ Router(dhcp-config)#<span style="color:var(--accent2)">ip dhcp excluded-address 
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent4)"></div>
     <h2 style="color:var(--accent4)">Il Formato dei Pacchetti DNS</h2>
-    <span class="section-num">04 / 04</span>
+    <span class="section-num">05 / 05</span>
   </div>
   <div class="two-col">
     <div style="display:flex;flex-direction:column;gap:12px;">
