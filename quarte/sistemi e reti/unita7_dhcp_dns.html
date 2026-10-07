@@ -228,6 +228,16 @@
   .rr-desc { color: var(--body-text); }
   .rr-ex   { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; }
 
+  /* IPv6 modes table */
+  .mode-table td { font-size: 0.9rem; color: var(--body-text); vertical-align: top; }
+  .mode-table .mode-name  { font-weight: 700; white-space: nowrap; }
+  .mode-table .mode-flags { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; color: var(--text); }
+  .flag-key {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700;
+  }
+
   /* DNS hierarchy */
   .dns-tree {
     display: flex; flex-direction: column; gap: 6px;
@@ -333,6 +343,7 @@
     .callout { font-size: 0.82rem; padding: 8px 10px; }
     .dora-flow { grid-template-columns: 1fr 1fr; }
     .dora-arrow { display: none; }
+    .mode-table { min-width: 760px; }
     .ov-content h4 { font-size: 0.88rem; }
     #nav { padding: 8px 10px; gap: 6px; }
     #nav button { padding: 10px 12px; font-size: 0.72rem; }
@@ -879,6 +890,79 @@ Gateway:     0.0.0.0</pre>
       <div class="callout callout-blue">
         <span class="callout-icon">🔄</span>
         <span>Il rinnovo si fa con un messaggio <strong>Renew</strong> (≈ DHCPREQUEST di DHCPv4). Il rilascio con <strong>Release</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9b — IPv6: SLAAC, DHCPv6 STATELESS E STATEFUL
+════════════════════════════════════════════════════════════ -->
+<div class="slide" data-section="dhcp">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">IPv6 — SLAAC, DHCPv6 Stateless e Stateful</h2>
+    <span class="section-num">07 / 07</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-yellow">
+      <span class="callout-icon">📡</span>
+      <span>La modalità non dipende dalla presenza del server DHCPv6: la decidono i <strong>flag del Router Advertisement (RA)</strong>, il messaggio ICMPv6 con cui il router si annuncia sulla rete.</span>
+    </div>
+    <div class="three-col" style="flex:0 0 auto;">
+      <div class="card">
+        <h3><span class="flag-key tag-yellow">M</span> Managed</h3>
+        <p>Prendi l'<strong>indirizzo</strong> dal server DHCPv6 (stateful)</p>
+      </div>
+      <div class="card">
+        <h3><span class="flag-key tag-blue">O</span> Other config</h3>
+        <p>Prendi le <strong>altre informazioni</strong> (DNS, dominio…) dal server DHCPv6</p>
+      </div>
+      <div class="card">
+        <h3><span class="flag-key tag-green">A</span> Autonomous</h3>
+        <p>Generati l'indirizzo <strong>da solo</strong> con SLAAC sul prefisso annunciato (Prefix Information Option)</p>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 8px; overflow-x:auto;">
+      <table class="rr-table mode-table">
+        <tr>
+          <th>Modalità</th>
+          <th>Flag tipici</th>
+          <th>Indirizzo da</th>
+          <th>DNS da</th>
+          <th>Server DHCPv6 serve?</th>
+        </tr>
+        <tr>
+          <td class="mode-name" style="color:var(--accent1)">Solo SLAAC</td>
+          <td class="mode-flags">A=1 · M=0 · O=0</td>
+          <td>SLAAC</td>
+          <td>RA (opzione <strong>RDNSS</strong>, RFC 8106)</td>
+          <td><strong>No</strong></td>
+        </tr>
+        <tr>
+          <td class="mode-name" style="color:var(--accent4)">SLAAC + DHCPv6 stateless</td>
+          <td class="mode-flags">A=1 · M=0 · O=1</td>
+          <td>SLAAC</td>
+          <td>Server DHCPv6</td>
+          <td><strong>Sì</strong>, ma non tiene traccia di chi ha quale indirizzo</td>
+        </tr>
+        <tr>
+          <td class="mode-name" style="color:var(--accent3)">DHCPv6 stateful</td>
+          <td class="mode-flags">M=1 (spesso A=0)</td>
+          <td>Server DHCPv6</td>
+          <td>Server DHCPv6</td>
+          <td><strong>Sì</strong>, e tiene i binding degli indirizzi</td>
+        </tr>
+      </table>
+    </div>
+    <div class="two-col" style="flex:0 0 auto;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🚪</span>
+        <span>Il <strong>default gateway</strong> arriva <strong>sempre dall'RA</strong> (è l'indirizzo link-local del router), anche in stateful: DHCPv6 non ha un'opzione per il gateway.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span>Anche il DHCPv6 <strong>stateless</strong> usa un server. Quello che funziona <strong>senza server</strong> è lo <strong>SLAAC</strong>.</span>
       </div>
     </div>
   </div>
