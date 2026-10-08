@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Sharing di Monopattini</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>SHARING DI MONOPATTINI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: struct annidate, struct come valore di ritorno,<br>array di struct, funzioni, if/else, cicli for e while</span>
+      <span class="time">Tempo a disposizione: 1 ora e 45 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    La startup <strong>ZipZap</strong> porta in città un servizio di <strong>sharing</strong> di
+    <strong>monopattini</strong>, <strong>bici</strong> a pedalata assistita e <strong>scooter</strong> elettrici.
+    La città è una griglia di <strong>10 × 10 isolati</strong> e ogni mezzo è parcheggiato in una casella.
+    Il tuo compito è scrivere il programma C++ dietro l'app: deve mostrare l'<strong>elenco dei mezzi</strong>,
+    gestire il <strong>noleggio</strong> calcolando il <strong>costo della corsa</strong> (attenzione: la batteria si
+    consuma e chi parcheggia fuori zona paga una penale), stampare la <strong>ricevuta</strong> e, per l'operatore del
+    servizio, organizzare il <strong>giro di ricarica</strong> dei mezzi scarichi. Le regole del servizio sono nella
+    Parte 3: <strong>come</strong> tradurle in codice lo decidi tu.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Strutture dati</h2>
+
+  <h3>1a. Definisci prima la struct <strong>Posizione</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>riga</code></td><td>riga della casella, da 0 (in alto) a 9 (in basso)</td></tr>
+      <tr><td><code>colonna</code></td><td>colonna della casella, da 0 (a sinistra) a 9 (a destra)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci poi la struct <strong>Mezzo</strong>, che contiene <strong>Posizione</strong> come campo annidato:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>codice</code></td><td>codice del mezzo (es. "M01", "B02", "S03")</td></tr>
+      <tr><td><code>tipo</code></td><td>"monopattino", "bici" oppure "scooter"</td></tr>
+      <tr><td><code>batteria</code></td><td>carica della batteria in percentuale (intero da 0 a 100)</td></tr>
+      <tr><td><code>pos</code></td><td>casella in cui è parcheggiato il mezzo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1c. Definisci infine la struct <strong>Corsa</strong>, che contiene il risultato di un noleggio:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>minuti</code></td><td>minuti della corsa, oppure <code>0</code> se la corsa è annullata (regola 3b)</td></tr>
+      <tr><td><code>batteriaFinale</code></td><td>batteria rimasta al mezzo alla fine della corsa, in percentuale (regola 3b)</td></tr>
+      <tr><td><code>costo</code></td><td>totale da pagare in euro, penale compresa (regola 3c)</td></tr>
+      <tr><td><code>fuoriZona</code></td><td><code>true</code> se il mezzo è stato lasciato fuori dalla zona di parcheggio (regola 3c)</td></tr>
+    </tbody>
+  </table>
+  <p>Una Corsa non si legge da tastiera: la calcola il programma. Dichiara i campi di Posizione e Mezzo
+    <strong>esattamente nell'ordine delle tabelle</strong>, perché i dati di prova della Parte 4 lo danno per scontato.</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti tre funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>distanza(Posizione a, Posizione b)</code></td>
+        <td>Restituisce quanti isolati bisogna percorrere per andare da <code>a</code> a <code>b</code> (regola 3a)</td>
+      </tr>
+      <tr>
+        <td><code>calcolaCorsa(Mezzo m, int minuti, Posizione arrivo)</code></td>
+        <td>Applica le regole 3b e 3c a un noleggio di <code>minuti</code> minuti che termina nella casella
+          <code>arrivo</code> e restituisce la <strong>Corsa</strong></td>
+      </tr>
+      <tr>
+        <td><code>stampaRicevuta(Mezzo m, Corsa c)</code></td>
+        <td>Stampa la ricevuta della corsa <code>c</code> fatta con il mezzo <code>m</code>, <strong>identica</strong>
+          agli esempi della regola 3d</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Le regole del servizio</h2>
+
+  <h3>3a. Distanza:</h3>
+  <p>In città ci si muove solo lungo le strade, in orizzontale e in verticale. La distanza fra due caselle è quindi
+    la differenza fra le righe più la differenza fra le colonne, prese entrambe <strong>senza segno</strong>.
+    Per esempio, da (1, 8) a (4, 6) ci sono 3 + 2 = 5 isolati.</p>
+
+  <h3>3b. Tariffe e batteria:</h3>
+  <table class="center-table">
+    <thead>
+      <tr><th>Tipo</th><th>Sblocco</th><th>Al minuto</th><th>Batteria consumata al minuto</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>monopattino</td><td>1.00 €</td><td>0.20 €</td><td>2%</td></tr>
+      <tr><td>bici</td><td>1.00 €</td><td>0.15 €</td><td>1%</td></tr>
+      <tr><td>scooter</td><td>1.50 €</td><td>0.30 €</td><td>3%</td></tr>
+    </tbody>
+  </table>
+  <p>Un mezzo è <strong>noleggiabile</strong> solo se ha almeno il <strong>20%</strong> di batteria. Durante la corsa
+    la batteria cala a ogni minuto. Se la batteria non basta per <strong>tutti</strong> i minuti richiesti, la corsa
+    viene <strong>annullata</strong>: 0 minuti, costo 0 e la batteria non cambia.
+    Per esempio, un monopattino con il 30% può fare una corsa di 15 minuti (15 × 2% = 30%), ma non una di 16 (32%).</p>
+
+  <h3>3c. Costo della corsa:</h3>
+  <ul>
+    <li>il costo è lo <strong>sblocco</strong> più i <strong>minuti della corsa</strong> per la tariffa al minuto, con un
+      <strong>tetto massimo di 12 €</strong> a corsa;</li>
+    <li>la <strong>zona di parcheggio</strong> è il centro città: righe da 2 a 7 <strong>e</strong> colonne da 2 a 7.
+      Se la casella di arrivo è fuori zona si paga una <strong>penale di 5 €</strong>, che si aggiunge
+      <strong>dopo</strong> aver applicato il tetto.</li>
+  </ul>
+
+  <h3>3d. La ricevuta:</h3>
+  <p>Osserva gli esempi: la tua ricevuta deve essere <strong>identica</strong>. La riga della penale compare solo se il
+    mezzo è stato lasciato fuori zona; se la corsa è annullata, al posto della ricevuta si stampa soltanto
+    <code>Batteria insufficiente, corsa annullata</code>.</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Monopattino lasciato in zona</div>
+<pre class="out">--- Ricevuta M03 ---
+Minuti: 12
+Batteria rimasta: 36%
+Totale: 3.40 euro</pre>
+    </div>
+    <div>
+      <div class="out-label">Bici lasciata fuori zona</div>
+<pre class="out">--- Ricevuta B01 ---
+Minuti: 80
+Batteria rimasta: 10%
+Penale fuori zona: 5.00 euro
+Totale: 17.00 euro</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Nel <code>main</code> dichiara l'array dei mezzi, già caricato con i dati di prova.
+    Copia queste righe così come sono:</p>
+
+<pre class="code">Mezzo flotta[10] = {
+    {"M01", "monopattino", 80, {1, 2}},
+    {"M02", "monopattino", 15, {5, 5}},
+    {"M03", "monopattino", 60, {7, 3}},
+    {"M04", "monopattino", 35, {4, 2}},
+    {"B01", "bici",        90, {2, 7}},
+    {"B02", "bici",        45, {8, 8}},
+    {"B03", "bici",        10, {0, 9}},
+    {"S01", "scooter",     70, {3, 3}},
+    {"S02", "scooter",     25, {6, 4}},
+    {"S03", "scooter",     12, {9, 0}}
+};
+int n = 10;</pre>
+
+  <p>Poi implementa un menu a ciclo con le opzioni seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Voce di menu</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Elenco mezzi</td>
+        <td>stampa una riga per ogni mezzo, ad esempio <code>M03 monopattino, batteria 60%, casella (7, 3)</code>,
+          aggiungendo in fondo <code> - SCARICO</code> se il mezzo non è noleggiabile; alla fine stampa quanti mezzi
+          sono noleggiabili, ad esempio <code>Mezzi noleggiabili: 7 su 10</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Noleggia</td>
+        <td>chiede il codice del mezzo e lo cerca nell'array. Se non c'è stampa <code>Nessun mezzo con questo codice</code>;
+          se non è noleggiabile stampa <code>Mezzo scarico, non noleggiabile</code>; altrimenti chiede i minuti e la riga e
+          la colonna di arrivo, poi chiama <code>calcolaCorsa</code> e <code>stampaRicevuta</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 3</td>
+        <td>Giro di ricarica</td>
+        <td>l'operatore parte dal deposito in (0, 0) e deve ricaricare tutti i mezzi con meno del 20% di batteria:
+          va sempre al <strong>più vicino</strong> fra quelli ancora da ricaricare (a parità di distanza, il primo
+          dell'array), lo porta al 100% e riparte da lì. Stampa ogni spostamento e alla fine il totale, come
+          nell'esempio del controllo rapido</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Esci</td>
+        <td>termina il programma</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La voce contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo dopo
+    aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> con i dati di prova il tuo programma deve stampare esattamente i valori
+    seguenti. Ogni prova parte dai dati iniziali, salvo dove indicato.
+  </div>
+
+  <h3>Voce 1 – Elenco mezzi</h3>
+<pre class="out">M01 monopattino, batteria 80%, casella (1, 2)
+M02 monopattino, batteria 15%, casella (5, 5) - SCARICO
+M03 monopattino, batteria 60%, casella (7, 3)
+M04 monopattino, batteria 35%, casella (4, 2)
+B01 bici, batteria 90%, casella (2, 7)
+B02 bici, batteria 45%, casella (8, 8)
+B03 bici, batteria 10%, casella (0, 9) - SCARICO
+S01 scooter, batteria 70%, casella (3, 3)
+S02 scooter, batteria 25%, casella (6, 4)
+S03 scooter, batteria 12%, casella (9, 0) - SCARICO
+Mezzi noleggiabili: 7 su 10</pre>
+
+  <h3>Voce 2 – Noleggia</h3>
+  <table class="check-table">
+    <thead>
+      <tr><th>Codice</th><th>Minuti</th><th>Arrivo</th><th>Batteria rimasta</th><th>Penale</th><th>Totale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>M03</td><td>12</td><td>(2, 5)</td><td>36%</td><td>no</td><td>3.40</td></tr>
+      <tr><td>M03</td><td>30</td><td>(4, 4)</td><td>0%</td><td>no</td><td>7.00</td></tr>
+      <tr><td>M03</td><td>31</td><td>(4, 4)</td><td>60%</td><td>–</td><td>annullata</td></tr>
+      <tr><td>S02</td><td>8</td><td>(3, 6)</td><td>1%</td><td>no</td><td>3.90</td></tr>
+      <tr><td>S02</td><td>5</td><td>(8, 1)</td><td>10%</td><td>sì</td><td>8.00</td></tr>
+      <tr><td>B01</td><td>80</td><td>(0, 0)</td><td>10%</td><td>sì</td><td>17.00</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>M03 per 30 minuti consuma esattamente il 60% che ha: la corsa si fa. Per 31 minuti servirebbe il 62%: si stampa
+      <code>Batteria insufficiente, corsa annullata</code></li>
+    <li>codice M02: <code>Mezzo scarico, non noleggiabile</code> (è al 15%)</li>
+    <li>codice X99: <code>Nessun mezzo con questo codice</code></li>
+  </ul>
+
+  <h3><span class="star">&#9733;</span> Voce 3 – Giro di ricarica</h3>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Output atteso</div>
+<pre class="out">Deposito (0,0) -&gt; B03 (0,9): 9 isolati
+B03 (0,9) -&gt; M02 (5,5): 9 isolati
+M02 (5,5) -&gt; S03 (9,0): 9 isolati
+Totale: 27 isolati, 3 mezzi ricaricati</pre>
+    </div>
+    <div>
+      <div class="out-label">Da notare</div>
+      <ul>
+        <li>dal deposito B03 e S03 sono entrambe a 9 isolati: si sceglie B03, che viene prima nell'array</li>
+        <li>dopo il giro la voce 1 non mostra più mezzi scarichi e termina con <code>Mezzi noleggiabili: 10 su 10</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> una differenza può venire negativa: da (1, 8) a (4, 6) le colonne danno
+    6 − 8 = −2. Se è negativa, cambiale segno con un <code>if</code>: −2 diventa 2.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> il menu va realizzato con un ciclo <code>while</code> (oppure
+    <code>do... while</code>) che si ripete finché l'utente non sceglie l'opzione 4.
+    Per stampare i costi con due decimali usa <code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code>
+    della libreria <code>&lt;iomanip&gt;</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> Ricordati di suddividere la verifica in 3 file (Guarda Vincoli e note).
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Griglia</td>
+        <td>10 × 10 caselle, con righe e colonne numerate da 0 a 9</td>
+      </tr>
+      <tr>
+        <td>Codice e tipo</td>
+        <td>Una sola parola, scritta esattamente come nei dati di prova: <code>"M03"</code> e <code>"m03"</code> sono stringhe diverse</td>
+      </tr>
+      <tr>
+        <td>Batteria</td>
+        <td>Valore intero da 0 a 100 (estremi inclusi)</td>
+      </tr>
+      <tr>
+        <td>Struct annidata</td>
+        <td>Posizione deve essere dichiarata <em>prima</em> di Mezzo</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td><code>funzioni.h</code> &nbsp;·&nbsp; <code>funzioni.cpp</code> &nbsp;·&nbsp; <code>main.cpp</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
