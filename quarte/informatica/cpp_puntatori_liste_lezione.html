@@ -1,0 +1,2993 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puntatori e liste in C++</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --ty: #7c3aed;
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #94a3b8;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --ty: #c084fc;
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+  /* niente legature: gli studenti devono vedere != e -> come si digitano */
+  pre, code, .proto-cell, .mem, .bx, .node, .ll, .strip, .copy-btn {
+    font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  #doc-badge {
+    display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 1px; color: var(--accent3); border: 1px solid var(--accent3);
+    border-radius: 4px; padding: 3px 8px;
+  }
+  .docente #doc-badge { display: inline-block; }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 30px 52px;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; justify-content: center; }
+  .slide-title .big {
+    font-size: clamp(2.3rem, 5vw, 4rem);
+    font-weight: 800; line-height: 1.12; letter-spacing: -1px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.05rem; color: var(--muted); letter-spacing: 0.5px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 18px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.25rem, 2.1vw, 1.9rem); font-weight: 800; letter-spacing: -0.5px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+  .lvl { color: var(--accent3); letter-spacing: 2px; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-r { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+  .stack     { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.88rem; color: var(--ct); line-height: 1.55; }
+  .card ul, .card ol { padding-left: 17px; }
+  .card li { margin-bottom: 4px; }
+  .card p + p { margin-top: 6px; }
+  strong { color: var(--text); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.86em;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0 4px; white-space: nowrap;
+  }
+  .callout code { background: transparent; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.84rem);
+    line-height: 1.6; overflow-x: auto; color: var(--text);
+  }
+  pre.long { max-height: 62vh; overflow: auto; }
+  .kw  { color: var(--accent4); font-weight: 700; }
+  .cm  { color: var(--muted); font-style: italic; }
+  .str { color: var(--accent1); }
+  .num { color: var(--accent3); }
+  .fn  { color: var(--accent2); }
+  .op  { color: var(--accent3); font-weight: 700; }
+  .ty  { color: var(--ty); }
+  .pp  { color: var(--ty); }
+
+  .code-wrap { position: relative; min-width: 0; }
+  .copy-btn {
+    position: absolute; top: 7px; right: 8px; z-index: 2;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .copy-btn:hover { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+  .copy-btn.ok { color: var(--accent1); border-color: var(--accent1); }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.88rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .callout strong { color: inherit; }
+  .callout a { color: inherit; font-weight: 700; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.l { text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.8rem; }
+  .proto-cell code { white-space: normal; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.hl-pur   { background: rgba(192,132,252,0.1); color: var(--ty); }
+  .proto-cell.hl-gray  { background: rgba(107,114,128,0.1); color: var(--muted); }
+  .proto-cell.b { font-weight: 700; }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; }
+  .proto-header.compact .proto-cell { padding: 3px 8px; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; align-content: start; }
+  .overview-grid.single { grid-template-columns: 1fr; flex: unset; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.84rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  /* ── Diagrammi: memoria come tabella ── */
+  .mem { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .mem-row { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+  .mem-row:last-child { border-bottom: none; }
+  .mem-row span { padding: 6px 10px; text-align: center; border-right: 1px solid var(--border); color: var(--ct); }
+  .mem-row span:last-child { border-right: none; }
+  .mem-row.head span { background: rgba(37,99,235,0.1); color: var(--accent4); font-weight: 700; }
+  .mem-row .val { color: var(--text); font-weight: 700; background: var(--code-bg); }
+  .mem-row .addr { color: var(--muted); }
+  .mem-row.free span { color: var(--muted); font-style: italic; }
+  .mem-row.new span { background: rgba(5,150,105,0.1); color: var(--accent1); }
+
+  /* ── Diagrammi: scatole e frecce ── */
+  .bxd {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 0;
+    padding: 14px 10px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .bx { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bx-name { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--accent4); }
+  .bx-val {
+    min-width: 74px; padding: 9px 12px; text-align: center;
+    border: 2px solid var(--accent4); border-radius: 6px; background: var(--panel);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--text);
+  }
+  .bx-val.ptr { border-color: var(--accent2); color: var(--accent2); }
+  .bx-val.chg { border-color: var(--accent1); color: var(--accent1); }
+  .bx-addr { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: var(--muted); }
+  .bx-gap { width: 26px; }
+  .arrow { width: 46px; height: 2px; background: var(--accent2); position: relative; margin: 0 8px 0 4px; flex-shrink: 0; }
+  .arrow::after {
+    content: ''; position: absolute; right: -3px; top: -5px;
+    border-left: 10px solid var(--accent2); border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+  }
+  .arrow.sm { width: 24px; }
+
+  .frames { display: flex; gap: 12px; flex-wrap: wrap; }
+  .frame { flex: 1; min-width: 160px; border: 1px dashed var(--muted); border-radius: 8px; padding: 8px 10px 12px; }
+  .frame-title { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .frame .bxd { background: none; border: none; padding: 2px; gap: 10px 16px; }
+  .frame-note { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  /* ── Diagrammi: array in memoria ── */
+  .strip { display: flex; justify-content: center; flex-wrap: wrap; padding: 12px 6px 8px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; }
+  .cell { display: flex; flex-direction: column; align-items: center; }
+  .cell .idx { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-bottom: 3px; }
+  .cell .box {
+    width: 60px; padding: 8px 0; text-align: center; margin-left: -1px;
+    border: 1px solid var(--accent4); background: var(--panel);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text);
+  }
+  .cell .box.on   { background: rgba(220,38,38,0.12); border-color: var(--accent2); }
+  .cell .box.free { color: var(--muted); border-style: dashed; }
+  .cell .box.new  { background: rgba(5,150,105,0.15); border-color: var(--accent1); color: var(--accent1); }
+  .cell .box.mv   { background: rgba(217,119,6,0.12); border-color: var(--accent3); color: var(--accent3); }
+  .cell .ad { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); margin-top: 3px; }
+  .cell .pm { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent2); font-weight: 700; min-height: 1.3em; margin-top: 2px; }
+  .strip-cap { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--muted); margin: 0 0 4px 2px; }
+
+  /* ── Diagrammi: lista concatenata ── */
+  .ll {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 26px 0;
+    padding: 14px 10px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .ll.top { padding-top: 28px; }
+  .ll.bot { padding-bottom: 28px; }
+  .ll-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700;
+    color: var(--accent3); padding: 6px 10px; border: 2px solid var(--accent3); border-radius: 6px;
+  }
+  .node {
+    display: inline-flex; position: relative; border: 2px solid var(--accent4); border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem;
+  }
+  .node .d { padding: 7px 11px; background: var(--panel); color: var(--text); border-radius: 4px 0 0 4px; }
+  .node .n { padding: 7px 8px; min-width: 28px; text-align: center; border-left: 2px solid var(--accent4); background: rgba(37,99,235,0.1); color: var(--accent2); border-radius: 0 4px 4px 0; }
+  .node .i { position: absolute; top: -19px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.66rem; color: var(--muted); font-weight: 400; }
+  .node .p { position: absolute; bottom: -21px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.72rem; color: var(--accent2); }
+  .node.new { border-color: var(--accent1); }
+  .node.new .n { border-left-color: var(--accent1); }
+  .node.new .d { color: var(--accent1); }
+  .node.del { opacity: 0.5; border-style: dashed; }
+  .ll-null { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); }
+  .step { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); margin: 2px 0 4px 2px; }
+  .ll + .step { margin-top: 10px; }
+
+  /* ── Esercizi ── */
+  .task { list-style: none; padding: 0 !important; counter-reset: t; }
+  .task li { counter-increment: t; position: relative; padding-left: 30px; margin-bottom: 8px !important; }
+  .task li::before {
+    content: counter(t, lower-alpha); position: absolute; left: 0; top: 1px;
+    width: 21px; height: 21px; border-radius: 50%;
+    background: rgba(37,99,235,0.15); color: var(--accent4);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check { list-style: none; padding: 0 !important; }
+  .check li { margin-bottom: 6px !important; }
+  .check label { display: flex; gap: 9px; align-items: flex-start; cursor: pointer; }
+  .check input { margin-top: 5px; accent-color: var(--accent1); width: 15px; height: 15px; flex-shrink: 0; }
+
+  .reveal-btn {
+    margin-top: 8px; background: transparent; border: 1px solid var(--accent3); color: var(--accent3);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; padding: 5px 12px; border-radius: 5px; cursor: pointer;
+  }
+  .reveal-btn:hover { background: var(--accent3); color: #111; }
+  .reveal-body { margin-top: 9px; }
+  .js .reveal-body { display: none; }
+  .js .reveal.open .reveal-body { display: block; }
+  .js .reveal.open .reveal-btn { opacity: 0.6; }
+  .no-js-hide { display: none; }
+  .js .no-js-hide { display: inline-block; }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 280px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l, .two-col-r { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    pre.long { max-height: none; }
+    code { white-space: normal; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    .proto-cell { font-size: 0.66rem; padding: 4px 5px; }
+    .bx-val { min-width: 56px; padding: 7px 8px; font-size: 0.8rem; }
+    .arrow { width: 28px; }
+    .cell .box { width: 40px; font-size: 0.78rem; }
+    .cell .ad { font-size: 0.5rem; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="https://massiboni88.github.io/SlideMidossi/index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Informatica · Classe 4ª</div>
+    <div class="title-bar">Puntatori e liste in C++</div>
+  </div>
+  <div id="topbar-right">
+    <span id="doc-badge">DOCENTE</span>
+    <div id="slide-counter">01 / 01</div>
+    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Puntatori</div>
+  <div class="big" style="color:var(--accent1);">e liste</div>
+  <div class="big" style="color:var(--accent4);">in C++</div>
+  <div class="sub">Informatica · 4ª · Dalla memoria alle strutture dinamiche</div>
+  <div class="tag-row">
+    <span class="tag tag-yellow">&amp; e *</span>
+    <span class="tag tag-green">Funzioni · array · struct</span>
+    <span class="tag tag-red">new / delete</span>
+    <span class="tag tag-blue">Liste concatenate</span>
+  </div>
+</div>
+
+<!-- ═══ PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il nostro percorso</h2>
+    <span class="section-num">PANORAMICA</span>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="memoria">
+      <div class="ov-num" style="color:var(--accent3)">01</div>
+      <div class="ov-content">
+        <h4>La memoria e gli indirizzi</h4>
+        <p>Ogni variabile occupa delle celle di memoria · L'operatore &amp; · Indirizzi esadecimali</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="puntatori">
+      <div class="ov-num" style="color:var(--accent4)">02</div>
+      <div class="ov-content">
+        <h4>Il puntatore</h4>
+        <p>Dichiarare un puntatore · Leggere e scrivere con * · nullptr · Gli errori classici</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="uso">
+      <div class="ov-num" style="color:var(--accent1)">03</div>
+      <div class="ov-content">
+        <h4>Puntatori al lavoro</h4>
+        <p>Funzioni che modificano le variabili · Cosa c'era sotto gli array · Struct e operatore -&gt;</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="lab1">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Laboratorio 1</h4>
+        <p>Sei esercizi sui puntatori, dal livello base alla sfida</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="parte2">
+      <div class="ov-num" style="color:var(--accent4)">05</div>
+      <div class="ov-content">
+        <h4>Verso le liste</h4>
+        <p>I limiti dell'array · La lista con indici · new e delete · Il nodo e le operazioni</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="lab2">
+      <div class="ov-num" style="color:var(--accent2)">06</div>
+      <div class="ov-content">
+        <h4>Laboratorio 2</h4>
+        <p>Costruiamo, scorriamo e modifichiamo una lista concatenata</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ A COSA SERVONO I PUNTATORI ═══ -->
+<div class="slide" data-section="perche">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">A cosa servono i puntatori?</h2>
+    <span class="section-num">MOTIVAZIONE</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-green">
+      <span class="callout-icon">&#128161;</span>
+      <span><strong>L'idea in una frase:</strong> un puntatore permette di riferirsi a un dato <strong>senza copiarlo</strong>. Invece del dato, si passa il suo <strong>indirizzo</strong>.</span>
+    </div>
+    <div class="overview-grid" style="flex:unset;">
+      <div class="ov-item" style="--ovc:var(--accent1);" data-goto="uso">
+        <div class="ov-num" style="color:var(--accent1)">1</div>
+        <div class="ov-content">
+          <h4>Modificare le variabili di chi chiama</h4>
+          <p>Una funzione riceve copie dei parametri. Con l'indirizzo lavora sugli originali e può «restituire» più risultati. <code>scambia(&amp;x, &amp;y);</code></p>
+        </div>
+      </div>
+      <div class="ov-item" style="--ovc:var(--accent4);" data-goto="sl-struct">
+        <div class="ov-num" style="color:var(--accent4)">2</div>
+        <div class="ov-content">
+          <h4>Non copiare dati grandi</h4>
+          <p>Passare l'indirizzo di una struct o di un array costa sempre 8 byte, qualunque sia la loro dimensione. <code>promuovi(&amp;studente);</code></p>
+        </div>
+      </div>
+      <div class="ov-item" style="--ovc:var(--accent3);" data-goto="dinamica">
+        <div class="ov-num" style="color:var(--accent3)">3</div>
+        <div class="ov-content">
+          <h4>Usare memoria creata durante l'esecuzione</h4>
+          <p><code>new</code> crea i dati quando servono e restituisce solo un indirizzo: il puntatore è l'unico modo per raggiungerli. <code>int* v = new int[n];</code></p>
+        </div>
+      </div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="liste">
+        <div class="ov-num" style="color:var(--accent2)">4</div>
+        <div class="ov-content">
+          <h4>Collegare i dati tra loro</h4>
+          <p>Liste, alberi, grafi, una playlist: ogni elemento sa <em>dov'è</em> il successivo. Senza puntatori queste strutture non si costruiscono. <code>Nodo* next;</code></p>
+        </div>
+      </div>
+    </div>
+    <div class="two-col" style="flex:unset;">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Un'analogia: allegato o link?</h3>
+        <ul>
+          <li><strong>&#128206; Allegato</strong> = una copia: se il destinatario la modifica, il vostro originale non cambia. È il passaggio per valore.</li>
+          <li><strong>&#128279; Link a un Google Doc</strong> = un puntatore: tutti lavorano sullo stesso documento, e il link è piccolo anche se il documento è enorme.</li>
+          <li>Documento cancellato ma link ancora salvato: il link non porta più a niente. È il <em>dangling pointer</em>.</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span><strong>Ci sono anche dove non si vedono.</strong> <code>vector</code>, <code>string</code> e <code>list</code> li usano al loro interno. In Java e in Python ogni variabile che contiene un oggetto è, di fatto, un puntatore nascosto. Sistemi operativi, driver e microcontrollori come Arduino lavorano direttamente con gli indirizzi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MEMORIA: OGNI VARIABILE HA UN INDIRIZZO ═══ -->
+<div class="slide" data-section="memoria">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Ogni variabile ha un indirizzo</h2>
+    <span class="section-num">SEZIONE 01</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">La RAM: una fila di celle numerate</h3>
+        <p>La memoria è una fila di celle da <strong>1 byte = 8 bit</strong>, ognuna con un numero: il suo <strong>indirizzo</strong>. Una variabile occupa tante celle consecutive quante ne richiede il suo tipo. Tipo, nome e valore li conoscete già: la novità di oggi è l'indirizzo.</p>
+      </div>
+<pre class="cpp">int eta = 17;
+double media = 7.5;
+cout &lt;&lt; eta;             // 17          (il valore)
+cout &lt;&lt; &amp;eta;            // 0x16fdff2ac (l'indirizzo)
+cout &lt;&lt; sizeof(eta);     // 4           (byte occupati = 32 bit)
+cout &lt;&lt; sizeof(double);  // 8           (sizeof accetta anche un tipo)</pre>
+      <div class="mem">
+        <div class="mem-row head"><span>indirizzo</span><span>variabile</span><span>valore</span></div>
+        <div class="mem-row"><span class="addr">0x1000 – 0x1003</span><span>eta (4 byte)</span><span class="val">17</span></div>
+        <div class="mem-row"><span class="addr">0x1008 – 0x100F</span><span>media (8 byte)</span><span class="val">7.5</span></div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span><code>&amp;eta</code> si legge <strong>«indirizzo di eta»</strong>. Gli indirizzi sono in esadecimale (<code>0x…</code>); quelli delle slide sono semplificati.</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Quanto occupa ogni tipo</h3>
+        <div class="proto-header compact">
+          <div class="proto-row"><div class="proto-cell hl-blue b w2">Tipo</div><div class="proto-cell hl-blue b">Byte</div><div class="proto-cell hl-blue b">Bit</div><div class="proto-cell hl-blue b w3">Cosa contiene</div></div>
+          <div class="proto-row"><div class="proto-cell w2">bool</div><div class="proto-cell b">1</div><div class="proto-cell">8</div><div class="proto-cell l w3">true / false</div></div>
+          <div class="proto-row"><div class="proto-cell w2">char</div><div class="proto-cell b">1</div><div class="proto-cell">8</div><div class="proto-cell l w3">un carattere (codici −128 … 127)</div></div>
+          <div class="proto-row"><div class="proto-cell w2">short</div><div class="proto-cell b">2</div><div class="proto-cell">16</div><div class="proto-cell l w3">interi da −32 768 a 32 767</div></div>
+          <div class="proto-row"><div class="proto-cell hl w2">int</div><div class="proto-cell hl b">4</div><div class="proto-cell hl">32</div><div class="proto-cell l hl w3">interi fino a ≈ ±2,1 miliardi</div></div>
+          <div class="proto-row"><div class="proto-cell w2">long</div><div class="proto-cell b">4 o 8 *</div><div class="proto-cell">32 o 64</div><div class="proto-cell l w3">interi, come int o come long long</div></div>
+          <div class="proto-row"><div class="proto-cell w2">long long</div><div class="proto-cell b">8</div><div class="proto-cell">64</div><div class="proto-cell l w3">interi fino a ≈ ±9,2 · 10¹⁸</div></div>
+          <div class="proto-row"><div class="proto-cell w2">float</div><div class="proto-cell b">4</div><div class="proto-cell">32</div><div class="proto-cell l w3">decimali, ≈ 7 cifre significative</div></div>
+          <div class="proto-row"><div class="proto-cell w2">double</div><div class="proto-cell b">8</div><div class="proto-cell">64</div><div class="proto-cell l w3">decimali, ≈ 15 cifre significative</div></div>
+          <div class="proto-row"><div class="proto-cell w2">long double</div><div class="proto-cell b">8–16 *</div><div class="proto-cell">64–128</div><div class="proto-cell l w3">decimali, almeno come double</div></div>
+          <div class="proto-row"><div class="proto-cell w2">wchar_t</div><div class="proto-cell b">2 o 4 *</div><div class="proto-cell">16 o 32</div><div class="proto-cell l w3">un carattere «largo» (Unicode)</div></div>
+          <div class="proto-row"><div class="proto-cell w2">string</div><div class="proto-cell b">24–32 *</div><div class="proto-cell">—</div><div class="proto-cell l w3">testo, a dimensione fissa</div></div>
+          <div class="proto-row"><div class="proto-cell hl-red w2">int*, double*, …</div><div class="proto-cell hl-red b">8</div><div class="proto-cell hl-red">64</div><div class="proto-cell l hl-red w3">un indirizzo (sistema a 64 bit)</div></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span><strong>*</strong> Dipende dal sistema: su Windows (Code::Blocks) <code>long</code> = 4, <code>long double</code> = 16, <code>wchar_t</code> = 2 byte; su Linux e macOS <code>long</code> = 8, <code>wchar_t</code> = 4. I tipi <code>unsigned</code> occupano gli stessi byte, ma solo valori ≥ 0.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ IL PUNTATORE ═══ -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il puntatore</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Una variabile che contiene un indirizzo</h3>
+        <p>Un <strong>puntatore</strong> è una variabile il cui valore è un <strong>indirizzo di memoria</strong>. Se <code>p</code> contiene l'indirizzo di <code>eta</code>, diciamo che <code>p</code> <em>punta a</em> <code>eta</code>.</p>
+      </div>
+<pre class="cpp">int eta = 17;
+int* p = &amp;eta;    // p contiene l'indirizzo di eta
+
+cout &lt;&lt; p;        // 0x1000 → l'indirizzo
+cout &lt;&lt; *p;       // 17     → il valore puntato</pre>
+      <div class="card">
+        <h3 style="color:var(--accent3)">Come si legge ad alta voce</h3>
+        <ul>
+          <li><code>int* p</code> → «p è un puntatore a int»</li>
+          <li><code>&amp;eta</code> → «indirizzo di eta»</li>
+          <li><code>*p</code> → «il valore puntato da p»</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="bxd">
+        <div class="bx"><div class="bx-name">p</div><div class="bx-val ptr">0x1000</div><div class="bx-addr">@ 0x2000</div></div>
+        <div class="arrow"></div>
+        <div class="bx"><div class="bx-name">eta</div><div class="bx-val">17</div><div class="bx-addr">@ 0x1000</div></div>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue b">Espressione</div>
+          <div class="proto-cell hl-blue b">Valore</div>
+          <div class="proto-cell hl-blue b w3">Significato</div>
+        </div>
+        <div class="proto-row"><div class="proto-cell">eta</div><div class="proto-cell">17</div><div class="proto-cell l w3">il valore di eta</div></div>
+        <div class="proto-row"><div class="proto-cell">&amp;eta</div><div class="proto-cell">0x1000</div><div class="proto-cell l w3">l'indirizzo di eta</div></div>
+        <div class="proto-row"><div class="proto-cell hl-red">p</div><div class="proto-cell hl-red">0x1000</div><div class="proto-cell l w3">il valore di p, cioè un indirizzo</div></div>
+        <div class="proto-row"><div class="proto-cell hl-red">*p</div><div class="proto-cell hl-red">17</div><div class="proto-cell l w3">il valore che si trova all'indirizzo contenuto in p</div></div>
+        <div class="proto-row"><div class="proto-cell">&amp;p</div><div class="proto-cell">0x2000</div><div class="proto-cell l w3">anche p è una variabile: ha il suo indirizzo</div></div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Il tipo conta: un <code>int*</code> punta solo a <code>int</code>, un <code>double*</code> solo a <code>double</code>. Serve al compilatore per sapere quanti byte leggere a quell'indirizzo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LEGGERE E SCRIVERE ═══ -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Leggere e scrivere attraverso il puntatore</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">int a = 5;
+int b = 9;
+int* p = &amp;a;      // p punta ad a
+
+*p = 20;          // scrivo in a attraverso p
+p = &amp;b;           // ora p punta a b
+*p = *p + 1;      // b = 9 + 1</pre>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell hl-blue b w2">Istruzione</div>
+          <div class="proto-cell hl-blue b">a</div>
+          <div class="proto-cell hl-blue b">b</div>
+          <div class="proto-cell hl-blue b">p punta a</div>
+        </div>
+        <div class="proto-row"><div class="proto-cell w2">int* p = &amp;a;</div><div class="proto-cell">5</div><div class="proto-cell">9</div><div class="proto-cell">a</div></div>
+        <div class="proto-row"><div class="proto-cell w2">*p = 20;</div><div class="proto-cell hl">20</div><div class="proto-cell">9</div><div class="proto-cell">a</div></div>
+        <div class="proto-row"><div class="proto-cell w2">p = &amp;b;</div><div class="proto-cell">20</div><div class="proto-cell">9</div><div class="proto-cell hl-red">b</div></div>
+        <div class="proto-row"><div class="proto-cell w2">*p = *p + 1;</div><div class="proto-cell">20</div><div class="proto-cell hl">10</div><div class="proto-cell">b</div></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Due operazioni da non confondere</h3>
+        <ul>
+          <li><code>p = &amp;b;</code> cambia <strong>dove punta</strong> p: si sposta la freccia.</li>
+          <li><code>*p = 20;</code> cambia <strong>il valore della variabile puntata</strong>: si scrive nella scatola in fondo alla freccia.</li>
+        </ul>
+      </div>
+      <div class="bxd">
+        <div class="bx"><div class="bx-name">a</div><div class="bx-val">20</div></div>
+        <div class="bx-gap"></div>
+        <div class="bx"><div class="bx-name">p</div><div class="bx-val ptr">&amp;b</div></div>
+        <div class="arrow"></div>
+        <div class="bx"><div class="bx-name">b</div><div class="bx-val chg">10</div></div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Finché p punta ad a, <code>*p</code> è un altro nome di <code>a</code>: scrivere <code>*p = 20</code> o <code>a = 20</code> ha lo stesso effetto.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9998;</span>
+        <span>Il metodo: disegnate sempre <strong>scatole</strong> per le variabili e <strong>frecce</strong> per i puntatori, e aggiornate il disegno a ogni istruzione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ UN SIMBOLO, DUE SIGNIFICATI ═══ -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Un simbolo, più significati</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">L'asterisco *</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-blue b">Dove</div><div class="proto-cell hl-blue b">Esempio</div><div class="proto-cell hl-blue b w2">Significato</div></div>
+          <div class="proto-row"><div class="proto-cell">dichiarazione</div><div class="proto-cell">int* p;</div><div class="proto-cell l w2">p è un puntatore</div></div>
+          <div class="proto-row"><div class="proto-cell">espressione</div><div class="proto-cell">*p = 3;</div><div class="proto-cell l w2">il valore puntato (dereferenziazione)</div></div>
+          <div class="proto-row"><div class="proto-cell">tra due numeri</div><div class="proto-cell">a * b</div><div class="proto-cell l w2">moltiplicazione</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">La e commerciale &amp;</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-yel b">Dove</div><div class="proto-cell hl-yel b">Esempio</div><div class="proto-cell hl-yel b w2">Significato</div></div>
+          <div class="proto-row"><div class="proto-cell">davanti a una variabile</div><div class="proto-cell">&amp;x</div><div class="proto-cell l w2">indirizzo di x</div></div>
+          <div class="proto-row"><div class="proto-cell">doppia</div><div class="proto-cell">a &amp;&amp; b</div><div class="proto-cell l w2">AND logico: nessun legame con i puntatori</div></div>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span><code>int* p</code>, <code>int *p</code> e <code>int * p</code> sono identici. Nelle slide scriviamo <code>int* p</code>: l'asterisco fa parte del tipo «puntatore a int».</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">La trappola della dichiarazione multipla</h3>
+<pre class="cpp">int* a, b;     // ATTENZIONE: a è int*, b è un int!
+
+int *c, *d;    // corretto: due puntatori
+int* e;        // ancora meglio:
+int* f;        // un puntatore per riga</pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2)">I tipi devono corrispondere</h3>
+<pre class="cpp">int x = 5;
+double y = 2.5;
+int* p = &amp;x;    // ok
+p = &amp;y;         // ERRORE: &amp;y è un double*, non un int*
+int* q = x;     // ERRORE: x è un numero, non un indirizzo</pre>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Nella dichiarazione l'asterisco vale solo per la variabile che lo segue: <code>int* a, b;</code> crea un puntatore e un intero.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NULLPTR ═══ -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">nullptr: il puntatore che non punta a niente</h2>
+    <span class="section-num">SEZIONE 02</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Un puntatore non inizializzato è un pericolo</h3>
+        <p>Come ogni variabile locale, un puntatore appena dichiarato contiene un valore casuale, cioè un indirizzo qualsiasi. Usarlo significa leggere o scrivere in una zona di memoria a caso.</p>
+      </div>
+<pre class="cpp">int* p;             // indirizzo casuale
+*p = 5;             // scrive chissà dove → crash
+
+int* q = nullptr;   // «non punta a niente»
+if (q != nullptr) {
+    cout &lt;&lt; *q;     // eseguito solo se q punta a qualcosa
+}</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Nei programmi più vecchi trovate <code>NULL</code> o <code>0</code>. Nel C++ moderno si usa <code>nullptr</code>.</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Le regole d'oro</h3>
+        <ol>
+          <li>Inizializzate ogni puntatore appena lo dichiarate: con un indirizzo (<code>&amp;x</code>) oppure con <code>nullptr</code>.</li>
+          <li>Prima di usare <code>*p</code>, controllate che <code>p != nullptr</code>.</li>
+          <li>Non dereferenziate mai un puntatore se non sapete dove punta.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2)">Segmentation fault</h3>
+        <p>Se il programma prova ad accedere a memoria che non gli appartiene, il sistema operativo lo blocca. È l'errore tipico dei puntatori:</p>
+        <ul style="margin-top:6px;">
+          <li>Linux / macOS: <code>Segmentation fault</code> (codice 139)</li>
+          <li>Windows / Code::Blocks: <code>Process returned -1073741819 (0xC0000005)</code></li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Il compilatore spesso non si accorge di questi errori: di solito si scoprono solo eseguendo il programma. Compilate con <code>-Wall</code> per avere più avvisi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VERIFICA LAMPO ═══ -->
+<div class="slide" data-section="puntatori">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Verifica lampo: carta e penna</h2>
+    <span class="section-num">VERIFICA</span>
+  </div>
+  <div class="three-col">
+    <div class="card reveal">
+      <h3 style="color:var(--accent4)">① Disegna la memoria</h3>
+<pre class="cpp">int x = 4, y = 6;
+int* p = &amp;x;
+int* q = &amp;y;
+*q = *p;
+p = q;
+*p = 10;</pre>
+      <p style="margin-top:8px;">Alla fine quanto valgono <code>x</code> e <code>y</code>? Dove puntano <code>p</code> e <code>q</code>?</p>
+      <button class="reveal-btn no-js-hide" type="button">Mostra la risposta</button>
+      <div class="reveal-body callout callout-green">
+        <span><strong>x = 4, y = 10</strong>, e p e q puntano entrambi a y. <code>*q = *p</code> copia il valore 4 in y, <code>p = q</code> copia l'indirizzo, <code>*p = 10</code> scrive in y.</span>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3 style="color:var(--accent4)">② Cosa stampa?</h3>
+<pre class="cpp">int n = 3;
+int* p = &amp;n;
+int* q = p;
+*q = *q * 2;
+cout &lt;&lt; n &lt;&lt; " " &lt;&lt; *p;</pre>
+      <p style="margin-top:8px;">Attenzione alla terza riga: che cosa viene copiato?</p>
+      <button class="reveal-btn no-js-hide" type="button">Mostra la risposta</button>
+      <div class="reveal-body callout callout-green">
+        <span>Stampa <strong>6 6</strong>. <code>q = p</code> copia l'indirizzo, quindi p e q puntano entrambi a n: modificare <code>*q</code> modifica n, e quindi anche <code>*p</code>.</span>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3 style="color:var(--accent2)">③ Trova l'errore</h3>
+<pre class="cpp">int* p;
+int k = 8;
+*p = k;
+cout &lt;&lt; *p;</pre>
+      <p style="margin-top:8px;">Il programma compila. Cosa succede quando lo eseguiamo? Come si corregge?</p>
+      <button class="reveal-btn no-js-hide" type="button">Mostra la risposta</button>
+      <div class="reveal-body callout callout-green">
+        <span>p non è inizializzato: <code>*p = k</code> scrive a un indirizzo casuale e può far crashare il programma. Correzione: <code>int* p = &amp;k;</code>. Attenzione: <code>p = &amp;k</code> e <code>*p = k</code> sono due cose diverse!</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LO SCAMBIO CHE NON FUNZIONA ═══ -->
+<div class="slide" data-section="uso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Funzioni: lo scambio che non funziona</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">void scambia(int a, int b) {
+    int t = a;
+    a = b;
+    b = t;
+}
+
+int main() {
+    int x = 1, y = 2;
+    scambia(x, y);
+    cout &lt;&lt; x &lt;&lt; " " &lt;&lt; y;    // 1 2 → non scambiati!
+}</pre>
+      <div class="card">
+        <h3 style="color:var(--accent2)">Passaggio per valore</h3>
+        <p>Quando chiamate <code>scambia(x, y)</code>, la funzione riceve delle <strong>copie</strong> di x e y, cioè a e b. Scambia le copie, che spariscono quando la funzione termina: x e y del main restano come prima.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="frames">
+        <div class="frame">
+          <div class="frame-title">main</div>
+          <div class="bxd">
+            <div class="bx"><div class="bx-name">x</div><div class="bx-val">1</div></div>
+            <div class="bx"><div class="bx-name">y</div><div class="bx-val">2</div></div>
+          </div>
+          <div class="frame-note">gli originali: intatti</div>
+        </div>
+        <div class="frame">
+          <div class="frame-title">scambia (copie)</div>
+          <div class="bxd">
+            <div class="bx"><div class="bx-name">a</div><div class="bx-val chg">2</div></div>
+            <div class="bx"><div class="bx-name">b</div><div class="bx-val chg">1</div></div>
+          </div>
+          <div class="frame-note">scambiate… ma sono copie</div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Con <code>return</code> una funzione può restituire <strong>un solo valore</strong>. Come facciamo se deve modificare <strong>due</strong> variabili del chiamante?</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Soluzione: invece del valore, passiamo alla funzione l'<strong>indirizzo</strong> delle variabili.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PASSAGGIO PER INDIRIZZO ═══ -->
+<div class="slide" data-section="uso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Funzioni: passaggio per indirizzo</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">void scambia(int* a, int* b) {
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+int main() {
+    int x = 1, y = 2;
+    scambia(&amp;x, &amp;y);          // passo gli INDIRIZZI
+    cout &lt;&lt; x &lt;&lt; " " &lt;&lt; y;    // 2 1 ✓
+}</pre>
+      <div class="card">
+        <h3 style="color:var(--accent1)">Cosa succede</h3>
+        <p>La funzione riceve una copia degli <strong>indirizzi</strong> di x e y. Ma anche una copia dell'indirizzo porta alla variabile originale: tramite <code>*a</code> e <code>*b</code> la funzione legge e scrive proprio x e y del main.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="frames">
+        <div class="frame">
+          <div class="frame-title">main</div>
+          <div class="bxd">
+            <div class="bx"><div class="bx-name">x</div><div class="bx-val chg">2</div><div class="bx-addr">@ 0x1000</div></div>
+            <div class="bx"><div class="bx-name">y</div><div class="bx-val chg">1</div><div class="bx-addr">@ 0x1004</div></div>
+          </div>
+          <div class="frame-note">modificati attraverso a e b</div>
+        </div>
+        <div class="frame">
+          <div class="frame-title">scambia</div>
+          <div class="bxd">
+            <div class="bx"><div class="bx-name">a</div><div class="bx-val ptr">0x1000</div><div class="bx-addr">→ x del main</div></div>
+            <div class="bx"><div class="bx-name">b</div><div class="bx-val ptr">0x1004</div><div class="bx-addr">→ y del main</div></div>
+          </div>
+          <div class="frame-note">contengono indirizzi</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">La ricetta</h3>
+        <ul>
+          <li>nel prototipo il parametro è un puntatore: <code>int* a</code></li>
+          <li>nella chiamata si passa l'indirizzo: <code>scambia(&amp;x, &amp;y)</code></li>
+          <li>nel corpo si usa il valore puntato: <code>*a</code></li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Uso tipico: funzioni che devono «restituire» più risultati. Ad esempio <code>void divisione(int a, int b, int* q, int* r)</code> calcola quoziente <em>e</em> resto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COSA C'ERA SOTTO GLI ARRAY ═══ -->
+<div class="slide" data-section="uso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Cosa c'era sotto gli array</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Il nome dell'array è un indirizzo</h3>
+        <p>Gli elementi di un array occupano celle <strong>consecutive</strong>. Il nome dell'array usato da solo vale l'indirizzo del primo elemento: <code>v</code> equivale a <code>&amp;v[0]</code>.</p>
+      </div>
+      <div class="strip">
+        <div class="cell"><div class="idx">v[0]</div><div class="box on">10</div><div class="ad">0x1000</div><div class="pm">p</div></div>
+        <div class="cell"><div class="idx">v[1]</div><div class="box">20</div><div class="ad">0x1004</div><div class="pm"></div></div>
+        <div class="cell"><div class="idx">v[2]</div><div class="box on">30</div><div class="ad">0x1008</div><div class="pm">p+2</div></div>
+        <div class="cell"><div class="idx">v[3]</div><div class="box">40</div><div class="ad">0x100C</div><div class="pm"></div></div>
+        <div class="cell"><div class="idx">v[4]</div><div class="box">50</div><div class="ad">0x1010</div><div class="pm"></div></div>
+      </div>
+<pre class="cpp">int v[5] = {10, 20, 30, 40, 50};
+int* p = v;          // come scrivere p = &amp;v[0]
+
+cout &lt;&lt; *p;          // 10
+cout &lt;&lt; *(p + 2);    // 30, come v[2]
+p++;                 // ora p punta a v[1]
+cout &lt;&lt; *p;          // 20</pre>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Aritmetica dei puntatori</h3>
+        <p><code>p + 1</code> non aggiunge 1 byte, ma <strong>un elemento</strong>: per un <code>int*</code> avanza di 4 byte (<code>sizeof(int)</code>), per un <code>double*</code> di 8.</p>
+      </div>
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-blue b">Con le [ ]</div><div class="proto-cell hl-blue b">Con i puntatori</div></div>
+        <div class="proto-row"><div class="proto-cell">v[0]</div><div class="proto-cell">*v</div></div>
+        <div class="proto-row"><div class="proto-cell">v[i]</div><div class="proto-cell">*(v + i)</div></div>
+        <div class="proto-row"><div class="proto-cell">&amp;v[i]</div><div class="proto-cell">v + i</div></div>
+        <div class="proto-row"><div class="proto-cell">p[i]</div><div class="proto-cell">*(p + i)</div></div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Ecco cosa c'era sotto: <code>v[i]</code> è solo un modo comodo di scrivere <code>*(v + i)</code>. Le parentesi quadre calcolano un indirizzo e leggono il valore che si trova lì.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Il C++ <strong>non controlla i limiti</strong>: su un array di 5 elementi, <code>*(p + 10)</code> o <code>v[10]</code> leggono memoria che non è vostra. Non c'è nessun errore di compilazione, solo valori strani o un crash.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ARRAY E FUNZIONI ═══ -->
+<div class="slide" data-section="uso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Array e funzioni: ecco perché si modificano</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">void azzera(int v[], int n) {   // int v[] è in realtà int* v
+    for (int i = 0; i &lt; n; i++)
+        v[i] = 0;
+}
+
+int main() {
+    int dati[3] = {7, 8, 9};
+    azzera(dati, 3);
+    cout &lt;&lt; dati[0];   // 0 → l'array originale è cambiato
+}</pre>
+      <div class="card">
+        <h3 style="color:var(--accent1)">L'array non viene copiato</h3>
+        <p>Quando passate un array a una funzione, la funzione riceve l'<strong>indirizzo del primo elemento</strong>. Per questo lavora direttamente sull'array originale, e per questo ha sempre bisogno anche della dimensione <code>n</code>.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Due scritture, stesso significato</h3>
+<pre class="cpp">void azzera(int v[], int n);   // forma «da array»
+void azzera(int* v, int n);    // forma «da puntatore»</pre>
+        <p style="margin-top:8px;">Il compilatore le tratta in modo identico: in entrambi i casi il parametro <code>v</code> è un <code>int*</code>.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Dentro la funzione <code>sizeof(v)</code> dà la dimensione del puntatore (8 byte su un sistema a 64 bit), non quella dell'array: la funzione non può sapere quanti elementi ci sono. Ecco perché si passa <code>n</code>.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Le matrici funzionano allo stesso modo: sono memorizzate riga dopo riga, in celle consecutive. Per questo, quando si passa una matrice a una funzione, va indicato il numero di colonne (<code>int m[][4]</code>): serve per calcolare dove inizia ogni riga.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PUNTATORI A STRUCT ═══ -->
+<div class="slide" data-section="uso" id="sl-struct">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Puntatori a struct e operatore -&gt;</h2>
+    <span class="section-num">SEZIONE 03</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">struct Studente {
+    string nome;
+    int voto;
+};
+
+Studente s = {"Luca", 7};
+Studente* p = &amp;s;
+
+(*p).voto = 8;     // forma lunga: parentesi obbligatorie
+p-&gt;voto = 8;       // forma breve: identica
+cout &lt;&lt; p-&gt;nome;   // Luca</pre>
+      <div class="card">
+        <h3 style="color:var(--accent4)">Punto o freccia?</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-blue b">Se avete…</div><div class="proto-cell hl-blue b">usate…</div></div>
+          <div class="proto-row"><div class="proto-cell">Studente s;</div><div class="proto-cell">s.voto</div></div>
+          <div class="proto-row"><div class="proto-cell">Studente* p;</div><div class="proto-cell">p-&gt;voto</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp">void promuovi(Studente* st) {
+    if (st-&gt;voto &lt; 6)
+        st-&gt;voto = 6;
+}
+
+// nel main
+promuovi(&amp;s);</pre>
+      <div class="card">
+        <h3 style="color:var(--accent1)">Perché passare l'indirizzo di una struct?</h3>
+        <ul>
+          <li>La funzione può <strong>modificare</strong> la struct originale.</li>
+          <li>Non si copia tutta la struct, che può essere grande (stringhe, array…).</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span><code>*p.voto</code> non funziona: il punto ha priorità più alta dell'asterisco, quindi il compilatore lo legge come <code>*(p.voto)</code>. Servono le parentesi o, meglio, la freccia.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>La freccia <code>-&gt;</code> sarà lo strumento principale quando costruiremo le liste.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RIEPILOGO PUNTATORI ═══ -->
+<div class="slide" data-section="uso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">La mappa dei puntatori</h2>
+    <span class="section-num">RIEPILOGO</span>
+  </div>
+  <div class="one-col">
+    <div class="proto-header">
+      <div class="proto-row"><div class="proto-cell hl b">Scrivo</div><div class="proto-cell hl b w3">Significa</div><div class="proto-cell hl b w2">Esempio</div></div>
+      <div class="proto-row"><div class="proto-cell">int* p;</div><div class="proto-cell l w3">dichiaro un puntatore a int</div><div class="proto-cell w2">int* p = nullptr;</div></div>
+      <div class="proto-row"><div class="proto-cell">&amp;x</div><div class="proto-cell l w3">l'indirizzo della variabile x</div><div class="proto-cell w2">p = &amp;x;</div></div>
+      <div class="proto-row"><div class="proto-cell">*p</div><div class="proto-cell l w3">il valore puntato da p (in lettura e in scrittura)</div><div class="proto-cell w2">*p = *p + 1;</div></div>
+      <div class="proto-row"><div class="proto-cell">nullptr</div><div class="proto-cell l w3">«non punta a niente»: va controllato prima di usare *p</div><div class="proto-cell w2">if (p != nullptr)</div></div>
+      <div class="proto-row"><div class="proto-cell">p + i, p++</div><div class="proto-cell l w3">spostarsi di i elementi (non di i byte)</div><div class="proto-cell w2">*(v + 2)</div></div>
+      <div class="proto-row"><div class="proto-cell">p[i]</div><div class="proto-cell l w3">identico a *(p + i)</div><div class="proto-cell w2">v[2]</div></div>
+      <div class="proto-row"><div class="proto-cell">p-&gt;campo</div><div class="proto-cell l w3">campo della struct puntata, identico a (*p).campo</div><div class="proto-cell w2">p-&gt;voto = 8;</div></div>
+      <div class="proto-row"><div class="proto-cell">f(&amp;x)</div><div class="proto-cell l w3">passo l'indirizzo: la funzione può modificare x</div><div class="proto-cell w2">scambia(&amp;x, &amp;y);</div></div>
+    </div>
+    <div class="two-col" style="flex:unset;">
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9733;</span>
+        <span><strong>Tre abitudini:</strong> inizializzare sempre i puntatori · controllare <code>nullptr</code> prima di usare <code>*p</code> · disegnare scatole e frecce.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Ora tocca a voi: <strong>Laboratorio 1</strong>, sei esercizi in ordine di difficoltà.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LAB 1: COME LAVORIAMO ═══ -->
+<div class="slide" data-section="lab1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Laboratorio 1: come lavoriamo</h2>
+    <span class="section-num">LAB 1</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Strumenti</h3>
+        <ul>
+          <li><strong>Code::Blocks</strong>, oppure da terminale: <code>g++ -Wall es1.cpp -o es1</code></li>
+          <li><strong><a href="https://pythontutor.com/cpp.html#mode=edit" target="_blank" rel="noopener" style="color:var(--accent4);">Python Tutor per C++</a></strong>: incollate il codice e guardate scatole e frecce passo per passo. Funziona con programmi brevi e senza <code>cin</code>.</li>
+          <li>Il pulsante <strong>Copia</strong> sui riquadri di codice copia il programma di partenza.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1)">Metodo</h3>
+        <ol>
+          <li>Leggete tutta la consegna.</li>
+          <li>Disegnate su carta la memoria: scatole e frecce.</li>
+          <li>Scrivete il codice e compilate spesso, un pezzo alla volta.</li>
+          <li>Confrontate l'output con il vostro disegno.</li>
+        </ol>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#128190;</span>
+        <span>Salvate ogni esercizio in un file separato: <code>es1.cpp</code>, <code>es2.cpp</code>, …</span>
+      </div>
+    </div>
+    <div class="overview-grid single">
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es1"><div class="ov-num" style="color:var(--accent2)">1</div><div class="ov-content"><h4>Indirizzi in mostra <span class="lvl">★</span></h4><p>Stampare indirizzi e dimensioni, modificare tramite puntatore</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es2"><div class="ov-num" style="color:var(--accent2)">2</div><div class="ov-content"><h4>Traccia a mano <span class="lvl">★</span></h4><p>Prevedere l'output su carta, poi verificarlo</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es3"><div class="ov-num" style="color:var(--accent2)">3</div><div class="ov-content"><h4>Scambio e ordinamento <span class="lvl">★★</span></h4><p>Funzioni che modificano le variabili del main</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es4"><div class="ov-num" style="color:var(--accent2)">4</div><div class="ov-content"><h4>Più risultati da una funzione <span class="lvl">★★</span></h4><p>Parametri puntatore come «uscite»</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es5"><div class="ov-num" style="color:var(--accent2)">5</div><div class="ov-content"><h4>Vietate le parentesi quadre <span class="lvl">★★</span></h4><p>Scorrere e invertire un array solo con i puntatori</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es6"><div class="ov-num" style="color:var(--accent2)">6</div><div class="ov-content"><h4>La classe migliore <span class="lvl">★★★</span></h4><p>Puntatori a struct, freccia e funzioni che restituiscono un puntatore</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 1 ═══ -->
+<div class="slide" data-section="lab1" id="es1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 1: indirizzi in mostra</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li>Completate il programma: per <code>d</code> e <code>c</code> stampate valore, indirizzo e numero di byte, come è già fatto per <code>n</code>.</li>
+          <li>Stampate quanti byte occupa un puntatore (<code>sizeof(pn)</code>). Cambia qualcosa con un puntatore a <code>double</code>?</li>
+          <li>Usando <strong>solo i puntatori</strong> <code>pn</code>, <code>pd</code> e <code>pc</code>: raddoppiate n, dimezzate d e trasformate c in <code>'B'</code>.</li>
+          <li>Ristampate n, d e c usando i loro <strong>nomi</strong>. Che cosa notate?</li>
+          <li>Eseguite il programma due volte: gli indirizzi sono sempre gli stessi?</li>
+        </ol>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Per stampare l'indirizzo di un <code>char</code> scrivete <code>(void*)pc</code>. Altrimenti <code>cout</code> lo tratta come una stringa e stampa caratteri strani.</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int    n = 42;
+    double d = 3.14;
+    char   c = 'A';
+
+    int*    pn = &amp;n;
+    double* pd = &amp;d;
+    char*   pc = &amp;c;
+
+    cout &lt;&lt; "n = " &lt;&lt; n &lt;&lt; "  indirizzo: " &lt;&lt; pn
+         &lt;&lt; "  byte: " &lt;&lt; sizeof(n) &lt;&lt; endl;
+
+    // a) stampa valore, indirizzo e byte di d e di c
+
+    // b) quanti byte occupa un puntatore?
+
+    // c) usando SOLO pn, pd, pc: raddoppia n, dimezza d, c diventa 'B'
+
+    // d) ristampa n, d, c usando i loro nomi
+
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 2 ═══ -->
+<div class="slide" data-section="lab1" id="es2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 2: traccia a mano, poi verifica</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li><strong>Prima, su carta:</strong> per ogni frammento compilate una tabella con il valore delle variabili e la destinazione dei puntatori dopo ogni riga.</li>
+          <li>Scrivete la vostra previsione dell'output.</li>
+          <li><strong>Solo dopo</strong> inserite il frammento in un <code>main</code> ed eseguitelo.</li>
+          <li>Se il risultato è diverso, trovate la riga in cui il disegno ha sbagliato. Python Tutor vi aiuta a vederlo passo per passo.</li>
+        </ol>
+      </div>
+      <div class="strip-cap">Frammento A</div>
+<pre class="cpp copy">int a = 3, b = 7;
+int* p = &amp;a;
+int* q = &amp;b;
+*p = *p + *q;
+p = q;
+*p = *p * 2;
+*q = *q - a;
+cout &lt;&lt; a &lt;&lt; " " &lt;&lt; b &lt;&lt; " " &lt;&lt; *p &lt;&lt; " " &lt;&lt; *q &lt;&lt; endl;</pre>
+    </div>
+    <div class="stack">
+      <div class="strip-cap">Frammento B</div>
+<pre class="cpp copy">int v[5] = {2, 4, 6, 8, 10};
+int* p = v;
+p = p + 2;
+*p = 0;
+p++;
+cout &lt;&lt; *p &lt;&lt; " " &lt;&lt; *(p - 1) &lt;&lt; " " &lt;&lt; p[1] &lt;&lt; endl;
+for (int i = 0; i &lt; 5; i++)
+    cout &lt;&lt; v[i] &lt;&lt; " ";</pre>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#10067;</span>
+        <span>Domanda bonus sul frammento B: che cosa significa <code>p[1]</code> se p non è un array ma un puntatore?</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9998;</span>
+        <span>Nella tabella del frammento A tenete quattro colonne: <code>a</code>, <code>b</code>, «p punta a», «q punta a».</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 3 ═══ -->
+<div class="slide" data-section="lab1" id="es3">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 3: scambio e ordinamento</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li>Scrivete <code>void scambia(int* a, int* b)</code> e provatela nel main con due variabili.</li>
+          <li>Scrivete <code>void ordina3(int* x, int* y, int* z)</code>, che mette tre variabili in ordine crescente usando <code>scambia</code>.</li>
+          <li>Nel main leggete tre numeri, chiamate <code>ordina3</code> e stampateli: devono uscire ordinati.</li>
+          <li>Provate tutti gli ordini possibili di 1, 2 e 3 (sono 6): funziona sempre?</li>
+        </ol>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Dentro <code>ordina3</code>, x, y e z sono <strong>già</strong> puntatori: si chiama <code>scambia(x, y)</code>, non <code>scambia(&amp;x, &amp;y)</code>.</span>
+      </div>
+      <div class="card reveal">
+        <h3 style="color:var(--accent3)">Bloccati?</h3>
+        <button class="reveal-btn no-js-hide" type="button">Mostra un suggerimento</button>
+        <div class="reveal-body"><p>Bastano tre confronti: x con y, poi y con z, poi di nuovo x con y. Ogni volta che i due valori sono nell'ordine sbagliato, scambiateli.</p></div>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy">#include &lt;iostream&gt;
+using namespace std;
+
+void scambia(int* a, int* b) {
+    // TODO
+}
+
+void ordina3(int* x, int* y, int* z) {
+    // TODO: usa scambia
+}
+
+int main() {
+    int a, b, c;
+    cout &lt;&lt; "Tre numeri: ";
+    cin &gt;&gt; a &gt;&gt; b &gt;&gt; c;
+    ordina3(&amp;a, &amp;b, &amp;c);
+    cout &lt;&lt; a &lt;&lt; " " &lt;&lt; b &lt;&lt; " " &lt;&lt; c &lt;&lt; endl;
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 4 ═══ -->
+<div class="slide" data-section="lab1" id="es4">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 4: più risultati da una sola funzione</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li><code>void minMax(int v[], int n, int* min, int* max)</code>: calcola il minimo e il massimo dell'array.</li>
+          <li><code>void divisione(int a, int b, int* q, int* r)</code>: calcola quoziente e resto della divisione intera.</li>
+          <li><code>bool statistiche(int voti[], int n, double* media, int* insufficienti)</code>: calcola la media e il numero di voti sotto il 6. Restituisce <code>false</code> se n vale 0, perché non c'è niente da calcolare.</li>
+        </ol>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Per incrementare il valore puntato servono le parentesi: <code>(*insufficienti)++</code>. Scrivendo <code>*insufficienti++</code> si incrementa il puntatore, non il valore!</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Output atteso: Minimo 4, Massimo 9 · 17 / 5 = 3 resto 2 · Media 6.5, Insufficienti 2.</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+using namespace std;
+
+// TODO: scrivi minMax, divisione, statistiche
+
+int main() {
+    int voti[6] = {7, 4, 9, 5, 6, 8};
+
+    int mi, ma;
+    minMax(voti, 6, &amp;mi, &amp;ma);
+    cout &lt;&lt; "Minimo: " &lt;&lt; mi &lt;&lt; "  Massimo: " &lt;&lt; ma &lt;&lt; endl;
+
+    int q, r;
+    divisione(17, 5, &amp;q, &amp;r);
+    cout &lt;&lt; "17 / 5 = " &lt;&lt; q &lt;&lt; " resto " &lt;&lt; r &lt;&lt; endl;
+
+    double media;
+    int ins;
+    if (statistiche(voti, 6, &amp;media, &amp;ins))
+        cout &lt;&lt; "Media: " &lt;&lt; media &lt;&lt; "  Insufficienti: " &lt;&lt; ins &lt;&lt; endl;
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 5 ═══ -->
+<div class="slide" data-section="lab1" id="es5">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 5: vietate le parentesi quadre</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <p style="margin-bottom:8px;">In queste funzioni le <code>[ ]</code> sono vietate: si usano solo i puntatori.</p>
+        <ol class="task">
+          <li><code>void stampa(int* v, int n)</code>: scorre l'array con un puntatore <code>p</code> che va da <code>v</code> a <code>v + n</code>.</li>
+          <li><code>int somma(int* v, int n)</code>.</li>
+          <li><code>void inverti(int* v, int n)</code>: due puntatori, <code>sx</code> all'inizio e <code>dx</code> alla fine, si scambiano i valori e si avvicinano finché non si incontrano. Riusate <code>scambia</code>.</li>
+          <li><code>int* cercaPrimo(int* v, int n, int x)</code>: restituisce il puntatore al primo elemento uguale a x, oppure <code>nullptr</code>. Nel main, se lo trovate, azzeratelo <strong>attraverso il puntatore restituito</strong>.</li>
+        </ol>
+      </div>
+      <div class="strip">
+        <div class="cell"><div class="box on">4</div><div class="pm">sx</div></div>
+        <div class="cell"><div class="box">8</div><div class="pm"></div></div>
+        <div class="cell"><div class="box">15</div><div class="pm"></div></div>
+        <div class="cell"><div class="box">16</div><div class="pm"></div></div>
+        <div class="cell"><div class="box">23</div><div class="pm"></div></div>
+        <div class="cell"><div class="box">42</div><div class="pm"></div></div>
+        <div class="cell"><div class="box on">8</div><div class="pm">dx</div></div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>La differenza tra due puntatori allo stesso array dà la distanza in elementi: <code>trovato - dati</code> è la posizione dell'elemento trovato.</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+using namespace std;
+
+void scambia(int* a, int* b) {
+    int t = *a; *a = *b; *b = t;
+}
+
+// TODO: stampa, somma, inverti, cercaPrimo
+
+int main() {
+    int dati[7] = {4, 8, 15, 16, 23, 42, 8};
+
+    stampa(dati, 7);
+    cout &lt;&lt; "Somma: " &lt;&lt; somma(dati, 7) &lt;&lt; endl;
+
+    inverti(dati, 7);
+    stampa(dati, 7);              // 8 42 23 16 15 8 4
+
+    int* trovato = cercaPrimo(dati, 7, 16);
+    if (trovato != nullptr) {
+        cout &lt;&lt; "Trovato in posizione " &lt;&lt; trovato - dati &lt;&lt; endl;
+        *trovato = 0;
+    }
+    stampa(dati, 7);
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 6 ═══ -->
+<div class="slide" data-section="lab1" id="es6">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 6: la classe migliore</h2>
+    <span class="section-num">LAB 1 · <span class="lvl">★★★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li>Scrivete <code>void calcolaMedia(Studente* s)</code>: calcola la media dei 4 voti e la salva nel campo <code>media</code>. Usate la freccia <code>-&gt;</code>.</li>
+          <li>Nel main chiamate <code>calcolaMedia</code> per ogni studente della classe. Che cosa dovete passare alla funzione?</li>
+          <li>Scrivete <code>Studente* migliore(Studente classe[], int n)</code>: restituisce un <strong>puntatore</strong> allo studente con la media più alta.</li>
+          <li>Premiate il migliore: tramite il puntatore restituito, aumentate di 1 il suo ultimo voto e ricalcolate la media.</li>
+          <li>Stampate tutta la classe. La modifica si vede nell'array originale? Perché?</li>
+        </ol>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Restituire un puntatore, e non una copia, permette di modificare lo studente direttamente dentro l'array.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>Controllo: il migliore è Carla con 8.5. Dopo il premio la sua media diventa 8.75.</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+struct Studente {
+    string nome;
+    int voti[4];
+    double media;
+};
+
+// TODO: calcolaMedia, migliore
+
+int main() {
+    Studente classe[5] = {
+        {"Anna",   {7, 8, 6, 9}, 0},
+        {"Bruno",  {5, 6, 6, 7}, 0},
+        {"Carla",  {9, 8, 9, 8}, 0},
+        {"Davide", {4, 6, 5, 6}, 0},
+        {"Elisa",  {8, 7, 9, 7}, 0}
+    };
+
+    // b) calcola la media di ogni studente
+
+    // c) trova il migliore e stampane nome e media
+
+    // d) premia il migliore tramite il puntatore
+
+    // e) stampa tutta la classe
+
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LAB 1: ERRORI E AUTOVALUTAZIONE ═══ -->
+<div class="slide" data-section="lab1">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Errori tipici e autovalutazione</h2>
+    <span class="section-num">LAB 1</span>
+  </div>
+  <div class="two-col-l">
+    <div class="proto-header">
+      <div class="proto-row"><div class="proto-cell hl-red b w2">Errore</div><div class="proto-cell hl-red b w2">Sintomo</div><div class="proto-cell hl-red b w2">Correzione</div></div>
+      <div class="proto-row"><div class="proto-cell w2">int* p; *p = 5;</div><div class="proto-cell l w2">crash o valori casuali</div><div class="proto-cell w2">int* p = &amp;x;</div></div>
+      <div class="proto-row"><div class="proto-cell w2">scambia(x, y);</div><div class="proto-cell l w2">errore: invalid conversion from 'int' to 'int*'</div><div class="proto-cell w2">scambia(&amp;x, &amp;y);</div></div>
+      <div class="proto-row"><div class="proto-cell w2">a = b; (al posto di *a = *b;)</div><div class="proto-cell l w2">compila, ma nel main non cambia nulla</div><div class="proto-cell w2">lavorare su *a e *b</div></div>
+      <div class="proto-row"><div class="proto-cell w2">int* a, b;</div><div class="proto-cell l w2">b non è un puntatore</div><div class="proto-cell w2">int *a, *b;</div></div>
+      <div class="proto-row"><div class="proto-cell w2">*p.voto</div><div class="proto-cell l w2">errore di compilazione</div><div class="proto-cell w2">p-&gt;voto</div></div>
+      <div class="proto-row"><div class="proto-cell w2">*n++;</div><div class="proto-cell l w2">il valore non cambia, il puntatore sì</div><div class="proto-cell w2">(*n)++;</div></div>
+      <div class="proto-row"><div class="proto-cell w2">p oltre la fine dell'array</div><div class="proto-cell l w2">valori strani o crash</div><div class="proto-cell w2">ciclo con p &lt; v + n</div></div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">So farlo?</h3>
+        <ul class="check">
+          <li><label><input type="checkbox"><span>Spiego la differenza tra <code>p</code>, <code>*p</code> e <code>&amp;p</code>.</span></label></li>
+          <li><label><input type="checkbox"><span>Disegno scatole e frecce di un frammento di codice.</span></label></li>
+          <li><label><input type="checkbox"><span>Scrivo una funzione che modifica le variabili del chiamante.</span></label></li>
+          <li><label><input type="checkbox"><span>So perché un array passato a una funzione viene modificato.</span></label></li>
+          <li><label><input type="checkbox"><span>Scorro un array con un puntatore.</span></label></li>
+          <li><label><input type="checkbox"><span>Uso <code>-&gt;</code> con un puntatore a struct.</span></label></li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Se avete spuntato tutto, siete pronti per le liste.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLUZIONI LAB 1 (1/2) — solo docente ═══ -->
+<div class="slide teacher-only" data-section="sol">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Soluzioni Lab 1: esercizi 1–4</h2>
+    <span class="section-num">SOLO DOCENTE</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Esercizio 1: risposte</h3>
+        <ul>
+          <li>b) Un puntatore occupa 8 byte su un sistema a 64 bit (4 a 32 bit), <strong>qualunque sia il tipo puntato</strong>.</li>
+          <li>c) <code>*pn = *pn * 2; *pd = *pd / 2; *pc = 'B';</code></li>
+          <li>d) Le variabili risultano cambiate: <code>*pn</code> <em>è</em> n.</li>
+          <li>e) Gli indirizzi possono cambiare a ogni esecuzione: il sistema operativo sceglie dove caricare il programma.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3)">Esercizio 2: output</h3>
+        <p><strong>A:</strong> <code>10 4 4 4</code>. a = 3 + 7 = 10; poi p punta a b; b = 7 · 2 = 14; b = 14 − 10 = 4.</p>
+        <p><strong>B:</strong> <code>8 0 10</code> e poi <code>2 4 0 8 10</code>. <code>p[1]</code> = <code>*(p + 1)</code> = v[4].</p>
+      </div>
+<pre class="cpp">// Esercizio 3
+void scambia(int* a, int* b) {
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+void ordina3(int* x, int* y, int* z) {
+    if (*x &gt; *y) scambia(x, y);
+    if (*y &gt; *z) scambia(y, z);
+    if (*x &gt; *y) scambia(x, y);
+}</pre>
+    </div>
+    <div class="stack">
+<pre class="cpp">// Esercizio 4
+void minMax(int v[], int n, int* min, int* max) {
+    *min = v[0];
+    *max = v[0];
+    for (int i = 1; i &lt; n; i++) {
+        if (v[i] &lt; *min) *min = v[i];
+        if (v[i] &gt; *max) *max = v[i];
+    }
+}
+
+void divisione(int a, int b, int* q, int* r) {
+    *q = a / b;
+    *r = a % b;
+}
+
+bool statistiche(int voti[], int n, double* media, int* insufficienti) {
+    if (n == 0) return false;
+    int somma = 0;
+    *insufficienti = 0;
+    for (int i = 0; i &lt; n; i++) {
+        somma += voti[i];
+        if (voti[i] &lt; 6) (*insufficienti)++;
+    }
+    *media = (double)somma / n;
+    return true;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLUZIONI LAB 1 (2/2) — solo docente ═══ -->
+<div class="slide teacher-only" data-section="sol">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Soluzioni Lab 1: esercizi 5–6</h2>
+    <span class="section-num">SOLO DOCENTE</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">// Esercizio 5
+void stampa(int* v, int n) {
+    for (int* p = v; p &lt; v + n; p++)
+        cout &lt;&lt; *p &lt;&lt; " ";
+    cout &lt;&lt; endl;
+}
+
+int somma(int* v, int n) {
+    int s = 0;
+    for (int* p = v; p &lt; v + n; p++)
+        s += *p;
+    return s;
+}
+
+void inverti(int* v, int n) {
+    int* sx = v;
+    int* dx = v + n - 1;
+    while (sx &lt; dx) {
+        scambia(sx, dx);
+        sx++;
+        dx--;
+    }
+}
+
+int* cercaPrimo(int* v, int n, int x) {
+    for (int* p = v; p &lt; v + n; p++)
+        if (*p == x) return p;
+    return nullptr;
+}</pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Output: somma 116; dopo l'inversione 8 42 23 16 15 8 4; 16 trovato in posizione 3; infine 8 42 23 0 15 8 4.</span></div>
+    </div>
+    <div class="stack">
+<pre class="cpp">// Esercizio 6
+void calcolaMedia(Studente* s) {
+    int somma = 0;
+    for (int i = 0; i &lt; 4; i++)
+        somma += s-&gt;voti[i];
+    s-&gt;media = somma / 4.0;
+}
+
+Studente* migliore(Studente classe[], int n) {
+    Studente* best = &amp;classe[0];
+    for (int i = 1; i &lt; n; i++)
+        if (classe[i].media &gt; best-&gt;media)
+            best = &amp;classe[i];
+    return best;
+}
+
+// nel main
+for (int i = 0; i &lt; 5; i++)
+    calcolaMedia(&amp;classe[i]);
+
+Studente* top = migliore(classe, 5);
+cout &lt;&lt; "Migliore: " &lt;&lt; top-&gt;nome &lt;&lt; " (" &lt;&lt; top-&gt;media &lt;&lt; ")" &lt;&lt; endl;
+
+top-&gt;voti[3] = top-&gt;voti[3] + 1;
+calcolaMedia(top);
+
+for (int i = 0; i &lt; 5; i++)
+    cout &lt;&lt; classe[i].nome &lt;&lt; "  media " &lt;&lt; classe[i].media &lt;&lt; endl;</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PARTE 2: TITOLO ═══ -->
+<div class="slide slide-title" data-section="parte2">
+  <div class="big">Parte 2</div>
+  <div class="big" style="color:var(--accent3);">Verso le</div>
+  <div class="big" style="color:var(--accent4);">liste</div>
+  <div class="sub">Dalle strutture statiche alle strutture dinamiche</div>
+  <div class="tag-row">
+    <span class="tag tag-yellow">Lista con indici</span>
+    <span class="tag tag-green">new / delete</span>
+    <span class="tag tag-blue">struct Nodo</span>
+    <span class="tag tag-red">Inserire · Scorrere · Eliminare</span>
+  </div>
+</div>
+
+<!-- ═══ IL PROBLEMA DELL'ARRAY ═══ -->
+<div class="slide" data-section="parte2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il problema dell'array</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Inserire in mezzo costa caro</h3>
+        <p>Abbiamo un array ordinato e vogliamo inserire <strong>25</strong> mantenendo l'ordine. Tutti gli elementi da 30 in poi devono spostarsi di un posto a destra.</p>
+      </div>
+      <div class="strip-cap">Prima</div>
+      <div class="strip">
+        <div class="cell"><div class="idx">0</div><div class="box">10</div></div>
+        <div class="cell"><div class="idx">1</div><div class="box">20</div></div>
+        <div class="cell"><div class="idx">2</div><div class="box">30</div></div>
+        <div class="cell"><div class="idx">3</div><div class="box">40</div></div>
+        <div class="cell"><div class="idx">4</div><div class="box free">–</div></div>
+        <div class="cell"><div class="idx">5</div><div class="box free">–</div></div>
+      </div>
+      <div class="strip-cap">Dopo: 30 e 40 spostati, 25 inserito</div>
+      <div class="strip">
+        <div class="cell"><div class="idx">0</div><div class="box">10</div></div>
+        <div class="cell"><div class="idx">1</div><div class="box">20</div></div>
+        <div class="cell"><div class="idx">2</div><div class="box new">25</div></div>
+        <div class="cell"><div class="idx">3</div><div class="box mv">30</div></div>
+        <div class="cell"><div class="idx">4</div><div class="box mv">40</div></div>
+        <div class="cell"><div class="idx">5</div><div class="box free">–</div></div>
+      </div>
+<pre class="cpp">// inserire x in posizione pos: sposto tutto a destra
+for (int i = n; i &gt; pos; i--)
+    v[i] = v[i - 1];
+v[pos] = x;
+n++;</pre>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">I limiti dell'array</h3>
+        <ul>
+          <li><strong>Inserire o cancellare in mezzo</strong> obbliga a spostare tutti gli elementi successivi: con un milione di elementi, fino a un milione di spostamenti.</li>
+          <li><strong>La dimensione è fissa</strong> e va decisa prima. Se è troppo grande si spreca memoria, se è troppo piccola non basta.</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#128161;</span>
+        <span>E se ogni elemento sapesse semplicemente <strong>dov'è il successivo</strong>? Allora non servirebbe più tenerli in fila uno dopo l'altro.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>È l'idea della <strong>lista concatenata</strong>. La proviamo subito con strumenti che conoscete già: array e struct.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LA LISTA CON INDICI ═══ -->
+<div class="slide" data-section="ponte">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Collegare invece di affiancare: la lista con indici</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">struct Elemento {
+    int dato;
+    int next;    // indice del prossimo elemento, -1 = fine
+};
+
+Elemento lista[6] = {
+    {30, 4}, {10, 3}, {0, -1}, {20, 0}, {40, -1}, {0, -1}
+};
+int testa = 1;   // indice del primo elemento</pre>
+      <div class="mem">
+        <div class="mem-row head"><span>cella</span><span>dato</span><span>next</span></div>
+        <div class="mem-row"><span class="addr">0</span><span class="val">30</span><span>4</span></div>
+        <div class="mem-row"><span class="addr">1 ← testa</span><span class="val">10</span><span>3</span></div>
+        <div class="mem-row free"><span>2</span><span>libera</span><span>–</span></div>
+        <div class="mem-row"><span class="addr">3</span><span class="val">20</span><span>0</span></div>
+        <div class="mem-row"><span class="addr">4</span><span class="val">40</span><span>-1</span></div>
+        <div class="mem-row free"><span>5</span><span>libera</span><span>–</span></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="ll top">
+        <span class="ll-label">testa = 1</span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 1</span><span class="d">10</span><span class="n">3</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 3</span><span class="d">20</span><span class="n">0</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 0</span><span class="d">30</span><span class="n">4</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 4</span><span class="d">40</span><span class="n">-1</span></span>
+      </div>
+<pre class="cpp">int i = testa;
+while (i != -1) {
+    cout &lt;&lt; lista[i].dato &lt;&lt; " ";
+    i = lista[i].next;      // salto al successivo
+}
+// stampa: 10 20 30 40</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>L'ordine <strong>logico</strong> (10, 20, 30, 40) non coincide più con l'ordine <strong>fisico</strong> delle celle: lo decidono i campi <code>next</code>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INSERIRE SENZA SPOSTARE ═══ -->
+<div class="slide" data-section="ponte">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Inserire senza spostare nulla</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Inseriamo 25 tra 20 e 30</h3>
+        <p>Usiamo la cella libera 2. Nessun elemento si sposta: cambiano solo <strong>due collegamenti</strong>.</p>
+      </div>
+<pre class="cpp">lista[2].dato = 25;
+lista[2].next = lista[3].next;   // 25 punta a ciò che seguiva 20 (cella 0)
+lista[3].next = 2;               // 20 ora punta a 25</pre>
+      <div class="ll top">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 1</span><span class="d">10</span><span class="n">3</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 3</span><span class="d">20</span><span class="n">2</span></span><span class="arrow sm"></span>
+        <span class="node new"><span class="i">cella 2</span><span class="d">25</span><span class="n">0</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 0</span><span class="d">30</span><span class="n">4</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="i">cella 4</span><span class="d">40</span><span class="n">-1</span></span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>L'ordine delle istruzioni conta: se scrivessimo prima <code>lista[3].next = 2</code>, perderemmo l'informazione su quale elemento veniva dopo 20.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2)">Il limite che resta</h3>
+        <p>L'array ha comunque 6 celle: quando quelle libere finiscono, la lista non può più crescere.</p>
+        <p>Ci serve un modo per <strong>creare celle nuove mentre il programma è in esecuzione</strong>.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>In C++ questo si fa con <code>new</code>: è la <strong>memoria dinamica</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEW E DELETE ═══ -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Memoria dinamica: new e delete</h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Chiedere memoria durante l'esecuzione</h3>
+        <p><code>new</code> riserva memoria in una zona chiamata <strong>heap</strong> e restituisce il suo <strong>indirizzo</strong>. Quella memoria non ha un nome: si raggiunge solo con il puntatore, e resta occupata finché non la restituite con <code>delete</code>.</p>
+      </div>
+<pre class="cpp">int* p = new int;      // spazio per un int nello heap
+*p = 42;               // lo uso tramite il puntatore
+cout &lt;&lt; *p;            // 42
+delete p;              // restituisco la memoria
+p = nullptr;
+
+int n;
+cin &gt;&gt; n;
+int* v = new int[n];   // array grande quanto serve, deciso ORA
+v[0] = 5;              // si usa come un array normale
+delete[] v;            // con new[] si usa delete[]</pre>
+    </div>
+    <div class="stack">
+      <div class="proto-header">
+        <div class="proto-row"><div class="proto-cell hl-gray b"></div><div class="proto-cell hl-blue b w2">Stack</div><div class="proto-cell hl b w2">Heap</div></div>
+        <div class="proto-row"><div class="proto-cell b">Esempio</div><div class="proto-cell w2">int x = 5;</div><div class="proto-cell w2">new int</div></div>
+        <div class="proto-row"><div class="proto-cell b">Dimensione</div><div class="proto-cell l w2">decisa quando scrivete il codice</div><div class="proto-cell l w2">decisa durante l'esecuzione</div></div>
+        <div class="proto-row"><div class="proto-cell b">Chi la libera</div><div class="proto-cell l w2">automatica</div><div class="proto-cell l w2">voi, con delete</div></div>
+        <div class="proto-row"><div class="proto-cell b">Durata</div><div class="proto-cell l w2">finisce con la funzione</div><div class="proto-cell l w2">sopravvive alla funzione</div></div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1)">Le regole d'oro</h3>
+        <ul>
+          <li>A ogni <code>new</code> deve corrispondere un <code>delete</code>.</li>
+          <li>A <code>new[]</code> corrisponde <code>delete[]</code>, con le parentesi.</li>
+          <li>Dopo <code>delete</code>, rimettete il puntatore a <code>nullptr</code>.</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#128273;</span>
+        <span>È la chiave delle liste: un nodo creato con <code>new</code> dentro una funzione continua a esistere anche dopo che la funzione è terminata.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DUE ERRORI DA EVITARE ═══ -->
+<div class="slide" data-section="dinamica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Due errori da evitare</h2>
+    <span class="section-num">SEZIONE 05</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Memory leak</h3>
+        <p>Memoria allocata e mai restituita, perché si è perso l'unico puntatore che la raggiungeva.</p>
+      </div>
+<pre class="cpp">int* p = new int(5);
+p = new int(9);     // il primo indirizzo è perso:
+                    // quella memoria resta occupata
+                    // e nessuno può più liberarla
+
+// corretto
+int* q = new int(5);
+delete q;           // prima restituisco
+q = new int(9);
+delete q;</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>In un esercizio non ve ne accorgete. In un programma che resta acceso per giorni, come un server o un videogioco, un leak dentro un ciclo consuma tutta la RAM.</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent2)">Dangling pointer</h3>
+        <p>Il problema opposto: il puntatore esiste ancora, ma la memoria a cui punta è già stata restituita.</p>
+      </div>
+<pre class="cpp">int* p = new int(5);
+delete p;           // memoria restituita
+cout &lt;&lt; *p;         // ERRORE: memoria non più valida
+
+// corretto
+delete p;
+p = nullptr;        // dopo delete azzero sempre
+if (p != nullptr)
+    cout &lt;&lt; *p;</pre>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#10007;</span>
+        <span>Anche fare <code>delete</code> due volte sullo stesso indirizzo è un errore grave. <code>delete</code> su <code>nullptr</code> invece è innocuo: un motivo in più per azzerare.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ IL NODO ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il nodo: una struct che punta a se stessa</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">struct Nodo {
+    int dato;
+    Nodo* next;   // puntatore al nodo successivo
+};
+
+Nodo* testa = nullptr;   // lista vuota</pre>
+      <div class="card">
+        <h3 style="color:var(--accent4)">La lista concatenata</h3>
+        <p>Ogni nodo contiene un dato e il puntatore al nodo successivo. L'ultimo nodo ha <code>next = nullptr</code>. Per conoscere tutta la lista basta un puntatore al primo nodo: la <strong>testa</strong>.</p>
+      </div>
+      <div class="ll">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">1</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="ll-null">nullptr</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Perché si può usare <code>Nodo</code> dentro la sua stessa definizione? Perché <code>next</code> è un puntatore e occupa sempre gli stessi byte, qualunque cosa ci sia dall'altra parte. Un campo <code>Nodo next;</code>, senza asterisco, non compilerebbe.</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">Dalla lista con indici alla lista con puntatori</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-yel b">Lista con indici</div><div class="proto-cell hl-blue b">Lista con puntatori</div></div>
+          <div class="proto-row"><div class="proto-cell">int next</div><div class="proto-cell">Nodo* next</div></div>
+          <div class="proto-row"><div class="proto-cell">-1</div><div class="proto-cell">nullptr</div></div>
+          <div class="proto-row"><div class="proto-cell">int testa</div><div class="proto-cell">Nodo* testa</div></div>
+          <div class="proto-row"><div class="proto-cell">lista[i].dato</div><div class="proto-cell">p-&gt;dato</div></div>
+          <div class="proto-row"><div class="proto-cell">i = lista[i].next</div><div class="proto-cell">p = p-&gt;next</div></div>
+          <div class="proto-row"><div class="proto-cell">una cella libera</div><div class="proto-cell">new Nodo</div></div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#128161;</span>
+        <span>Il puntatore fa lo stesso lavoro dell'indice di prima, ma su tutta la RAM invece che su un array di 6 celle.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INSERIMENTO IN TESTA ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Inserimento in testa</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">Nodo* inserisciInTesta(Nodo* testa, int x) {
+    Nodo* nuovo = new Nodo;   // 1. creo il nodo
+    nuovo-&gt;dato = x;          // 2. lo riempio
+    nuovo-&gt;next = testa;      // 3. lo aggancio davanti
+    return nuovo;             // 4. è la nuova testa
+}
+
+int main() {
+    Nodo* testa = nullptr;                 // lista vuota
+    testa = inserisciInTesta(testa, 7);    // 7
+    testa = inserisciInTesta(testa, 3);    // 3 -&gt; 7
+}</pre>
+      <div class="card">
+        <h3 style="color:var(--accent3)">La convenzione che useremo</h3>
+        <p>Ogni funzione che può cambiare il primo nodo <strong>restituisce la nuova testa</strong>, e nel main si scrive sempre <code>testa = funzione(testa, …);</code></p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="step">Prima</div>
+      <div class="ll">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span><span class="ll-null">nullptr</span>
+      </div>
+      <div class="step">1–3. creo il nodo, lo riempio, lo aggancio davanti</div>
+      <div class="ll">
+        <span class="ll-label" style="color:var(--accent1);border-color:var(--accent1);">nuovo</span><span class="arrow sm"></span>
+        <span class="node new"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span><span class="ll-null">nullptr</span>
+      </div>
+      <div class="step">4. nel main: testa = nuovo</div>
+      <div class="ll">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span><span class="ll-null">nullptr</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Se nel main scrivete solo <code>inserisciInTesta(testa, 3);</code>, senza <code>testa =</code>, il nodo viene creato ma nessuno lo raggiunge: la lista non cambia e avete un memory leak.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Funziona anche con la lista vuota: se testa vale <code>nullptr</code>, il nuovo nodo avrà <code>next = nullptr</code> e sarà l'unico.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCORRERE LA LISTA ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Scorrere la lista</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">void stampa(Nodo* testa) {
+    Nodo* p = testa;
+    while (p != nullptr) {
+        cout &lt;&lt; p-&gt;dato &lt;&lt; " -&gt; ";
+        p = p-&gt;next;          // passo al nodo successivo
+    }
+    cout &lt;&lt; "fine" &lt;&lt; endl;
+}
+
+int conta(Nodo* testa) {
+    int n = 0;
+    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+        n++;
+    return n;
+}</pre>
+      <div class="ll bot">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span><span class="p">↑ p</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">1</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="ll-null">nullptr</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Lo schema di ogni scansione</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl-gray b"></div><div class="proto-cell hl-yel b w2">Array</div><div class="proto-cell hl-blue b w2">Lista</div></div>
+          <div class="proto-row"><div class="proto-cell b">inizio</div><div class="proto-cell w2">int i = 0</div><div class="proto-cell w2">Nodo* p = testa</div></div>
+          <div class="proto-row"><div class="proto-cell b">condizione</div><div class="proto-cell w2">i &lt; n</div><div class="proto-cell w2">p != nullptr</div></div>
+          <div class="proto-row"><div class="proto-cell b">passo</div><div class="proto-cell w2">i++</div><div class="proto-cell w2">p = p-&gt;next</div></div>
+          <div class="proto-row"><div class="proto-cell b">elemento</div><div class="proto-cell w2">v[i]</div><div class="proto-cell w2">p-&gt;dato</div></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Per scorrere usate una variabile di appoggio <code>p</code>. Nelle funzioni che modificano la lista, spostare <code>testa</code> significherebbe perdere l'inizio della lista.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Con lo stesso schema si calcolano la somma e il massimo e si cerca un valore: li scriverete in laboratorio.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INSERIMENTO IN CODA ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Inserimento in coda</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">Nodo* inserisciInCoda(Nodo* testa, int x) {
+    Nodo* nuovo = new Nodo;
+    nuovo-&gt;dato = x;
+    nuovo-&gt;next = nullptr;        // sarà l'ultimo
+
+    if (testa == nullptr)         // lista vuota:
+        return nuovo;             // il nuovo nodo è anche la testa
+
+    Nodo* p = testa;
+    while (p-&gt;next != nullptr)    // mi fermo sull'ULTIMO nodo
+        p = p-&gt;next;
+    p-&gt;next = nuovo;              // aggancio in fondo
+    return testa;                 // la testa non cambia
+}</pre>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Due differenze rispetto alla stampa</h3>
+        <ul>
+          <li>La condizione è <code>p-&gt;next != nullptr</code>: ci fermiamo <strong>sull'ultimo nodo</strong>, non dopo.</li>
+          <li>La lista vuota è un <strong>caso speciale</strong>: se testa è <code>nullptr</code>, <code>p-&gt;next</code> farebbe crashare il programma. In quel caso il nuovo nodo diventa la testa.</li>
+        </ul>
+      </div>
+      <div class="ll bot">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span><span class="p">↑ p (ultimo)</span></span><span class="arrow sm"></span>
+        <span class="node new"><span class="d">9</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="ll-null">nullptr</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Provate sempre ogni funzione su tre casi: lista <strong>vuota</strong>, lista con <strong>un solo nodo</strong>, lista con <strong>più nodi</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ELIMINARE ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Eliminare: la testa e l'intera lista</h2>
+    <span class="section-num">SEZIONE 06</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">Nodo* eliminaTesta(Nodo* testa) {
+    if (testa == nullptr)
+        return nullptr;          // niente da eliminare
+    Nodo* vecchia = testa;
+    testa = testa-&gt;next;         // la testa avanza
+    delete vecchia;              // libero il vecchio primo nodo
+    return testa;
+}
+
+Nodo* svuota(Nodo* testa) {
+    while (testa != nullptr)
+        testa = eliminaTesta(testa);
+    return nullptr;
+}
+
+// a fine programma, nel main
+testa = svuota(testa);</pre>
+    </div>
+    <div class="stack">
+      <div class="step">Prima</div>
+      <div class="ll">
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">1</span><span class="n">•</span></span><span class="arrow sm"></span><span class="ll-null">nullptr</span>
+      </div>
+      <div class="step">Dopo eliminaTesta: il nodo 3 viene liberato con delete</div>
+      <div class="ll">
+        <span class="node del"><span class="d">3</span><span class="n">✕</span></span>
+        <span class="bx-gap"></span>
+        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">1</span><span class="n">•</span></span><span class="arrow sm"></span><span class="ll-null">nullptr</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>L'ordine conta: prima si salva il puntatore al nodo da eliminare, poi si sposta la testa e infine si fa <code>delete</code>. Scrivendo <code>delete testa;</code> e poi <code>testa = testa-&gt;next;</code> si legge un nodo già cancellato.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10003;</span>
+        <span>A fine programma la lista va svuotata: ogni <code>new Nodo</code> deve avere il suo <code>delete</code>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ARRAY O LISTA ═══ -->
+<div class="slide" data-section="liste">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Array o lista?</h2>
+    <span class="section-num">RIEPILOGO</span>
+  </div>
+  <div class="one-col">
+    <div class="proto-header">
+      <div class="proto-row"><div class="proto-cell hl-blue b w2">Operazione</div><div class="proto-cell hl-yel b w2">Array</div><div class="proto-cell hl b w2">Lista concatenata</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Accedere all'elemento i-esimo</div><div class="proto-cell l w2">immediato: v[i]</div><div class="proto-cell l w2">bisogna scorrere i nodi dall'inizio</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Inserire o eliminare in testa</div><div class="proto-cell l w2">spostare tutti gli elementi</div><div class="proto-cell l w2">due o tre assegnazioni</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Inserire o eliminare in mezzo</div><div class="proto-cell l w2">spostare gli elementi successivi</div><div class="proto-cell l w2">cambiare un collegamento (dopo aver trovato il punto)</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Dimensione</div><div class="proto-cell l w2">fissa</div><div class="proto-cell l w2">cresce e diminuisce durante l'esecuzione</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Memoria per elemento</div><div class="proto-cell l w2">solo il dato</div><div class="proto-cell l w2">il dato più un puntatore</div></div>
+      <div class="proto-row"><div class="proto-cell l w2">Ricerca</div><div class="proto-cell l w2">sequenziale, o binaria se ordinato</div><div class="proto-cell l w2">solo sequenziale</div></div>
+    </div>
+    <div class="two-col" style="flex:unset;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Nessuna delle due strutture è «migliore» in assoluto: si sceglie in base alle operazioni che il programma fa più spesso.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Prossimo passo: con queste stesse operazioni si costruiscono <a href="cpp_puntatori_strutture_dinamiche.html">pila e coda</a>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LAB 2: COME LAVORIAMO ═══ -->
+<div class="slide" data-section="lab2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Laboratorio 2: costruiamo una lista</h2>
+    <span class="section-num">LAB 2</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Metodo</h3>
+        <ol>
+          <li>Prima di scrivere una funzione, disegnate la lista e i passaggi dei puntatori.</li>
+          <li>Scrivete una funzione alla volta e provatela subito dal menu.</li>
+          <li>Provate sempre tre casi: lista vuota, un nodo, più nodi.</li>
+          <li>A fine programma svuotate la lista.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4)">Python Tutor</h3>
+        <p>Con le liste è utilissimo: mostra i nodi nello heap e le frecce dei <code>next</code>. Usatelo con programmi senza menu e senza <code>cin</code>: inserite i valori direttamente nel main.</p>
+      </div>
+    </div>
+    <div class="overview-grid single">
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es7"><div class="ov-num" style="color:var(--accent2)">7</div><div class="ov-content"><h4>La lista con indici <span class="lvl">★</span></h4><p>Inserire ed eliminare in un array senza spostare elementi</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es8"><div class="ov-num" style="color:var(--accent2)">8</div><div class="ov-content"><h4>La mia prima lista <span class="lvl">★★</span></h4><p>Inserimento in testa, stampa, conteggio</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es9"><div class="ov-num" style="color:var(--accent2)">9</div><div class="ov-content"><h4>Completiamo le operazioni <span class="lvl">★★</span></h4><p>Ricerca, inserimento in coda, eliminazione, somma e massimo</p></div></div>
+      <div class="ov-item" style="--ovc:var(--accent2);" data-goto="es10"><div class="ov-num" style="color:var(--accent2)">10</div><div class="ov-content"><h4>Sfide <span class="lvl">★★★</span></h4><p>Eliminare un valore, lista ordinata, playlist</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 7 ═══ -->
+<div class="slide" data-section="lab2" id="es7">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 7: la lista con indici</h2>
+    <span class="section-num">LAB 2 · <span class="lvl">★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <ol class="task">
+          <li>Completate la funzione <code>stampa</code>: scorre la lista partendo da <code>testa</code> finché l'indice non vale -1.</li>
+          <li>Inserite 25 tra 20 e 30 usando la cella libera 2.</li>
+          <li>Inserite 5 in testa usando la cella libera 5. Attenzione: deve cambiare anche <code>testa</code>.</li>
+          <li>Eliminate 30 dalla lista. Basta una sola assegnazione: quale?</li>
+          <li>Dopo ogni operazione richiamate <code>stampa</code>. Alla fine deve uscire <code>5 10 20 25 40</code>.</li>
+        </ol>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9998;</span>
+        <span>Disegnate prima la tabella delle celle (dato, next) e aggiornatela a ogni passo.</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+using namespace std;
+
+struct Elemento {
+    int dato;
+    int next;    // indice del prossimo, -1 = fine lista
+};
+
+void stampa(Elemento lista[], int testa) {
+    // TODO: scorri da testa finché l'indice non vale -1
+}
+
+int main() {
+    Elemento lista[6] = {
+        {30, 4}, {10, 3}, {0, -1}, {20, 0}, {40, -1}, {0, -1}
+    };
+    int testa = 1;           // celle libere: 2 e 5
+    stampa(lista, testa);    // 10 20 30 40
+
+    // b) inserisci 25 tra 20 e 30 (cella libera 2)
+
+    // c) inserisci 5 in testa (cella libera 5)
+
+    // d) elimina 30
+
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 8 ═══ -->
+<div class="slide" data-section="lab2" id="es8">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 8: la mia prima lista</h2>
+    <span class="section-num">LAB 2 · <span class="lvl">★★</span></span>
+  </div>
+  <div class="two-col-r">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna</h3>
+        <p style="margin-bottom:8px;">Il programma di partenza ha già il menu completo: voi scrivete le funzioni. Compila subito, anche prima che le completiate.</p>
+        <ol class="task">
+          <li><code>inserisciInTesta</code></li>
+          <li><code>stampa</code>, nel formato <code>3 -> 7 -> 9 -> fine</code></li>
+          <li><code>conta</code></li>
+          <li>Prova: stampate la lista vuota, poi inserite in testa 9, 7 e 3, stampate e contate. Deve risultare <code>3 -> 7 -> 9 -> fine</code> ed «Elementi: 3».</li>
+        </ol>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Le altre funzioni (<code>cerca</code>, <code>inserisciInCoda</code>, <code>eliminaTesta</code>, <code>svuota</code>) le completerete nell'esercizio 9: per ora lasciatele come sono.</span>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">&#9888;</span>
+        <span>Nel main ogni chiamata che modifica la lista è già scritta come <code>testa = …</code>. Non togliete l'assegnazione!</span>
+      </div>
+    </div>
+    <div class="stack">
+<pre class="cpp copy long">#include &lt;iostream&gt;
+using namespace std;
+
+struct Nodo {
+    int dato;
+    Nodo* next;
+};
+
+// ===== Esercizio 8 =====
+Nodo* inserisciInTesta(Nodo* testa, int x) {
+    // TODO
+    return testa;
+}
+
+void stampa(Nodo* testa) {
+    // TODO
+}
+
+int conta(Nodo* testa) {
+    // TODO
+    return 0;
+}
+
+// ===== Esercizio 9 =====
+bool cerca(Nodo* testa, int x) {
+    // TODO
+    return false;
+}
+
+Nodo* inserisciInCoda(Nodo* testa, int x) {
+    // TODO
+    return testa;
+}
+
+Nodo* eliminaTesta(Nodo* testa) {
+    // TODO
+    return testa;
+}
+
+Nodo* svuota(Nodo* testa) {
+    // TODO
+    return testa;
+}
+
+int main() {
+    Nodo* testa = nullptr;    // lista vuota
+    int scelta, x;
+    do {
+        cout &lt;&lt; "\n1) Inserisci in testa   2) Inserisci in coda   3) Stampa\n"
+             &lt;&lt; "4) Conta   5) Cerca   6) Elimina testa   0) Esci\n&gt; ";
+        cin &gt;&gt; scelta;
+        switch (scelta) {
+            case 1: cout &lt;&lt; "Valore: "; cin &gt;&gt; x;
+                    testa = inserisciInTesta(testa, x); break;
+            case 2: cout &lt;&lt; "Valore: "; cin &gt;&gt; x;
+                    testa = inserisciInCoda(testa, x); break;
+            case 3: stampa(testa); break;
+            case 4: cout &lt;&lt; "Elementi: " &lt;&lt; conta(testa) &lt;&lt; endl; break;
+            case 5: cout &lt;&lt; "Valore: "; cin &gt;&gt; x;
+                    if (cerca(testa, x)) cout &lt;&lt; "Trovato" &lt;&lt; endl;
+                    else cout &lt;&lt; "Non presente" &lt;&lt; endl;
+                    break;
+            case 6: testa = eliminaTesta(testa); break;
+        }
+    } while (scelta != 0);
+
+    testa = svuota(testa);    // restituisco tutta la memoria
+    return 0;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 9 ═══ -->
+<div class="slide" data-section="lab2" id="es9">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 9: completiamo le operazioni</h2>
+    <span class="section-num">LAB 2 · <span class="lvl">★★</span></span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Consegna (stesso programma dell'esercizio 8)</h3>
+        <ol class="task">
+          <li><code>bool cerca(Nodo* testa, int x)</code></li>
+          <li><code>Nodo* inserisciInCoda(Nodo* testa, int x)</code>: ricordate il caso della lista vuota.</li>
+          <li><code>Nodo* eliminaTesta(Nodo* testa)</code>: se la lista è vuota non fa nulla.</li>
+          <li><code>Nodo* svuota(Nodo* testa)</code>: libera tutti i nodi e restituisce <code>nullptr</code>.</li>
+          <li>Aggiungete al menu le voci <strong>7) Somma</strong> e <strong>8) Massimo</strong>, con le funzioni <code>int somma(Nodo* testa)</code> e <code>int massimo(Nodo* testa)</code>. Che cosa deve succedere se la lista è vuota?</li>
+        </ol>
+      </div>
+      <div class="card reveal">
+        <h3 style="color:var(--accent3)">Bloccati su massimo?</h3>
+        <button class="reveal-btn no-js-hide" type="button">Mostra un suggerimento</button>
+        <div class="reveal-body"><p>Partite dal dato della testa e scorrete dal secondo nodo (<code>testa-&gt;next</code>). Chiamate la funzione solo se la lista non è vuota: il controllo va fatto nel main.</p></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">Tabella di prova (partendo dalla lista vuota)</h3>
+        <div class="proto-header">
+          <div class="proto-row"><div class="proto-cell hl b w2">Azione</div><div class="proto-cell hl b w2">Risultato atteso</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Elimina testa</div><div class="proto-cell l w2">nessun crash</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Inserisci in coda 5</div><div class="proto-cell w2">5 -&gt; fine</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Inserisci in testa 2, poi in coda 8</div><div class="proto-cell w2">2 -&gt; 5 -&gt; 8 -&gt; fine</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Cerca 5 / Cerca 4</div><div class="proto-cell l w2">Trovato / Non presente</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Somma / Massimo</div><div class="proto-cell w2">15 / 8</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Elimina testa</div><div class="proto-cell w2">5 -&gt; 8 -&gt; fine</div></div>
+          <div class="proto-row"><div class="proto-cell l w2">Esci</div><div class="proto-cell l w2">la lista viene svuotata</div></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9888;</span>
+        <span>Per <code>inserisciInCoda</code> la condizione del ciclo è <code>p-&gt;next != nullptr</code>, non <code>p != nullptr</code>: dovete fermarvi <strong>sull'ultimo</strong> nodo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ES 10 ═══ -->
+<div class="slide" data-section="lab2" id="es10">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esercizio 10: sfide</h2>
+    <span class="section-num">LAB 2 · <span class="lvl">★★★</span></span>
+  </div>
+  <div class="three-col">
+    <div class="card">
+      <h3 style="color:var(--accent4)">A · Elimina un valore</h3>
+      <p><code>Nodo* eliminaValore(Nodo* testa, int x)</code> elimina la <strong>prima</strong> occorrenza di x.</p>
+      <p>Casi da gestire: lista vuota · x nella testa · x in mezzo o in fondo · x assente.</p>
+      <div class="reveal">
+        <button class="reveal-btn no-js-hide" type="button">Mostra un suggerimento</button>
+        <div class="reveal-body"><p>Per eliminare un nodo in mezzo serve il nodo <strong>precedente</strong>: scorrete con un puntatore <code>prec</code> e controllate <code>prec-&gt;next-&gt;dato</code>. Poi <code>prec-&gt;next</code> deve «saltare» il nodo da eliminare.</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent1)">B · Lista ordinata</h3>
+      <p><code>Nodo* inserisciOrdinato(Nodo* testa, int x)</code> inserisce x mantenendo la lista in ordine crescente.</p>
+      <p>Prova: inserendo 5, 1, 9, 3, 7 deve risultare <code>1 -> 3 -> 5 -> 7 -> 9 -> fine</code>.</p>
+      <p>Domanda guida: in quali casi il nuovo nodo diventa la testa?</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent3)">C · Playlist</h3>
+<pre class="cpp">struct Brano {
+    string titolo;
+    int durata;      // in secondi
+    Brano* next;
+};</pre>
+      <p style="margin-top:8px;">Aggiungete i brani in coda e stampate la playlist numerata, con la durata in formato m:ss e la durata totale. Extra: rimuovete un brano dato il titolo.</p>
+<pre class="out" style="margin-top:8px;">1. Bohemian Rhapsody (5:54)
+2. Imagine (3:03)
+Durata totale: 8 min 57 s</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LAB 2: ERRORI E AUTOVALUTAZIONE ═══ -->
+<div class="slide" data-section="lab2">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Errori tipici con le liste e autovalutazione</h2>
+    <span class="section-num">LAB 2</span>
+  </div>
+  <div class="two-col-l">
+    <div class="proto-header">
+      <div class="proto-row"><div class="proto-cell hl-red b w2">Errore</div><div class="proto-cell hl-red b w2">Sintomo</div><div class="proto-cell hl-red b w2">Correzione</div></div>
+      <div class="proto-row"><div class="proto-cell w2">inserisciInTesta(testa, x);</div><div class="proto-cell l w2">la lista non cambia</div><div class="proto-cell w2">testa = inserisciInTesta(testa, x);</div></div>
+      <div class="proto-row"><div class="proto-cell w2">p-&gt;next con p == nullptr</div><div class="proto-cell l w2">crash con la lista vuota</div><div class="proto-cell l w2">gestire prima il caso testa == nullptr</div></div>
+      <div class="proto-row"><div class="proto-cell w2">while (p != nullptr) per trovare l'ultimo</div><div class="proto-cell l w2">alla fine p è nullptr: non c'è niente a cui agganciare</div><div class="proto-cell w2">while (p-&gt;next != nullptr)</div></div>
+      <div class="proto-row"><div class="proto-cell w2">delete testa; testa = testa-&gt;next;</div><div class="proto-cell l w2">si legge un nodo già cancellato</div><div class="proto-cell l w2">salvare prima il puntatore</div></div>
+      <div class="proto-row"><div class="proto-cell w2">nuovo-&gt;next non inizializzato</div><div class="proto-cell l w2">crash o lista «infinita»</div><div class="proto-cell w2">nuovo-&gt;next = nullptr;</div></div>
+      <div class="proto-row"><div class="proto-cell w2">lista mai svuotata</div><div class="proto-cell l w2">memory leak</div><div class="proto-cell w2">testa = svuota(testa);</div></div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent1)">So farlo?</h3>
+        <ul class="check">
+          <li><label><input type="checkbox"><span>Spiego perché inserire in mezzo a un array costa caro.</span></label></li>
+          <li><label><input type="checkbox"><span>Uso <code>new</code> e <code>delete</code> senza memory leak.</span></label></li>
+          <li><label><input type="checkbox"><span>Disegno una lista e i passaggi di un inserimento.</span></label></li>
+          <li><label><input type="checkbox"><span>Scrivo l'inserimento in testa e in coda.</span></label></li>
+          <li><label><input type="checkbox"><span>Scorro una lista per stampare, contare e cercare.</span></label></li>
+          <li><label><input type="checkbox"><span>Elimino i nodi liberando la memoria.</span></label></li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Prossima tappa: <strong>pila e coda</strong>, costruite con le stesse operazioni che avete appena scritto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLUZIONI LAB 2 (1/3) — solo docente ═══ -->
+<div class="slide teacher-only" data-section="sol">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Soluzioni Lab 2: esercizi 7–8</h2>
+    <span class="section-num">SOLO DOCENTE</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">// Esercizio 7
+void stampa(Elemento lista[], int testa) {
+    int i = testa;
+    while (i != -1) {
+        cout &lt;&lt; lista[i].dato &lt;&lt; " ";
+        i = lista[i].next;
+    }
+    cout &lt;&lt; endl;
+}
+
+// b) 25 tra 20 (cella 3) e 30
+lista[2].dato = 25;
+lista[2].next = lista[3].next;
+lista[3].next = 2;
+
+// c) 5 in testa
+lista[5].dato = 5;
+lista[5].next = testa;
+testa = 5;
+
+// d) elimina 30 (cella 0): il precedente è 25 (cella 2)
+lista[2].next = lista[0].next;</pre>
+      <div class="callout callout-green"><span class="callout-icon">&#10003;</span><span>Uscite: 10 20 30 40 · 10 20 25 30 40 · 5 10 20 25 30 40 · 5 10 20 25 40</span></div>
+    </div>
+    <div class="stack">
+<pre class="cpp">// Esercizio 8
+Nodo* inserisciInTesta(Nodo* testa, int x) {
+    Nodo* nuovo = new Nodo;
+    nuovo-&gt;dato = x;
+    nuovo-&gt;next = testa;
+    return nuovo;
+}
+
+void stampa(Nodo* testa) {
+    Nodo* p = testa;
+    while (p != nullptr) {
+        cout &lt;&lt; p-&gt;dato &lt;&lt; " -&gt; ";
+        p = p-&gt;next;
+    }
+    cout &lt;&lt; "fine" &lt;&lt; endl;
+}
+
+int conta(Nodo* testa) {
+    int n = 0;
+    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+        n++;
+    return n;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLUZIONI LAB 2 (2/3) — solo docente ═══ -->
+<div class="slide teacher-only" data-section="sol">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Soluzioni Lab 2: esercizio 9</h2>
+    <span class="section-num">SOLO DOCENTE</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">bool cerca(Nodo* testa, int x) {
+    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+        if (p-&gt;dato == x) return true;
+    return false;
+}
+
+Nodo* inserisciInCoda(Nodo* testa, int x) {
+    Nodo* nuovo = new Nodo;
+    nuovo-&gt;dato = x;
+    nuovo-&gt;next = nullptr;
+    if (testa == nullptr)
+        return nuovo;
+    Nodo* p = testa;
+    while (p-&gt;next != nullptr)
+        p = p-&gt;next;
+    p-&gt;next = nuovo;
+    return testa;
+}
+
+Nodo* eliminaTesta(Nodo* testa) {
+    if (testa == nullptr) return nullptr;
+    Nodo* vecchia = testa;
+    testa = testa-&gt;next;
+    delete vecchia;
+    return testa;
+}
+
+Nodo* svuota(Nodo* testa) {
+    while (testa != nullptr)
+        testa = eliminaTesta(testa);
+    return nullptr;
+}</pre>
+    </div>
+    <div class="stack">
+<pre class="cpp">int somma(Nodo* testa) {
+    int s = 0;
+    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+        s += p-&gt;dato;
+    return s;
+}
+
+// precondizione: lista non vuota
+int massimo(Nodo* testa) {
+    int max = testa-&gt;dato;
+    for (Nodo* p = testa-&gt;next; p != nullptr; p = p-&gt;next)
+        if (p-&gt;dato &gt; max) max = p-&gt;dato;
+    return max;
+}
+
+// nuove voci del menu
+case 7: cout &lt;&lt; "Somma: " &lt;&lt; somma(testa) &lt;&lt; endl; break;
+case 8: if (testa == nullptr) cout &lt;&lt; "Lista vuota" &lt;&lt; endl;
+        else cout &lt;&lt; "Massimo: " &lt;&lt; massimo(testa) &lt;&lt; endl;
+        break;</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLUZIONI LAB 2 (3/3) — solo docente ═══ -->
+<div class="slide teacher-only" data-section="sol">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Soluzioni Lab 2: sfide</h2>
+    <span class="section-num">SOLO DOCENTE</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">// A · Elimina un valore
+Nodo* eliminaValore(Nodo* testa, int x) {
+    if (testa == nullptr) return nullptr;
+    if (testa-&gt;dato == x)
+        return eliminaTesta(testa);
+
+    Nodo* prec = testa;
+    while (prec-&gt;next != nullptr &amp;&amp; prec-&gt;next-&gt;dato != x)
+        prec = prec-&gt;next;
+
+    if (prec-&gt;next != nullptr) {        // trovato: è prec-&gt;next
+        Nodo* daCancellare = prec-&gt;next;
+        prec-&gt;next = daCancellare-&gt;next;
+        delete daCancellare;
+    }
+    return testa;
+}
+
+// B · Lista ordinata
+Nodo* inserisciOrdinato(Nodo* testa, int x) {
+    if (testa == nullptr || x &lt;= testa-&gt;dato)
+        return inserisciInTesta(testa, x);
+
+    Nodo* prec = testa;
+    while (prec-&gt;next != nullptr &amp;&amp; prec-&gt;next-&gt;dato &lt; x)
+        prec = prec-&gt;next;
+
+    Nodo* nuovo = new Nodo;
+    nuovo-&gt;dato = x;
+    nuovo-&gt;next = prec-&gt;next;
+    prec-&gt;next = nuovo;
+    return testa;
+}</pre>
+    </div>
+    <div class="stack">
+<pre class="cpp">// C · Playlist
+Brano* aggiungiBrano(Brano* testa, string titolo, int durata) {
+    Brano* nuovo = new Brano;
+    nuovo-&gt;titolo = titolo;
+    nuovo-&gt;durata = durata;
+    nuovo-&gt;next = nullptr;
+    if (testa == nullptr) return nuovo;
+    Brano* p = testa;
+    while (p-&gt;next != nullptr) p = p-&gt;next;
+    p-&gt;next = nuovo;
+    return testa;
+}
+
+void stampaPlaylist(Brano* testa) {
+    int totale = 0;
+    int n = 1;
+    for (Brano* p = testa; p != nullptr; p = p-&gt;next) {
+        cout &lt;&lt; n &lt;&lt; ". " &lt;&lt; p-&gt;titolo &lt;&lt; " (" &lt;&lt; p-&gt;durata / 60 &lt;&lt; ":"
+             &lt;&lt; (p-&gt;durata % 60 &lt; 10 ? "0" : "") &lt;&lt; p-&gt;durata % 60 &lt;&lt; ")" &lt;&lt; endl;
+        totale += p-&gt;durata;
+        n++;
+    }
+    cout &lt;&lt; "Durata totale: " &lt;&lt; totale / 60 &lt;&lt; " min "
+         &lt;&lt; totale % 60 &lt;&lt; " s" &lt;&lt; endl;
+}</pre>
+      <div class="callout callout-blue"><span class="callout-icon">&#9432;</span><span>Nella condizione <code>prec-&gt;next != nullptr &amp;&amp; prec-&gt;next-&gt;dato != x</code> l'ordine è essenziale: grazie alla valutazione «a corto circuito» di <code>&amp;&amp;</code>, il secondo controllo non viene eseguito se il primo è falso.</span></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- fine #stage -->
+
+<div id="nav">
+  <button id="btn-prev" onclick="changeSlide(-1)" disabled>&#8592; Prec</button>
+  <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+  <button id="btn-next" onclick="changeSlide(1)">Succ &#8594;</button>
+  <div id="section-label">Sezione: Introduzione</div>
+</div>
+
+<script>
+  // Modalità docente: aggiungere ?docente (o #docente) all'indirizzo per vedere le soluzioni.
+  const DOCENTE = /[?&#]docente\b/.test(location.search + location.hash);
+  if (DOCENTE) document.documentElement.classList.add('docente');
+  else document.querySelectorAll('.slide.teacher-only').forEach(s => s.remove());
+
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  const total = slides.length;
+
+  const sectionLabels = {
+    'intro':     'Introduzione',
+    'perche':    'A cosa servono i puntatori',
+    'memoria':   'La memoria e gli indirizzi',
+    'puntatori': 'Il puntatore',
+    'uso':       'Puntatori al lavoro',
+    'lab1':      'Laboratorio 1 — Puntatori',
+    'parte2':    'Verso le liste',
+    'ponte':     'La lista con indici',
+    'dinamica':  'Memoria dinamica',
+    'liste':     'La lista concatenata',
+    'lab2':      'Laboratorio 2 — Liste',
+    'sol':       'Soluzioni (docente)'
+  };
+
+  function changeSlide(dir) {
+    const next = current + dir;
+    if (next < 0 || next >= total || next === current) return;
+    const prev = slides[current];
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(() => prev.classList.remove('exit'), 400);
+    current = next;
+    slides[current].classList.remove('exit');
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent =
+      'Sezione: ' + (sectionLabels[sec] || sec);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+  }
+
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Touch swipe support
+  let _touchStartX = 0, _touchStartY = 0, _touchInPre = false;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+    _touchInPre = !!(e.target.closest && e.target.closest('pre'));
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    if (_touchInPre) return;   // nei riquadri di codice lo swipe scorre il codice
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) changeSlide(1);
+      else        changeSlide(-1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: data-goto = sezione, id di una slide o numero di slide
+  (function () {
+    var all = Array.prototype.slice.call(slides);
+    function jump(i) { changeSlide(i - current); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t = -1;
+      var byId = document.getElementById(v);
+      if (byId && all.indexOf(byId) >= 0) {
+        t = all.indexOf(byId);
+      } else if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
+
+  // Evidenziazione della sintassi C++ e pulsante «Copia»
+  (function () {
+    var KW = ' if else for while do switch case break continue default return new delete nullptr struct using namespace true false sizeof const ';
+    var TY = ' int double char bool void string float long Nodo Elemento Studente Brano ';
+    var RE = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)')|(#\w+(?:\s*<[^>\n]*>)?)|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|(->|&&|\|\||<<|>>|[*&])/g;
+    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function highlight(src) {
+      var out = '', last = 0, m;
+      RE.lastIndex = 0;
+      while ((m = RE.exec(src))) {
+        out += esc(src.slice(last, m.index));
+        var t = m[0], cls = '';
+        if (m[1]) cls = 'cm';
+        else if (m[2]) cls = 'str';
+        else if (m[3]) cls = 'pp';
+        else if (m[4]) cls = 'num';
+        else if (m[5]) {
+          if (KW.indexOf(' ' + t + ' ') >= 0) cls = 'kw';
+          else if (TY.indexOf(' ' + t + ' ') >= 0) cls = 'ty';
+          else if (/^\s*\(/.test(src.slice(RE.lastIndex))) cls = 'fn';
+        }
+        else if (m[6] && (t === '->' || t === '*' || t === '&')) cls = 'op';
+        out += cls ? '<span class="' + cls + '">' + esc(t) + '</span>' : esc(t);
+        last = RE.lastIndex;
+      }
+      return out + esc(src.slice(last));
+    }
+    function copia(testo, btn) {
+      function ok() {
+        btn.textContent = 'Copiato ✓'; btn.classList.add('ok');
+        setTimeout(function () { btn.textContent = 'Copia'; btn.classList.remove('ok'); }, 1600);
+      }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = testo; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); ok(); } catch (e) { btn.textContent = 'Seleziona e copia'; }
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(testo).then(ok, fallback);
+      } else {
+        fallback();
+      }
+    }
+    document.querySelectorAll('pre.cpp').forEach(function (pre) {
+      var src = pre.textContent;
+      pre.innerHTML = highlight(src);
+      if (!pre.classList.contains('copy')) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'code-wrap';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'copy-btn'; btn.textContent = 'Copia';
+      btn.addEventListener('click', function () { copia(src, btn); });
+      wrap.appendChild(btn);
+    });
+  })();
+
+  // Risposte e suggerimenti a scomparsa
+  document.querySelectorAll('.reveal').forEach(function (box) {
+    var btn = box.querySelector('.reveal-btn');
+    if (!btn) return;
+    var label = btn.textContent;
+    btn.addEventListener('click', function () {
+      var open = box.classList.toggle('open');
+      btn.textContent = open ? 'Nascondi' : label;
+    });
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
