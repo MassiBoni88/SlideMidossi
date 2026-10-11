@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Puntatori e liste in C++</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script>document.documentElement.classList.add('js');</script>
+<script>
+  document.documentElement.classList.add('js');
+  // tema scelto ricordato (vale anche per gli altri deck dello stesso sito)
+  try {
+    var temaSalvato = localStorage.getItem('slidemidossi-tema');
+    if (temaSalvato === 'light' || temaSalvato === 'dark') document.documentElement.setAttribute('data-theme', temaSalvato);
+  } catch (e) {}
+</script>
 <style>
   :root {
     --bg: #ffffff;
@@ -40,7 +47,7 @@
     --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
   }
 
-  html { font-size: 112%; }
+  html { font-size: 112%; overscroll-behavior: none; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -48,7 +55,9 @@
     color: var(--text);
     font-family: 'Poppins', sans-serif;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
+    overscroll-behavior: none;
     display: flex;
     flex-direction: column;
     transition: background 0.3s, color 0.3s;
@@ -73,7 +82,10 @@
     font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
     cursor: pointer; transition: background 0.2s, color 0.2s;
   }
-  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  @media (hover: hover) {
+    #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   #doc-badge {
     display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
     letter-spacing: 1px; color: var(--accent3); border: 1px solid var(--accent3);
@@ -169,7 +181,9 @@
     padding: 3px 10px; border-radius: 4px; cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
-  .copy-btn:hover { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+  @media (hover: hover) {
+    .copy-btn:hover { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+  }
   .copy-btn.ok { color: var(--accent1); border-color: var(--accent1); }
 
   .callout {
@@ -336,7 +350,9 @@
     margin-top: 8px; background: transparent; border: 1px solid var(--accent3); color: var(--accent3);
     font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; padding: 5px 12px; border-radius: 5px; cursor: pointer;
   }
-  .reveal-btn:hover { background: var(--accent3); color: #111; }
+  @media (hover: hover) {
+    .reveal-btn:hover { background: var(--accent3); color: #111; }
+  }
   .reveal-body { margin-top: 9px; }
   .js .reveal-body { display: none; }
   .js .reveal.open .reveal-body { display: block; }
@@ -355,7 +371,9 @@
     font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
     cursor: pointer; transition: background 0.2s, color 0.2s;
   }
-  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  @media (hover: hover) {
+    #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  }
   #nav button:disabled { opacity: 0.3; cursor: default; }
   #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
   #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
@@ -377,7 +395,7 @@
     #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
     #topbar .title-bar { font-size: 0.78rem; }
     #slide-counter { font-size: 0.72rem; }
-    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    #theme-btn { padding: 6px 10px; font-size: 0.72rem; min-height: 40px; }
     .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
     .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
     .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
@@ -418,7 +436,7 @@
   <div id="topbar-right">
     <span id="doc-badge">DOCENTE</span>
     <div id="slide-counter">01 / 01</div>
-    <button id="theme-btn" onclick="toggleTheme()">&#9680; Light</button>
+    <button id="theme-btn" type="button" onclick="toggleTheme()" aria-label="Cambia tema chiaro/scuro">&#9680; Light</button>
   </div>
 </div>
 
@@ -2858,12 +2876,19 @@ void stampaPlaylist(Brano* testa) {
       'Sezione: ' + (sectionLabels[sec] || sec);
   }
 
+  function aggiornaPulsanteTema() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Light' : '◑ Dark';
+  }
+
   function toggleTheme() {
     const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    document.getElementById('theme-btn').textContent = isDark ? '◑ Dark' : '◑ Light';
+    const nuovo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', nuovo);
+    try { localStorage.setItem('slidemidossi-tema', nuovo); } catch (e) {}
+    aggiornaPulsanteTema();
   }
+  aggiornaPulsanteTema();
 
   document.addEventListener('keydown', e => {
     const t = e.target;
