@@ -250,6 +250,8 @@
   .mem { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
   .mem-row { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--border); }
   .mem-row:last-child { border-bottom: none; }
+  .mem.c4 .mem-row { grid-template-columns: 0.8fr 1fr 0.8fr 1.4fr; }
+  .mem-row .pos { color: var(--accent1); font-weight: 700; }
   .mem-row span { padding: 6px 10px; text-align: center; border-right: 1px solid var(--border); color: var(--ct); }
   .mem-row span:last-child { border-right: none; }
   .mem-row.head span { background: rgba(37,99,235,0.1); color: var(--accent4); font-weight: 700; }
@@ -1789,13 +1791,17 @@ for (int i = 0; i &lt; 5; i++)
         <div class="cell"><div class="idx">4</div><div class="box mv">40</div></div>
         <div class="cell"><div class="idx">5</div><div class="box free">–</div></div>
       </div>
-<pre class="cpp">// inserire x in posizione pos: sposto tutto a destra
-for (int i = n; i &gt; pos; i--)
-    v[i] = v[i - 1];
-v[pos] = x;
-n++;</pre>
     </div>
     <div class="stack">
+<pre class="cpp">int v[6] = {10, 20, 30, 40};   // 6 celle, ne usiamo 4
+int n = 4;                     // elementi usati
+int pos = 2;                   // dove va il nuovo valore
+int x = 25;                    // valore da inserire
+
+for (int i = n; i &gt; pos; i--)  // da destra a sinistra
+    v[i] = v[i - 1];
+v[pos] = x;
+n++;                           // ora gli elementi sono 5</pre>
       <div class="card">
         <h3 style="color:var(--accent2)">I limiti dell'array</h3>
         <ul>
@@ -1803,47 +1809,88 @@ n++;</pre>
           <li><strong>La dimensione è fissa</strong> e va decisa prima. Se è troppo grande si spreca memoria, se è troppo piccola non basta.</li>
         </ul>
       </div>
-      <div class="callout callout-blue">
-        <span class="callout-icon">&#128161;</span>
-        <span>E se ogni elemento sapesse semplicemente <strong>dov'è il successivo</strong>? Allora non servirebbe più tenerli in fila uno dopo l'altro.</span>
-      </div>
       <div class="callout callout-green">
-        <span class="callout-icon">&#10140;</span>
-        <span>È l'idea della <strong>lista concatenata</strong>. La proviamo subito con strumenti che conoscete già: array e struct.</span>
+        <span class="callout-icon">&#128161;</span>
+        <span>E se ogni elemento sapesse semplicemente <strong>dov'è il successivo</strong>? Non servirebbe più tenerli in fila: è l'idea della <strong>lista concatenata</strong>, che proviamo subito con array e struct.</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ LA LISTA CON INDICI ═══ -->
+<!-- ═══ LA LISTA CON INDICI: L'IDEA ═══ -->
 <div class="slide" data-section="ponte">
   <div class="section-header">
     <div class="section-dot" style="background:var(--accent3)"></div>
-    <h2 style="color:var(--accent3)">Collegare invece di affiancare: la lista con indici</h2>
+    <h2 style="color:var(--accent3)">Collegare invece di affiancare</h2>
     <span class="section-num">SEZIONE 04</span>
   </div>
   <div class="two-col">
     <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent3)">L'idea</h3>
+        <p>Vogliamo memorizzare la lista <strong>10 → 20 → 30 → 40</strong>.</p>
+        <p>Gli elementi possono stare in <strong>celle qualsiasi</strong> dell'array, anche in disordine: basta che ognuno sappia <strong>in quale cella si trova il successivo</strong>.</p>
+      </div>
 <pre class="cpp">struct Elemento {
-    int dato;
-    int next;    // indice del prossimo elemento, -1 = fine
-};
-
-Elemento lista[6] = {
-    {30, 4}, {10, 3}, {0, -1}, {20, 0}, {40, -1}, {0, -1}
-};
-int testa = 1;   // indice del primo elemento</pre>
-      <div class="mem">
-        <div class="mem-row head"><span>cella</span><span>dato</span><span>next</span></div>
-        <div class="mem-row"><span class="addr">0</span><span class="val">30</span><span>4</span></div>
-        <div class="mem-row"><span class="addr">1 ← testa</span><span class="val">10</span><span>3</span></div>
-        <div class="mem-row free"><span>2</span><span>libera</span><span>–</span></div>
-        <div class="mem-row"><span class="addr">3</span><span class="val">20</span><span>0</span></div>
-        <div class="mem-row"><span class="addr">4</span><span class="val">40</span><span>-1</span></div>
-        <div class="mem-row free"><span>5</span><span>libera</span><span>–</span></div>
+    int dato;    // il valore
+    int next;    // cella del successivo, -1 = è l'ultimo
+};</pre>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">&#9873;</span>
+        <span><code>testa</code> è l'<strong>indice della cella che contiene il primo elemento</strong> della lista: il punto da cui si comincia a leggere. Non è per forza la cella 0. Se la lista è vuota vale -1.</span>
       </div>
     </div>
     <div class="stack">
+      <div class="card">
+        <h3 style="color:var(--accent4)">Come la sala d'attesa del medico</h3>
+        <div class="proto-header compact" style="margin-top:6px;">
+          <div class="proto-row"><div class="proto-cell hl-blue b">Sala d'attesa</div><div class="proto-cell hl-blue b">Lista con indici</div></div>
+          <div class="proto-row"><div class="proto-cell l">Sedie numerate</div><div class="proto-cell l">Celle dell'array</div></div>
+          <div class="proto-row"><div class="proto-cell l">Ognuno si siede sulla prima sedia libera</div><div class="proto-cell l">Il dato va nella prima cella libera</div></div>
+          <div class="proto-row"><div class="proto-cell l">L'ordine delle visite (ordine di arrivo)</div><div class="proto-cell l">L'ordine della lista</div></div>
+          <div class="proto-row"><div class="proto-cell l">La segretaria sa su quale sedia è il primo</div><div class="proto-cell l"><code>testa</code></div></div>
+          <div class="proto-row"><div class="proto-cell l">Ognuno sa su quale sedia è il prossimo</div><div class="proto-cell l"><code>next</code></div></div>
+        </div>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">&#10140;</span>
+        <span>Il numero della sedia non dice quando tocca a te. Allo stesso modo, l'indice della cella non dice il posto nella lista: lo dicono <code>testa</code> e <code>next</code>.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#128161;</span>
+        <span>Se un paziente se ne va, nessuno cambia sedia: si corregge solo il biglietto di chi lo precedeva.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LA LISTA CON INDICI: IN C++ ═══ -->
+<div class="slide" data-section="ponte">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La lista con indici in C++</h2>
+    <span class="section-num">SEZIONE 04</span>
+  </div>
+  <div class="two-col">
+    <div class="stack">
+<pre class="cpp">// situazione di partenza scritta a mano:
+// la lista 10 -&gt; 20 -&gt; 30 -&gt; 40, sparsa nelle celle
+Elemento lista[6] = {
+    {30, 4}, {10, 3}, {0, -1}, {20, 0}, {40, -1}, {0, -1}
+};                // celle 2 e 5 libere: il contenuto non conta
+int testa = 1;    // il primo elemento (10) è nella cella 1</pre>
+      <div class="mem c4">
+        <div class="mem-row head"><span>cella</span><span>dato</span><span>next</span><span>posto nella lista</span></div>
+        <div class="mem-row"><span class="addr">0</span><span class="val">30</span><span>4</span><span class="pos">3º</span></div>
+        <div class="mem-row"><span class="addr">1</span><span class="val">10</span><span>3</span><span class="pos">1º ← testa</span></div>
+        <div class="mem-row free"><span>2</span><span>libera</span><span>–</span><span>–</span></div>
+        <div class="mem-row"><span class="addr">3</span><span class="val">20</span><span>0</span><span class="pos">2º</span></div>
+        <div class="mem-row"><span class="addr">4</span><span class="val">40</span><span>-1</span><span class="pos">4º, ultimo</span></div>
+        <div class="mem-row free"><span>5</span><span>libera</span><span>–</span><span>–</span></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="strip-cap">Si legge partendo da testa e seguendo i next</div>
       <div class="ll top">
         <span class="ll-label">testa = 1</span><span class="arrow sm"></span>
         <span class="node"><span class="i">cella 1</span><span class="d">10</span><span class="n">3</span></span><span class="arrow sm"></span>
@@ -1851,15 +1898,29 @@ int testa = 1;   // indice del primo elemento</pre>
         <span class="node"><span class="i">cella 0</span><span class="d">30</span><span class="n">4</span></span><span class="arrow sm"></span>
         <span class="node"><span class="i">cella 4</span><span class="d">40</span><span class="n">-1</span></span>
       </div>
-<pre class="cpp">int i = testa;
-while (i != -1) {
+<pre class="cpp">int i = testa;                 // parto dal primo
+while (i != -1) {              // -1 = lista finita
     cout &lt;&lt; lista[i].dato &lt;&lt; " ";
-    i = lista[i].next;      // salto al successivo
+    i = lista[i].next;         // salto alla cella del successivo
 }
 // stampa: 10 20 30 40</pre>
       <div class="callout callout-yellow">
         <span class="callout-icon">&#9888;</span>
-        <span>L'ordine <strong>logico</strong> (10, 20, 30, 40) non coincide più con l'ordine <strong>fisico</strong> delle celle: lo decidono i campi <code>next</code>.</span>
+        <span>L'ordine <strong>logico</strong> (10, 20, 30, 40) non coincide con l'ordine <strong>fisico</strong> delle celle (30, 10, –, 20, 40): lo decidono <code>testa</code> e i campi <code>next</code>.</span>
+      </div>
+      <div class="reveal">
+        <button type="button" class="reveal-btn no-js-hide">Come si arriva a questa situazione?</button>
+        <div class="reveal-body">
+          <p style="font-size:0.84rem;">Ogni valore va nella prima cella libera. Dal passo 2 il primo elemento è il 10, quindi <code>testa = 1</code>.</p>
+          <ol style="font-size:0.84rem; columns:2; column-gap:34px; padding-left:1.3em; margin-top:4px;">
+            <li>inserisco 30 → cella 0</li>
+            <li>inserisco 10 in testa → cella 1</li>
+            <li>inserisco 15 dopo il 10 → cella 2</li>
+            <li>inserisco 20 dopo il 15 → cella 3</li>
+            <li>inserisco 40 in coda → cella 4</li>
+            <li>elimino il 15: la cella 2 si libera</li>
+          </ol>
+        </div>
       </div>
     </div>
   </div>
@@ -2368,10 +2429,11 @@ void stampa(Elemento lista[], int testa) {
 }
 
 int main() {
+    // situazione di partenza scritta a mano: lista 10 -&gt; 20 -&gt; 30 -&gt; 40
     Elemento lista[6] = {
         {30, 4}, {10, 3}, {0, -1}, {20, 0}, {40, -1}, {0, -1}
-    };
-    int testa = 1;           // celle libere: 2 e 5
+    };                       // celle libere: 2 e 5
+    int testa = 1;           // il primo elemento (10) è nella cella 1
     stampa(lista, testa);    // 10 20 30 40
 
     // b) inserisci 25 tra 20 e 30 (cella libera 2)
