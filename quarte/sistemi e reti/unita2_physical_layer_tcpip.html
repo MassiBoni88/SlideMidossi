@@ -732,15 +732,7 @@
         <ul style="margin-top:8px;">
           <li><strong>DSAP</strong> (Destination Service Access Point): il protocollo a cui consegnare i dati nel ricevente</li>
           <li><strong>SSAP</strong> (Source SAP): il protocollo che li ha generati nel mittente</li>
-          <li><strong>Control</strong>: tipo di frame e numeri di sequenza</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3 style="color:var(--accent3);">Tre formati del campo Control</h3>
-        <ul>
-          <li><strong>I-frame</strong> (information): trasportano dati numerati e possono portare con sé l'ACK per l'altra direzione (<em>piggybacking</em>)</li>
-          <li><strong>S-frame</strong> (supervisory): solo controllo, per esempio un ACK quando non ci sono dati da inviare o il controllo di flusso</li>
-          <li><strong>U-frame</strong> (unnumbered): dati senza connessione e gestione del collegamento (apertura, diagnostica…)</li>
+          <li><strong>Control</strong>: il tipo di frame (Information, Supervisory o Unnumbered, prossima slide) e i numeri di sequenza</li>
         </ul>
       </div>
     </div>
@@ -754,13 +746,59 @@
           <tr><td><strong>Semireliable connectionless</strong> (tipo 3)</td><td class="bad">no</td><td class="best">sì</td><td>conferma ogni frame senza aprire una connessione</td></tr>
         </table>
       </div>
-      <div class="callout callout-blue">
-        <span class="callout-icon">🐴</span>
-        <span><strong>Piggybacking</strong> = «portare a cavalluccio»: invece di inviare l'ACK da solo, il destinatario lo inserisce nel primo frame di dati che deve comunque spedire al mittente. Si risparmia un frame.</span>
-      </div>
       <div class="callout callout-book">
         <span class="callout-icon">📕</span>
         <span><span class="bk">Nella pratica</span>Nelle reti TCP/IP su Ethernet l'intestazione LLC di solito <strong>non c'è</strong>: si usa il frame <strong>Ethernet II</strong>, il cui campo <code>Type</code> fa lo stesso lavoro del DSAP («dentro c'è IPv4», «dentro c'è ARP»…). LLC si incontra nei frame dello Spanning Tree degli switch e nel <strong>Wi-Fi</strong>, che incapsula i dati con un'intestazione LLC/SNAP.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L2 · I TRE FORMATI DEL CAMPO CONTROL ═══ -->
+<div class="slide" data-section="llcmac">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">I tre formati del campo Control: Information, Supervisory, Unnumbered</h2>
+    <span class="section-num" data-l="L2"></span>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3 style="color:var(--accent3);">Due domande per distinguerli: il frame trasporta dati? È numerato?</h3>
+      <table class="tbl">
+        <tr><th>Formato</th><th>Trasporta dati?</th><th>Numerato?</th><th>A che cosa serve</th></tr>
+        <tr><td><strong>Information</strong> (I-frame)</td><td class="best">sì</td><td class="best">sì</td><td>trasferire i dati dentro una connessione</td></tr>
+        <tr><td><strong>Supervisory</strong> (S-frame)</td><td class="bad">no</td><td class="mid">no, ma cita i numeri degli Information</td><td>gestire lo scambio dei dati: conferme, pause, richieste di ritrasmissione</td></tr>
+        <tr><td><strong>Unnumbered</strong> (U-frame)</td><td class="mid">di solito no</td><td class="bad">no</td><td>gestire il collegamento (aprirlo, chiuderlo, segnalare errori) o inviare dati senza connessione</td></tr>
+      </table>
+      <p style="margin-top:8px;"><strong>Numerato</strong> vuol dire «fa parte della sequenza controllata»: il frame viene confermato e, se si perde, ritrasmesso. Supervisory e Unnumbered restano fuori da questa sequenza.</p>
+    </div>
+    <div class="two-col">
+      <div class="col">
+        <div class="card">
+          <h3 style="color:var(--accent4);">Quale formato in quale modo di servizio</h3>
+          <ul>
+            <li><strong>LLC tipo 1</strong> (senza connessione): solo <strong>Unnumbered</strong>, che portano i dati come messaggi isolati, senza conferma</li>
+            <li><strong>LLC tipo 2</strong> (con connessione): <strong>tutti e tre</strong>. Gli Unnumbered aprono e chiudono la connessione, gli Information portano i dati, i Supervisory confermano e regolano il flusso</li>
+          </ul>
+        </div>
+        <div class="callout callout-blue">
+          <span class="callout-icon">🐴</span>
+          <span><strong>Piggybacking</strong> = «portare a cavalluccio»: invece di inviare l'ACK da solo, il destinatario lo inserisce nel primo Information che deve comunque spedire al mittente. Si risparmia un frame. Il Supervisory serve proprio quando non c'è nessun dato su cui far viaggiare la conferma.</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <h3 style="color:var(--accent1);">📦 Un corriere che consegna a un magazzino</h3>
+          <ul>
+            <li><strong>Information</strong> = i pacchi, ognuno con il suo numero di bolla</li>
+            <li><strong>Supervisory</strong> = le comunicazioni del magazzino sui pacchi: «ricevuti fino al 5», «fermatevi, siamo pieni», «il 6 è arrivato rotto, rimandatelo»</li>
+            <li><strong>Unnumbered</strong> = la firma e la disdetta del contratto di consegna; oppure una cartolina singola, spedita senza contratto e senza ricevuta di ritorno</li>
+          </ul>
+        </div>
+        <div class="callout callout-green">
+          <span class="callout-icon">💡</span>
+          <span>In sintesi: gli Information sono <strong>la conversazione</strong>, i Supervisory ne <strong>regolano il ritmo e la correttezza</strong>, gli Unnumbered la <strong>aprono e la chiudono</strong> oppure servono a messaggi isolati.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -790,7 +828,7 @@
             <div class="proto-cell hl-red">FCS<small>4 byte</small></div>
           </div>
         </div>
-        <p style="margin-top:8px;"><strong>FCS</strong> (Frame Check Sequence): un <strong>CRC a 32 bit</strong> calcolato dal mittente su tutto il frame. Il ricevente lo ricalcola: se non coincide, il frame è danneggiato e viene <strong>scartato</strong>. Il CRC <em>rileva</em> gli errori ma non li corregge: l'eventuale ritrasmissione spetta ad altri livelli (per esempio a TCP).</p>
+        <p style="margin-top:8px;"><strong>FCS</strong> (Frame Check Sequence): un <strong>CRC a 32 bit</strong> calcolato dal mittente su tutto il frame. Il ricevente lo ricalcola: se non coincide, il frame è danneggiato e viene <strong>scartato</strong>. Il CRC <em>rileva</em> gli errori ma non li corregge: l'eventuale ritrasmissione spetta ad altri livelli (per esempio a TCP). Come si calcola: prossima slide.</p>
       </div>
       <div class="callout callout-book">
         <span class="callout-icon">📕</span>
@@ -823,6 +861,63 @@
       <div class="callout callout-green">
         <span class="callout-icon">📦</span>
         <span>Regola d'oro dei modelli a strati: ogni intestazione viene letta <strong>solo dal sottolivello corrispondente</strong> dell'altro host. Il MAC del ricevente legge l'header MAC e passa il resto all'LLC senza guardarlo; l'LLC fa lo stesso con il Network.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L2 · CRC ═══ -->
+<div class="slide" data-section="llcmac">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il CRC: come il MAC si accorge degli errori</h2>
+    <span class="section-num" data-l="L2"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">A che cosa serve</h3>
+        <p>Un disturbo elettrico o radio può trasformare qualche 0 in 1 e viceversa. Con il <strong>CRC</strong> (Cyclic Redundancy Check, controllo di ridondanza ciclico) il <strong>mittente</strong> calcola dai bit del frame un valore di controllo e lo scrive nell'<strong>FCS</strong>; il <strong>ricevente</strong> rifà il calcolo e, se il risultato non torna, <strong>scarta</strong> il frame. Il CRC <strong>rileva</strong> gli errori ma non dice quale bit è sbagliato: non può correggerli.</p>
+        <p class="note" style="margin-top:6px;">🪪 Funziona come l'ultima lettera del codice fiscale: un carattere di controllo calcolato dagli altri 15. Se ne trascrivi male uno, il controllo non torna.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">L'idea: una divisione con resto</h3>
+        <p>Mittente e ricevente usano lo stesso divisore, il <strong>polinomio generatore G</strong>, scritto come sequenza di bit. Se G ha grado r, il CRC è lungo r bit.</p>
+        <ol style="margin-top:5px;">
+          <li>Il mittente aggiunge <strong>r zeri</strong> in coda al messaggio</li>
+          <li>Divide per G in <strong>aritmetica modulo 2</strong>: sottrarre equivale a fare lo <strong>XOR</strong> (1⊕1 = 0, 1⊕0 = 1, 0⊕0 = 0), senza prestiti né riporti</li>
+          <li>Il <strong>resto</strong> è il CRC: prende il posto degli zeri e il frame parte</li>
+          <li>Il ricevente divide per G ciò che riceve: <strong>resto 0</strong> → nessun errore rilevato, <strong>resto ≠ 0</strong> → frame scartato</li>
+        </ol>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🔁</span>
+        <span>E dopo? In <strong>Ethernet</strong> nessuno richiede il frame scartato: se serve, ci pensa TCP. Nel <strong>Wi-Fi</strong> un FCS sbagliato significa niente ACK, e il mittente ritrasmette subito.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Un esempio a mano</h3>
+        <p>Messaggio <code>10110011</code>, generatore <code>G = 1011</code> (x³ + x + 1, grado 3 → CRC di 3 bit):</p>
+<pre style="margin-top:6px;line-height:1.45;">10110011<span class="arg">000</span>   <span class="cmt">messaggio + 3 zeri</span>
+<span class="cmd">1011</span>          <span class="cmt">XOR sotto il primo 1</span>
+-----------
+00000011000
+      <span class="cmd">1011</span>    <span class="cmt">XOR sotto il primo 1 rimasto</span>
+-----------
+00000001110
+       <span class="cmd">1011</span>   <span class="cmt">XOR sotto il primo 1 rimasto</span>
+-----------
+00000000<span class="ok">101</span>   <span class="cmt">resto: CRC = 101</span></pre>
+        <p style="margin-top:7px;">Si trasmette <code>10110011<strong>101</strong></code>. Il ricevente lo divide per <code>1011</code>: resto <code>000</code>, tutto bene. Se in viaggio si inverte il quarto bit (<code>10100011101</code>), il resto diventa <code>001</code>: errore rilevato.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il CRC-32 di Ethernet e Wi-Fi</h3>
+        <ul>
+          <li>G ha grado 32: l'FCS è lungo <strong>32 bit = 4 byte</strong> e si calcola su indirizzi, Type, dati e PAD (preambolo e SFD esclusi)</li>
+          <li>Rileva <strong>tutti</strong> gli errori su uno o due bit e tutte le raffiche (burst) di bit sbagliati lunghe fino a 32; un errore qualsiasi sfugge circa <strong>una volta su 4 miliardi</strong> (2<sup>32</sup>)</li>
+          <li>Lo calcola la <strong>scheda di rete</strong> in hardware; di solito lo toglie prima di passare il frame al sistema operativo, per questo in Wireshark spesso non compare</li>
+        </ul>
       </div>
     </div>
   </div>
