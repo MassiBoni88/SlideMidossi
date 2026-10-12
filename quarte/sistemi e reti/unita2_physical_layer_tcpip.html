@@ -1,0 +1,2800 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 2 — Il Physical Layer del TCP/IP</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script>
+  document.documentElement.classList.add('js');
+  // tema scelto ricordato (vale anche per gli altri deck dello stesso sito)
+  try {
+    var temaSalvato = localStorage.getItem('slidemidossi-tema');
+    if (temaSalvato === 'light' || temaSalvato === 'dark') document.documentElement.setAttribute('data-theme', temaSalvato);
+  } catch (e) {}
+</script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --ty: #7c3aed;
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af; --c5t: #5b21b6;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #94a3b8;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --ty: #c084fc;
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd; --c5t: #d8b4fe;
+  }
+
+  html { font-size: 112%; overscroll-behavior: none; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+  /* niente legature: gli studenti devono vedere != e -> come si digitano */
+  pre, code, .proto-cell, .sb, .copy-btn {
+    font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  @media (hover: hover) {
+    #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+  }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  #doc-badge {
+    display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 1px; color: var(--accent3); border: 1px solid var(--accent3);
+    border-radius: 4px; padding: 3px 8px;
+  }
+  .docente #doc-badge { display: inline-block; }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 28px 52px;
+    display: flex; flex-direction: column;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  /* centrata quando c'è spazio, scorrevole (senza tagli in alto) quando non basta */
+  .slide > :first-child { margin-top: auto; }
+  .slide > :last-child  { margin-bottom: auto; }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.3rem, 5vw, 4rem);
+    font-weight: 800; line-height: 1.12; letter-spacing: -1px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.05rem; color: var(--muted); letter-spacing: 0.5px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.25rem, 2.1vw, 1.9rem); font-weight: 800; letter-spacing: -0.5px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  .two-col-r { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px; min-width: 0;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.88rem; color: var(--ct); line-height: 1.55; }
+  .card p + p { margin-top: 6px; }
+  .card ul, .card ol { padding-left: 18px; }
+  .card li { margin-bottom: 3px; }
+  .card strong, .callout strong { color: var(--text); }
+  .note { font-size: 0.78rem !important; color: var(--muted) !important; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0 4px; white-space: nowrap;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.7rem, 0.95vw, 0.82rem);
+    line-height: 1.55; overflow-x: auto; color: var(--ct);
+  }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+  pre .str { color: var(--accent1); }
+
+  .code-wrap { position: relative; min-width: 0; }
+  .copy-btn {
+    position: absolute; top: 7px; right: 8px; z-index: 2;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  @media (hover: hover) {
+    .copy-btn:hover { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+  }
+  .copy-btn.ok { color: var(--accent1); border-color: var(--accent1); }
+  .code-wrap pre { padding-top: 34px; }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.86rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  /* precisazioni e correzioni rispetto al libro di testo */
+  .callout-book   { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.38); color: var(--c5t); }
+  .callout-book .bk { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--ty); margin-bottom: 2px; }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.l { text-align: left; font-family: 'Poppins', sans-serif; font-size: 0.8rem; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.hl-ty    { background: rgba(124,58,237,0.1); color: var(--ty); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; } .proto-cell.w6 { flex: 6; }
+  .proto-cell small { display: block; font-size: 0.62rem; color: var(--muted); }
+
+  .tbl { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+  .tbl th, .tbl td { border: 1px solid var(--border); padding: 5px 8px; text-align: left; vertical-align: top; }
+  .tbl th { background: rgba(37,99,235,0.1); color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.74rem; }
+  .tbl td { color: var(--ct); }
+  .tbl td.m { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; white-space: nowrap; }
+  .tbl td.r { text-align: right; }
+  .tbl tr.hi td { background: rgba(5,150,105,0.07); }
+  .tbl tr.off td { color: var(--muted); }
+  .tbl .best { color: var(--accent1); font-weight: 700; }
+  .tbl .mid  { color: var(--accent3); font-weight: 700; }
+  .tbl .bad  { color: var(--accent2); font-weight: 700; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.96rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.82rem; color: var(--muted); }
+
+  /* voci del sommario cliccabili: la classe ov-link è aggiunta dal JS, così
+     senza JavaScript non appaiono cliccabili */
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  /* --- Schemi SVG: colori legati al tema --- */
+  .wa-svg { display: block; width: 100%; height: auto; margin: 0 auto; }
+  .wa-svg text { font-family: 'Poppins', sans-serif; fill: var(--text); }
+  .wa-svg .mono { font-family: 'JetBrains Mono', monospace; }
+  .wa-svg .t-muted { fill: var(--muted); }
+  .wa-svg .dev   { fill: var(--panel); stroke: var(--muted); stroke-width: 1.5; }
+  .wa-svg .soft  { fill: var(--code-bg); stroke: var(--border); stroke-width: 1.5; }
+  .wa-svg .wire  { fill: none; stroke: var(--muted); stroke-width: 2; }
+  .wa-svg .tl    { stroke: var(--muted); stroke-width: 2; }
+  .wa-svg .f-a1 { fill: var(--accent1); } .wa-svg .f-a2 { fill: var(--accent2); }
+  .wa-svg .f-a3 { fill: var(--accent3); } .wa-svg .f-a4 { fill: var(--accent4); }
+  .wa-svg .f-ty { fill: var(--ty); }      .wa-svg .f-muted { fill: var(--muted); }
+  .wa-svg .s-a1 { stroke: var(--accent1); } .wa-svg .s-a2 { stroke: var(--accent2); }
+  .wa-svg .s-a3 { stroke: var(--accent3); } .wa-svg .s-a4 { stroke: var(--accent4); }
+  .wa-svg .s-muted { stroke: var(--muted); }
+  .wa-svg .arw  { fill: none; stroke-width: 2; }
+  .wa-svg .dash { stroke-dasharray: 6 4; }
+  .wa-svg .b-a1 { fill: rgba(5,150,105,0.12);  stroke: var(--accent1); stroke-width: 1.5; }
+  .wa-svg .b-a2 { fill: rgba(220,38,38,0.12);  stroke: var(--accent2); stroke-width: 1.5; }
+  .wa-svg .b-a3 { fill: rgba(217,119,6,0.12);  stroke: var(--accent3); stroke-width: 1.5; }
+  .wa-svg .b-a4 { fill: rgba(37,99,235,0.12);  stroke: var(--accent4); stroke-width: 1.5; }
+  .wa-svg .b-ty { fill: rgba(124,58,237,0.12); stroke: var(--ty);      stroke-width: 1.5; }
+  .wa-svg .range { fill: rgba(37,99,235,0.06); stroke-width: 1.5; stroke-dasharray: 5 4; }
+
+  /* --- Incapsulamento a "buste" --- */
+  .enc { display: flex; flex-direction: column; gap: 5px; }
+  .enc-row { display: flex; align-items: stretch; gap: 10px; }
+  .enc-lbl {
+    width: 120px; flex-shrink: 0; display: flex; align-items: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted);
+  }
+  .enc-pdu { flex: 1; display: flex; justify-content: flex-end; }
+  .enc-b {
+    flex-shrink: 0; padding: 5px 8px; border: 1px solid; border-right-width: 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .enc-b:first-child { border-radius: 5px 0 0 5px; }
+  .enc-b:last-child  { border-right-width: 1px; border-radius: 0 5px 5px 0; }
+  .enc-b:only-child  { border-radius: 5px; }
+  .enc-data { background: rgba(217,119,6,0.12);  color: var(--accent3); border-color: rgba(217,119,6,0.45); }
+  .enc-llc  { background: rgba(5,150,105,0.12);  color: var(--accent1); border-color: rgba(5,150,105,0.45); }
+  .enc-mac  { background: rgba(37,99,235,0.12);  color: var(--accent4); border-color: rgba(37,99,235,0.45); }
+  .enc-phy  { background: rgba(220,38,38,0.12);  color: var(--accent2); border-color: rgba(220,38,38,0.45); }
+  .enc-b.inner { font-weight: 400; opacity: 0.75; }
+
+  /* --- Sequenze di frame (finestre, Go-Back-N, Selective Repeat) --- */
+  .seq-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; }
+  .seq-lbl { width: 98px; flex-shrink: 0; font-size: 0.74rem; color: var(--muted); line-height: 1.25; }
+  .seq { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .sb {
+    min-width: 30px; height: 28px; padding: 0 5px; border: 1px solid var(--border); border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 700; color: var(--muted);
+    background: var(--code-bg);
+  }
+  .sb.ok   { color: var(--accent1); border-color: var(--accent1); background: rgba(5,150,105,0.12); }
+  .sb.sent { color: var(--accent3); border-color: var(--accent3); background: rgba(217,119,6,0.12); }
+  .sb.can  { color: var(--accent4); border-color: var(--accent4); background: rgba(37,99,235,0.08); }
+  .sb.lost { color: var(--accent2); border-color: var(--accent2); background: rgba(220,38,38,0.12); text-decoration: line-through; }
+  .sb.disc { color: var(--muted); border-style: dashed; text-decoration: line-through; }
+  .sb.buf  { color: var(--ty); border-color: var(--ty); background: rgba(124,58,237,0.12); }
+  .sb.re   { color: var(--accent4); border-color: var(--accent4); background: rgba(37,99,235,0.15); }
+  .win { display: inline-flex; gap: 4px; padding: 3px; border: 2px solid var(--accent4); border-radius: 6px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.74rem; color: var(--muted); margin-top: 6px; }
+  .legend .sb { min-width: 22px; height: 20px; font-size: 0.62rem; margin-right: 4px; }
+
+  /* --- Barre di utilizzo del canale --- */
+  .bar { height: 16px; border-radius: 4px; background: var(--code-bg); border: 1px solid var(--border); overflow: hidden; }
+  .bar > span { display: block; height: 100%; }
+  .bar-row { display: grid; grid-template-columns: 185px 1fr 56px; gap: 10px; align-items: center; font-size: 0.8rem; color: var(--ct); margin: 5px 0; }
+  .bar-row b { font-family: 'JetBrains Mono', monospace; text-align: right; }
+
+  .formula {
+    text-align: center; margin: 8px 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem; font-weight: 700; color: var(--accent4);
+  }
+
+  /* --- Risposte a scomparsa --- */
+  .reveal-btn {
+    margin-top: 8px; background: transparent; border: 1px solid var(--accent3); color: var(--accent3);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; padding: 5px 12px; border-radius: 5px; cursor: pointer;
+  }
+  @media (hover: hover) {
+    .reveal-btn:hover { background: var(--accent3); color: #111; }
+  }
+  .reveal-body { margin-top: 9px; }
+  .js .reveal-body { display: none; }
+  .js .reveal.open .reveal-body { display: block; }
+  .js .reveal.open .reveal-btn { opacity: 0.6; }
+  .no-js-hide { display: none; }
+  .js .no-js-hide { display: inline-block; }
+
+  .qa { list-style: none; padding-left: 0 !important; }
+  .qa li { margin-bottom: 4px !important; }
+  .qa .sol { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent1); }
+  .qa .sol.f { color: var(--accent2); }
+  .js .qa .sol, .js .qa .why { display: none; }
+  .js .reveal.open .qa .sol, .js .reveal.open .qa .why { display: inline; }
+  .qa .why { color: var(--muted); }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  @media (hover: hover) {
+    #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 230px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  /* schermi e proiettori meno alti di 1080p: il testo si riduce a gradini, così le slide restano intere */
+  @media (min-width: 641px) and (max-height: 860px), (min-width: 641px) and (max-width: 1450px) { html { font-size: 100%; } }
+  @media (min-width: 641px) and (max-height: 760px) { html { font-size: 90%; } }
+  @media (min-width: 641px) and (max-height: 660px) { html { font-size: 82%; } }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 6px 10px; font-size: 0.72rem; min-height: 40px; }
+    .slide { padding: 14px 12px; }
+    .slide > :first-child { margin-top: 0; }
+    .slide-title > :first-child { margin-top: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l, .two-col-r, .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    code { white-space: normal; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    .proto-cell { font-size: 0.6rem; padding: 4px 3px; }
+    .proto-cell.l { font-size: 0.7rem; }
+    .tbl { font-size: 0.7rem; }
+    .tbl th, .tbl td { padding: 4px 5px; }
+    .tbl td.m { white-space: normal; }
+    .enc-row { gap: 6px; }
+    .enc-lbl { width: 62px; font-size: 0.6rem; }
+    .enc-b { white-space: normal; word-break: break-word; font-size: 0.58rem; padding: 3px 4px; }
+    .seq-lbl { width: 70px; font-size: 0.66rem; }
+    .sb { min-width: 24px; height: 24px; font-size: 0.66rem; }
+    .bar-row { grid-template-columns: 100px 1fr 48px; font-size: 0.72rem; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="https://massiboni88.github.io/SlideMidossi/index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Quarto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 2 — Il Physical Layer del TCP/IP</div>
+  </div>
+  <div id="topbar-right">
+    <span id="doc-badge">DOCENTE</span>
+    <div id="slide-counter">01 / 01</div>
+    <button id="theme-btn" type="button" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Unità 2</div>
+  <div class="big" style="color:var(--accent1);">Il Physical Layer</div>
+  <div class="big" style="color:var(--accent1);">del TCP/IP</div>
+  <div class="sub" style="font-size:1rem; font-weight:700; color:var(--text); margin-top:12px;">
+    IEEE 802 · LLC e MAC · Controllo di flusso · Ethernet · Wi-Fi
+  </div>
+  <div class="sub">Quarto anno · Sistemi e Reti · dal testo <em>Internetworking 2</em> (Baldino, Rondano, Iacobelli)</div>
+  <div class="tag-row">
+    <span class="tag tag-green">IEEE 802.3 · Ethernet</span>
+    <span class="tag tag-blue">IEEE 802.11 · Wi-Fi</span>
+    <span class="tag tag-yellow">Sliding window</span>
+    <span class="tag tag-red">Wireshark · Scapy · Packet Tracer</span>
+  </div>
+</div>
+
+<!-- ═══ SOMMARIO ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa Unità</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="ieee802">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content">
+        <h4>Il progetto IEEE 802</h4>
+        <p>Gruppi di lavoro · Accesso al mezzo: a contesa o deterministico</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="llcmac">
+      <div class="ov-num" style="color:var(--accent1)">02</div>
+      <div class="ov-content">
+        <h4>I sottolivelli LLC e MAC</h4>
+        <p>DSAP e SSAP · Frame MAC e FCS · Indirizzi MAC · Incapsulamento</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="flusso">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Il controllo di flusso</h4>
+        <p>Stop and Wait · Go-Back-N · Selective Repeat · Sliding window</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="ethernet">
+      <div class="ov-num" style="color:var(--accent2)">04</div>
+      <div class="ov-content">
+        <h4>Ethernet · IEEE 802.3</h4>
+        <p>Standard · PoE · Il frame · Inter-frame gap e wire speed</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="lab-wireshark">
+      <div class="ov-num" style="color:var(--accent4)">05·06</div>
+      <div class="ov-content">
+        <h4>Laboratori Ethernet</h4>
+        <p>Wireshark: il frame dal vivo · Python e Scapy: una «chat» su Ethernet</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="wifi">
+      <div class="ov-num" style="color:var(--accent4)">07</div>
+      <div class="ov-content">
+        <h4>Wi-Fi · IEEE 802.11</h4>
+        <p>Standard e bande · Canali · Stazione nascosta · CSMA/CA · Indirizzi del frame</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="lab-pt">
+      <div class="ov-num" style="color:var(--accent3)">08·09</div>
+      <div class="ov-content">
+        <h4>Laboratori Wi-Fi</h4>
+        <p>Packet Tracer: LAN cablata e wireless · Python: scansione delle reti Wi-Fi</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="ripasso">
+      <div class="ov-num" style="color:var(--accent1)">✓</div>
+      <div class="ov-content">
+        <h4>Ripasso e autoverifica</h4>
+        <p>Mappa concettuale · Riepilogo · Vero o falso e scelta multipla</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout callout-book" style="margin-top:12px;">
+    <span class="callout-icon">📕</span>
+    <span><span class="bk">Precisazione sul libro</span>I riquadri viola come questo correggono o aggiornano alcune affermazioni del libro di testo. Quando studi, considera valida la versione del riquadro.</span>
+  </div>
+</div>
+
+<!-- ═══ DI QUALE LIVELLO PARLIAMO ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Di quale livello parliamo?</h2>
+    <span class="section-num" data-l="Intro"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Tre modelli a confronto</h3>
+        <svg class="wa-svg" viewBox="0 0 520 216" style="max-height:38vh;" role="img" aria-label="A sinistra i livelli 3, 2 e 1 di ISO/OSI. Al centro IEEE 802 divide il livello 2 in LLC e MAC e definisce il livello fisico. A destra il Physical Layer di TCP/IP comprende sia il livello 2 sia il livello 1 di OSI">
+          <text x="85" y="14" text-anchor="middle" class="mono t-muted" font-size="12" font-weight="700">ISO/OSI</text>
+          <text x="260" y="14" text-anchor="middle" class="mono t-muted" font-size="12" font-weight="700">IEEE 802</text>
+          <text x="435" y="14" text-anchor="middle" class="mono t-muted" font-size="12" font-weight="700">TCP/IP</text>
+
+          <rect x="10" y="24" width="150" height="40" rx="6" class="soft"/>
+          <text x="85" y="49" text-anchor="middle" font-size="13">3 · Network</text>
+          <rect x="185" y="24" width="150" height="40" rx="6" fill="none" class="tl dash" stroke-width="1.2"/>
+          <text x="260" y="49" text-anchor="middle" font-size="11.5" class="t-muted">fuori da IEEE 802</text>
+          <rect x="360" y="24" width="150" height="40" rx="6" class="soft"/>
+          <text x="435" y="49" text-anchor="middle" font-size="13">Network (IP)</text>
+
+          <rect x="10" y="72" width="150" height="88" rx="6" class="b-a1"/>
+          <text x="85" y="120" text-anchor="middle" font-size="13" font-weight="700">2 · Data Link</text>
+          <rect x="185" y="72" width="150" height="40" rx="6" class="b-a1"/>
+          <text x="260" y="97" text-anchor="middle" font-size="12.5" font-weight="700">LLC · 802.2</text>
+          <rect x="185" y="120" width="150" height="40" rx="6" class="b-a4"/>
+          <text x="260" y="145" text-anchor="middle" font-size="12" font-weight="700">MAC · 802.3, 802.11</text>
+
+          <rect x="10" y="168" width="150" height="40" rx="6" class="b-a2"/>
+          <text x="85" y="193" text-anchor="middle" font-size="13" font-weight="700">1 · Physical</text>
+          <rect x="185" y="168" width="150" height="40" rx="6" class="b-a2"/>
+          <text x="260" y="193" text-anchor="middle" font-size="11.5">PHY · segnali, cavi, radio</text>
+
+          <rect x="360" y="72" width="150" height="136" rx="6" class="b-a3" stroke-width="2.5"/>
+          <text x="435" y="130" text-anchor="middle" font-size="14" font-weight="800">Physical Layer</text>
+          <text x="435" y="150" text-anchor="middle" font-size="11.5" class="t-muted">detto anche Link</text>
+          <text x="435" y="166" text-anchor="middle" font-size="11.5" class="t-muted">o Network Access</text>
+        </svg>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazione sul libro</span>Il libro chiama <strong>Physical Layer</strong> il livello più basso dello stack TCP/IP. Nella RFC 1122, che descrive TCP/IP, lo stesso livello si chiama <strong>Link Layer</strong>; molti testi (e Cisco) usano <strong>Network Access</strong>. Sono tre nomi della stessa cosa: comprende i livelli 1 <em>e</em> 2 di OSI. Non confonderlo con il Physical di OSI, che si occupa solo dei segnali.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Che cosa fa questo livello</h3>
+        <ul>
+          <li>Trasforma i bit in <strong>segnali</strong>: impulsi elettrici sul rame, luce nella fibra, onde radio nell'aria</li>
+          <li>Raggruppa i bit in <strong>frame</strong> (trame): sequenze di byte divise in campi secondo regole fisse</li>
+          <li>Identifica le schede di rete con gli <strong>indirizzi MAC</strong></li>
+          <li>Decide <strong>chi può trasmettere</strong> quando il mezzo è condiviso</li>
+          <li><strong>Rileva gli errori</strong> di trasmissione e scarta i frame danneggiati</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Quali dispositivi ci lavorano</h3>
+        <table class="tbl">
+          <tr><th>Livello OSI</th><th>Dispositivi</th></tr>
+          <tr><td>1 · Physical</td><td>cavi, connettori, hub, ripetitori, antenne</td></tr>
+          <tr><td>2 · Data Link</td><td>scheda di rete (NIC), switch, access point, bridge</td></tr>
+          <tr><td>3 · Network</td><td>router (non fa parte di questa Unità)</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Le regole di questo livello per le reti locali le scrive l'<strong>IEEE</strong> con il progetto 802: Ethernet (802.3) per le reti cablate, Wi-Fi (802.11) per quelle senza fili.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L1 · PROGETTO IEEE 802 ═══ -->
+<div class="slide" data-section="ieee802">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il progetto IEEE 802</h2>
+    <span class="section-num" data-l="L1"></span>
+  </div>
+  <div class="two-col-r">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Che cos'è</h3>
+        <p>Nel <strong>febbraio 1980</strong> l'IEEE, con ISO e ANSI, avvia un progetto per stabilire come costruire le reti locali (LAN) e metropolitane (MAN) ai <strong>livelli 1 e 2 di OSI</strong>: quali servizi offrire e con quali protocolli.</p>
+        <p>Il nome viene dalla data: <strong>80</strong> è l'anno, <strong>2</strong> il mese.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Come si leggono le sigle</h3>
+        <ul>
+          <li><code>802.3</code> → il gruppo di lavoro (Working Group) Ethernet</li>
+          <li><code>802.3ab</code> → lettere <strong>minuscole</strong>: un emendamento che aggiunge qualcosa allo standard (qui il Gigabit su doppino)</li>
+          <li><code>802.1Q</code> → lettera <strong>maiuscola</strong>: uno standard a sé (qui le VLAN)</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Le caratteristiche di cavi, prese e armadi (categorie Cat5e, Cat6…) non le decide l'IEEE ma enti come <strong>TIA</strong> ed <strong>EIA</strong>, come visto nel Volume 1.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I principali gruppi di lavoro</h3>
+        <table class="tbl">
+          <tr><th>Gruppo</th><th>Argomento</th><th>Oggi</th></tr>
+          <tr><td class="m">802.1</td><td>Bridging e gestione: VLAN (802.1Q), Spanning Tree, autenticazione 802.1X</td><td class="best">attivo</td></tr>
+          <tr><td class="m">802.2</td><td>LLC — Logical Link Control</td><td class="mid">concluso</td></tr>
+          <tr class="hi"><td class="m">802.3</td><td><strong>Ethernet</strong> (nato con l'accesso CSMA/CD)</td><td class="best">attivo</td></tr>
+          <tr class="off"><td class="m">802.4</td><td>Token Bus</td><td class="bad">sciolto</td></tr>
+          <tr class="off"><td class="m">802.5</td><td>Token Ring</td><td class="bad">sciolto</td></tr>
+          <tr class="off"><td class="m">802.6</td><td>DQDB, reti metropolitane</td><td class="bad">sciolto</td></tr>
+          <tr class="hi"><td class="m">802.11</td><td><strong>Wireless LAN (Wi-Fi)</strong></td><td class="best">attivo</td></tr>
+          <tr><td class="m">802.15</td><td>Wireless PAN: Bluetooth (802.15.1), Zigbee e Thread (802.15.4)</td><td class="best">attivo</td></tr>
+          <tr class="off"><td class="m">802.16</td><td>Broadband Wireless MAN (WiMAX)</td><td class="mid">in pausa</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Aggiornamento</span>Il libro elenca 20 gruppi: molti riguardano tecnologie uscite dal mercato (Token Bus, Token Ring, DQDB, 100VG-AnyLAN…) e sono sciolti o in pausa. Oggi le LAN si fanno quasi solo con <strong>802.3</strong> e <strong>802.11</strong>, più gli standard 802.1 che le gestiscono.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L1 · ACCESSO AL MEZZO ═══ -->
+<div class="slide" data-section="ieee802">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Chi trasmette? L'accesso al mezzo condiviso</h2>
+    <span class="section-num" data-l="L1"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il problema</h3>
+        <p>Quando più stazioni condividono lo stesso canale (un cavo coassiale, un hub, l'aria) e due trasmettono insieme, i segnali si sovrappongono: è una <strong>collisione</strong> e i dati vanno persi. Serve una regola, cioè una <strong>tecnica di accesso</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Due famiglie di tecniche</h3>
+        <table class="tbl">
+          <tr><th></th><th>A contesa</th><th>Deterministica</th></tr>
+          <tr><td><strong>Idea</strong></td><td>chi vuole trasmettere ci prova, rispettando alcune regole</td><td>si trasmette a turno: solo chi ha il <strong>token</strong> (gettone)</td></tr>
+          <tr><td><strong>Attesa</strong></td><td class="mid">non prevedibile</td><td class="best">ha un massimo calcolabile</td></tr>
+          <tr><td><strong>Poco traffico</strong></td><td class="best">si trasmette subito</td><td class="mid">si aspetta comunque il turno</td></tr>
+          <tr><td><strong>Molto traffico</strong></td><td class="bad">tante collisioni</td><td class="best">stabile, adatta al tempo reale</td></tr>
+          <tr><td><strong>Esempi</strong></td><td>CSMA/CD (Ethernet con hub)<br>CSMA/CA (Wi-Fi)</td><td>Token Ring (802.5)<br>Token Bus (802.4)</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">CSMA/CD in cinque passi</h3>
+        <p class="note" style="margin-bottom:5px;">Carrier Sense Multiple Access with Collision Detection — approfondimento della lezione online del libro</p>
+        <ol>
+          <li><strong>Ascolta</strong> il canale (carrier sense): se è occupato, aspetta che si liberi</li>
+          <li>Se è libero, <strong>trasmette</strong></li>
+          <li>Mentre trasmette continua ad ascoltare: se il segnale sul cavo è diverso da quello che sta inviando c'è una <strong>collisione</strong></li>
+          <li>Invia un segnale di disturbo di 32 bit (<strong>jam</strong>) perché tutte le stazioni se ne accorgano</li>
+          <li>Aspetta un tempo casuale (<strong>backoff esponenziale binario</strong>): dopo la n-esima collisione sceglie a caso tra 0 e 2<sup>n</sup>−1 intervalli (al massimo 1023) e riprova; dopo 16 tentativi rinuncia</li>
+        </ol>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Con gli <strong>switch</strong> e i collegamenti <strong>full-duplex</strong> ogni porta è un segmento a sé e si può trasmettere e ricevere insieme: le collisioni non possono avvenire e il CSMA/CD resta spento. Il Wi-Fi invece condivide ancora l'aria e usa il <strong>CSMA/CA</strong> (Lezione 7).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L2 · LLC ═══ -->
+<div class="slide" data-section="llcmac">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il sottolivello LLC — Logical Link Control</h2>
+    <span class="section-num" data-l="L2"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">A che cosa serve</h3>
+        <p>È la parte <strong>alta</strong> del Data Link. Offre al livello Network un'<strong>interfaccia unica</strong>, qualunque sia la tecnologia sotto (Ethernet, Wi-Fi…). Deve dire a quale protocollo di livello superiore consegnare i dati e può occuparsi del controllo di errore e di flusso.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Il frame LLC (IEEE 802.2)</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl">DSAP<small>1 byte</small></div>
+            <div class="proto-cell hl">SSAP<small>1 byte</small></div>
+            <div class="proto-cell hl-yel">Control<small>1–2 byte</small></div>
+            <div class="proto-cell w3 hl-blue">Network PDU<small>0 o più byte</small></div>
+          </div>
+        </div>
+        <ul style="margin-top:8px;">
+          <li><strong>DSAP</strong> (Destination Service Access Point): il protocollo a cui consegnare i dati nel ricevente</li>
+          <li><strong>SSAP</strong> (Source SAP): il protocollo che li ha generati nel mittente</li>
+          <li><strong>Control</strong>: tipo di frame e numeri di sequenza</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Tre formati del campo Control</h3>
+        <ul>
+          <li><strong>I-frame</strong> (information): trasportano dati numerati e possono portare con sé l'ACK per l'altra direzione (<em>piggybacking</em>)</li>
+          <li><strong>S-frame</strong> (supervisory): solo controllo, per esempio un ACK quando non ci sono dati da inviare o il controllo di flusso</li>
+          <li><strong>U-frame</strong> (unnumbered): dati senza connessione e gestione del collegamento (apertura, diagnostica…)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Tre modi di funzionamento</h3>
+        <table class="tbl">
+          <tr><th>Servizio</th><th>Connessione</th><th>ACK</th><th>Note</th></tr>
+          <tr class="hi"><td><strong>Unacknowledged connectionless</strong> (LLC tipo 1)</td><td class="bad">no</td><td class="bad">no</td><td>il più usato: errori e perdite li gestiscono i livelli superiori</td></tr>
+          <tr><td><strong>Connection oriented</strong> (tipo 2)</td><td class="best">sì</td><td class="best">sì</td><td>apre e chiude una connessione; controlla errori, flusso e ordine</td></tr>
+          <tr><td><strong>Semireliable connectionless</strong> (tipo 3)</td><td class="bad">no</td><td class="best">sì</td><td>conferma ogni frame senza aprire una connessione</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🐴</span>
+        <span><strong>Piggybacking</strong> = «portare a cavalluccio»: invece di inviare l'ACK da solo, il destinatario lo inserisce nel primo frame di dati che deve comunque spedire al mittente. Si risparmia un frame.</span>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Nella pratica</span>Nelle reti TCP/IP su Ethernet l'intestazione LLC di solito <strong>non c'è</strong>: si usa il frame <strong>Ethernet II</strong>, il cui campo <code>Type</code> fa lo stesso lavoro del DSAP («dentro c'è IPv4», «dentro c'è ARP»…). LLC si incontra nei frame dello Spanning Tree degli switch e nel <strong>Wi-Fi</strong>, che incapsula i dati con un'intestazione LLC/SNAP.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L2 · MAC E INCAPSULAMENTO ═══ -->
+<div class="slide" data-section="llcmac">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il sottolivello MAC e l'incapsulamento</h2>
+    <span class="section-num" data-l="L2"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">MAC — Media Access Control</h3>
+        <p>È la parte <strong>bassa</strong> del Data Link: <strong>arbitra l'accesso</strong> al mezzo condiviso e indirizza le schede di rete. LLC è uno solo; di MAC invece ce n'è uno <strong>per ogni tecnologia</strong> (802.3, 802.11…), strettamente legato al livello fisico che sta sotto.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il frame MAC (schema generale)</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell w2 hl-blue">Indirizzo destinazione<small>6 byte</small></div>
+            <div class="proto-cell w2 hl-blue">Indirizzo sorgente<small>6 byte</small></div>
+            <div class="proto-cell">…</div>
+            <div class="proto-cell w3 hl">LLC PDU<small>il frame LLC</small></div>
+            <div class="proto-cell hl-red">FCS<small>4 byte</small></div>
+          </div>
+        </div>
+        <p style="margin-top:8px;"><strong>FCS</strong> (Frame Check Sequence): un <strong>CRC a 32 bit</strong> calcolato dal mittente su tutto il frame. Il ricevente lo ricalcola: se non coincide, il frame è danneggiato e viene <strong>scartato</strong>. Il CRC <em>rileva</em> gli errori ma non li corregge: l'eventuale ritrasmissione spetta ad altri livelli (per esempio a TCP).</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazione sul libro</span>Il libro chiama «DSAP e SSAP» anche i due indirizzi del frame MAC: in realtà sono l'<strong>indirizzo MAC di destinazione e di sorgente</strong> (DA e SA, 6 byte ciascuno). DSAP e SSAP sono i campi da 1 byte del frame LLC. Inoltre l'FCS serve a <strong>rilevare</strong> gli errori, non a correggerli.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Scendendo, ogni sottolivello aggiunge la sua «busta»</h3>
+        <div class="enc" style="margin-top:4px;">
+          <div class="enc-row">
+            <div class="enc-lbl">dal Network</div>
+            <div class="enc-pdu"><span class="enc-b enc-data" style="width:42%">Network PDU</span></div>
+          </div>
+          <div class="enc-row">
+            <div class="enc-lbl">LLC PDU</div>
+            <div class="enc-pdu"><span class="enc-b enc-llc" style="width:16%">LLC hdr</span><span class="enc-b enc-data inner" style="width:42%">Network PDU</span></div>
+          </div>
+          <div class="enc-row">
+            <div class="enc-lbl">MAC PDU</div>
+            <div class="enc-pdu"><span class="enc-b enc-mac" style="width:18%">MAC hdr</span><span class="enc-b enc-llc inner" style="width:16%">LLC</span><span class="enc-b enc-data inner" style="width:42%">Network PDU</span><span class="enc-b enc-mac" style="width:10%">FCS</span></div>
+          </div>
+          <div class="enc-row">
+            <div class="enc-lbl">sul mezzo</div>
+            <div class="enc-pdu"><span class="enc-b enc-phy" style="width:14%">Sync</span><span class="enc-b enc-mac inner" style="width:18%">MAC</span><span class="enc-b enc-llc inner" style="width:16%">LLC</span><span class="enc-b enc-data inner" style="width:42%">Network PDU</span><span class="enc-b enc-mac inner" style="width:10%">FCS</span></div>
+          </div>
+        </div>
+        <p style="margin-top:9px;">In testa il livello fisico mette una sequenza di <strong>sincronizzazione</strong> (in Ethernet: preambolo e delimitatore di inizio) che permette al ricevente di agganciare il ritmo dei bit.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">📦</span>
+        <span>Regola d'oro dei modelli a strati: ogni intestazione viene letta <strong>solo dal sottolivello corrispondente</strong> dell'altro host. Il MAC del ricevente legge l'header MAC e passa il resto all'LLC senza guardarlo; l'LLC fa lo stesso con il Network.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L2 · INDIRIZZO MAC ═══ -->
+<div class="slide" data-section="llcmac">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">L'indirizzo MAC</h2>
+    <span class="section-num" data-l="L2"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">48 bit = 6 byte = 12 cifre esadecimali</h3>
+        <p>Si scrive in coppie separate da <code>-</code> (Windows), <code>:</code> (Linux, macOS) o a gruppi di quattro con <code>.</code> (Cisco):</p>
+        <div class="proto-header" style="margin-top:8px;">
+          <div class="proto-row">
+            <div class="proto-cell hl-yel">00</div><div class="proto-cell hl-yel">16</div><div class="proto-cell hl-yel">D4</div>
+            <div class="proto-cell hl-blue">A1</div><div class="proto-cell hl-blue">FC</div><div class="proto-cell hl-blue">F9</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w3 l"><strong>OUI</strong> — codice del produttore, assegnato dall'IEEE (qui Compal)</div>
+            <div class="proto-cell w3 l">numero scelto dal produttore per quella scheda</div>
+          </div>
+        </div>
+        <p style="margin-top:9px;">I due bit meno significativi del <strong>primo byte</strong> hanno un significato speciale:</p>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row">
+            <div class="proto-cell">b7</div><div class="proto-cell">b6</div><div class="proto-cell">b5</div><div class="proto-cell">b4</div>
+            <div class="proto-cell">b3</div><div class="proto-cell">b2</div>
+            <div class="proto-cell hl-ty w2">b1 · U/L</div><div class="proto-cell hl-red w2">b0 · I/G</div>
+          </div>
+        </div>
+        <ul style="margin-top:8px;">
+          <li><strong>I/G</strong> (Individual/Group): 0 = una sola scheda (<em>unicast</em>), 1 = un gruppo (<em>multicast</em> o <em>broadcast</em>). È il primo bit trasmesso sul cavo.</li>
+          <li><strong>U/L</strong> (Universal/Local): 0 = indirizzo del produttore, 1 = indirizzo assegnato localmente dal software</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Unicast, multicast, broadcast</h3>
+        <table class="tbl">
+          <tr><th>Tipo</th><th>Esempio</th><th>Chi lo riceve</th></tr>
+          <tr><td><strong>Unicast</strong></td><td class="m">00-16-D4-A1-FC-F9</td><td>una sola scheda (primo byte pari)</td></tr>
+          <tr><td><strong>Multicast</strong></td><td class="m">01-00-5E-00-00-FB<br>33-33-00-00-00-01</td><td>un gruppo di schede (primo byte dispari): gruppi IPv4 e IPv6</td></tr>
+          <tr><td><strong>Broadcast</strong></td><td class="m">FF-FF-FF-FF-FF-FF</td><td>tutte le schede della rete locale</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione</span>Il libro indica il multicast con la forma <code>FF-FF-FF-[0:F]X-XX-XX</code>: non è corretto. Un indirizzo è multicast quando il bit I/G vale 1, cioè quando il <strong>primo byte è dispari</strong> (01, 03, 33…). Gli indirizzi che iniziano con FF-FF-FF sono solo il broadcast.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🎭</span>
+        <span><strong>Univoco… quasi sempre.</strong> Smartphone e PC recenti, per privacy, usano un <strong>MAC casuale</strong> diverso per ogni rete Wi-Fi. Si riconosce perché ha U/L = 1: la seconda cifra è <strong>2, 6, A o E</strong> (es. <code>A6:91:B1:…</code>).</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Come leggere il MAC del proprio PC</h3>
+<pre><span class="cmt">Windows</span>   <span class="cmd">ipconfig</span> <span class="arg">/all</span>      <span class="cmt">(oppure</span> <span class="cmd">getmac</span> <span class="arg">/v</span><span class="cmt">)</span>
+<span class="cmt">Linux</span>     <span class="cmd">ip</span> <span class="arg">link</span>
+<span class="cmt">macOS</span>     <span class="cmd">ifconfig</span> <span class="arg">en0</span>      <span class="cmt">(riga «ether»)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L3 · PERCHÉ IL CONTROLLO DI FLUSSO ═══ -->
+<div class="slide" data-section="flusso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Perché serve il controllo di flusso</h2>
+    <span class="section-num" data-l="L3"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Il problema</h3>
+        <p>Il ricevente mette i dati in arrivo in un <strong>buffer</strong> (una memoria di appoggio) e li elabora con i suoi tempi. Se il mittente trasmette più in fretta di quanto il ricevente riesca a smaltire, il buffer si riempie e i dati successivi <strong>vanno persi</strong>.</p>
+        <p>Il <strong>controllo di flusso</strong> (flow control) è l'insieme delle regole che adeguano la velocità del mittente alle capacità del ricevente.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Gli attrezzi del mestiere</h3>
+        <ul>
+          <li><strong>ACK</strong> (acknowledge): messaggio di riscontro con cui il destinatario conferma la ricezione corretta</li>
+          <li><strong>Timeout</strong>: il mittente fa partire un timer a ogni invio; se l'ACK non arriva in tempo, ritrasmette</li>
+          <li><strong>Numero di sequenza</strong>: ogni messaggio è numerato, così il ricevente riconosce i duplicati e l'ordine</li>
+          <li><strong>Finestra</strong> (window): quanti messaggi si possono inviare senza aver ancora ricevuto l'ACK</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🧑‍🏫</span>
+        <span>Come un professore che detta: se va troppo veloce gli studenti restano indietro e perdono frasi. Lo Stop and Wait è «detto una frase e aspetto che tutti alzino la mano»; la finestra è «detto tre frasi, poi controllo».</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Dove si usa davvero?</h3>
+        <table class="tbl">
+          <tr><th>Dove</th><th>Come regola il flusso</th></tr>
+          <tr><td><strong>Data Link</strong> su linee seriali: HDLC, PPP, LLC tipo 2</td><td>finestre e ACK, esattamente come in questa lezione</td></tr>
+          <tr><td><strong>Ethernet</strong> full-duplex (802.3x)</td><td>il ricevente invia un frame <strong>PAUSE</strong>: «fermati per un certo tempo». Nessuna finestra</td></tr>
+          <tr><td><strong>Wi-Fi</strong> (802.11)</td><td>ogni frame dati riceve il suo ACK: è uno Stop and Wait</td></tr>
+          <tr class="hi"><td><strong>Transport: TCP</strong></td><td><strong>finestra scorrevole</strong> (campo <code>Window</code> dell'header): la sliding window è la protagonista</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazione sul libro</span>Il libro presenta il controllo di flusso come compito del Physical Layer e lo collega a Ethernet. Le tecniche a finestra si usano nei protocolli di linea (HDLC, LLC tipo 2) e soprattutto in <strong>TCP</strong>, a livello Transport; Ethernet regola il flusso solo con i frame PAUSE. I concetti di questa lezione ti serviranno di nuovo quando studieremo TCP.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L3 · STOP AND WAIT ═══ -->
+<div class="slide" data-section="flusso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La tecnica Stop and Wait</h2>
+    <span class="section-num" data-l="L3"></span>
+  </div>
+  <div class="two-col-l">
+    <div class="col">
+      <div class="card">
+        <svg class="wa-svg" viewBox="0 0 600 262" style="max-height:52vh;" role="img" aria-label="Tre diagrammi temporali tra trasmettitore TX e ricevitore RX. (a) Ogni invio riceve il suo ACK. (b) L'invio 1 si perde: allo scadere del timeout il trasmettitore lo ripete e riceve ACK 1. (c) L'ACK 0 si perde: allo scadere del timeout il trasmettitore ripete l'invio 0, il ricevitore riconosce la copia, la scarta e rimanda ACK 0">
+          <defs>
+            <marker id="sw-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
+            <marker id="sw-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a1"/></marker>
+          </defs>
+          <line x1="200" y1="6" x2="200" y2="256" class="tl dash" stroke-width="1" opacity="0.4"/>
+          <line x1="400" y1="6" x2="400" y2="256" class="tl dash" stroke-width="1" opacity="0.4"/>
+
+          <!-- (a) tutto regolare -->
+          <text x="100" y="16" text-anchor="middle" font-size="12" font-weight="700">(a) tutto regolare</text>
+          <text x="35" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">TX</text>
+          <text x="165" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">RX</text>
+          <line x1="35" y1="44" x2="35" y2="256" class="tl"/>
+          <line x1="165" y1="44" x2="165" y2="256" class="tl"/>
+          <line x1="35" y1="52" x2="165" y2="76" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="100" y="59" transform="rotate(10.46 100 64)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 0</text>
+          <line x1="165" y1="84" x2="35" y2="108" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="100" y="91" transform="rotate(-10.46 100 96)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 0</text>
+          <line x1="35" y1="116" x2="165" y2="140" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="100" y="123" transform="rotate(10.46 100 128)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 1</text>
+          <line x1="165" y1="148" x2="35" y2="172" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="100" y="155" transform="rotate(-10.46 100 160)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 1</text>
+          <line x1="35" y1="180" x2="165" y2="204" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="100" y="187" transform="rotate(10.46 100 192)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 0</text>
+          <line x1="165" y1="212" x2="35" y2="236" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="100" y="219" transform="rotate(-10.46 100 224)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 0</text>
+
+          <!-- (b) frame perso -->
+          <text x="300" y="16" text-anchor="middle" font-size="12" font-weight="700">(b) frame perso</text>
+          <text x="235" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">TX</text>
+          <text x="365" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">RX</text>
+          <line x1="235" y1="44" x2="235" y2="256" class="tl"/>
+          <line x1="365" y1="44" x2="365" y2="256" class="tl"/>
+          <line x1="235" y1="52" x2="365" y2="76" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="300" y="59" transform="rotate(10.46 300 64)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 0</text>
+          <line x1="365" y1="84" x2="235" y2="108" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="300" y="91" transform="rotate(-10.46 300 96)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 0</text>
+          <line x1="235" y1="116" x2="300" y2="128" class="arw s-a2 dash"/>
+          <text x="267" y="117" transform="rotate(10.46 267 122)" text-anchor="middle" font-size="10.5" class="f-a2">Invio 1</text>
+          <path d="M299,124 L309,134 M309,124 L299,134" class="arw s-a2" stroke-width="2.5"/>
+          <path d="M231,116 h-6 v64 h6" class="arw s-a3"/>
+          <text x="216" y="148" transform="rotate(-90 216 148)" text-anchor="middle" font-size="10" class="f-a3" font-weight="700">timeout</text>
+          <line x1="235" y1="180" x2="365" y2="204" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="300" y="187" transform="rotate(10.46 300 192)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 1 (di nuovo)</text>
+          <line x1="365" y1="212" x2="235" y2="236" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="300" y="219" transform="rotate(-10.46 300 224)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 1</text>
+
+          <!-- (c) ACK perso -->
+          <text x="500" y="16" text-anchor="middle" font-size="12" font-weight="700">(c) ACK perso</text>
+          <text x="435" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">TX</text>
+          <text x="565" y="37" text-anchor="middle" class="mono t-muted" font-size="11" font-weight="700">RX</text>
+          <line x1="435" y1="44" x2="435" y2="256" class="tl"/>
+          <line x1="565" y1="44" x2="565" y2="256" class="tl"/>
+          <line x1="435" y1="52" x2="565" y2="76" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="500" y="59" transform="rotate(10.46 500 64)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 0</text>
+          <line x1="565" y1="84" x2="500" y2="96" class="arw s-a2 dash"/>
+          <text x="532" y="85" transform="rotate(-10.46 532 90)" text-anchor="middle" font-size="10.5" class="f-a2">ACK 0</text>
+          <path d="M491,92 L501,102 M501,92 L491,102" class="arw s-a2" stroke-width="2.5"/>
+          <path d="M431,52 h-6 v64 h6" class="arw s-a3"/>
+          <text x="416" y="84" transform="rotate(-90 416 84)" text-anchor="middle" font-size="10" class="f-a3" font-weight="700">timeout</text>
+          <line x1="435" y1="116" x2="565" y2="140" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="500" y="123" transform="rotate(10.46 500 128)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 0 (copia)</text>
+          <text x="558" y="154" text-anchor="end" font-size="9.5" class="f-a3" font-weight="700">copia: la scarta</text>
+          <line x1="565" y1="160" x2="435" y2="184" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="500" y="167" transform="rotate(-10.46 500 172)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 0</text>
+          <line x1="435" y1="192" x2="565" y2="216" class="arw s-a4" marker-end="url(#sw-d)"/>
+          <text x="500" y="199" transform="rotate(10.46 500 204)" text-anchor="middle" font-size="10.5" class="f-a4">Invio 1</text>
+          <line x1="565" y1="224" x2="435" y2="248" class="arw s-a1" marker-end="url(#sw-a)"/>
+          <text x="500" y="231" transform="rotate(-10.46 500 236)" text-anchor="middle" font-size="10.5" class="f-a1">ACK 1</text>
+        </svg>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Come funziona</h3>
+        <p>Il mittente invia un messaggio e si <strong>ferma</strong> finché non riceve l'ACK. Il ricevente manda l'ACK solo se il messaggio è arrivato <strong>senza errori</strong>; altrimenti lo scarta e tace.</p>
+        <ul style="margin-top:6px;">
+          <li><strong>(a)</strong> a ogni invio corrisponde un riscontro</li>
+          <li><strong>(b)</strong> il messaggio si perde (o arriva rovinato): scade il timeout e il mittente lo ripete</li>
+          <li><strong>(c)</strong> si perde l'ACK: il mittente ripete, il ricevente riconosce la copia dal numero di sequenza, la scarta ma rimanda l'ACK</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Basta un bit di sequenza</h3>
+        <p>I messaggi sono numerati alternando <strong>0</strong> e <strong>1</strong> (protocollo a bit alternato): il ricevente non può accettare due 0 o due 1 di fila, quindi una copia si riconosce subito.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⏱️</span>
+        <span>Il timeout è delicato: <strong>troppo corto</strong> e si ritrasmettono messaggi già arrivati (duplicati); <strong>troppo lungo</strong> e dopo ogni perdita il canale resta inutilizzato a lungo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L3 · QUANTO RENDE LO STOP AND WAIT ═══ -->
+<div class="slide" data-section="flusso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Quanto rende lo Stop and Wait?</h2>
+    <span class="section-num" data-l="L3"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Un conto che spiega tutto</h3>
+        <p>Due sedi, a Milano e a Palermo, sono collegate in fibra a <strong>10 Mb/s</strong>. Il cavo segue strade e coste ed è lungo circa <strong>2000 km</strong> (valore arrotondato per avere conti semplici). Ogni frame contiene <strong>1000 byte</strong>.</p>
+        <ul style="margin-top:6px;">
+          <li>Tempo per «mettere» il frame sul cavo:<br><code>T<sub>tx</sub> = 8000 bit ÷ 10 000 000 bit/s = 0,8 ms</code></li>
+          <li>Tempo di viaggio (la luce nella fibra fa circa 200 000 km/s):<br><code>T<sub>p</sub> = 2000 km ÷ 200 000 km/s = 10 ms</code></li>
+          <li>Il mittente aspetta che il frame arrivi e che l'ACK torni indietro: <code>2 × T<sub>p</sub> = 20 ms</code> (trascuriamo la durata dell'ACK, che è molto corto)</li>
+        </ul>
+        <div class="formula">U = T<sub>tx</sub> ÷ (T<sub>tx</sub> + 2·T<sub>p</sub>) = 0,8 ÷ 20,8 ≈ 3,8 %</div>
+        <p>Il canale lavora meno di 4 millisecondi su 100: per il resto del tempo il mittente <strong>aspetta</strong>.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">E se si inviano più frame prima di aspettare?</h3>
+        <p>Con una finestra di <strong>w</strong> frame l'utilizzo diventa <code>U = w · T<sub>tx</sub> ÷ (T<sub>tx</sub> + 2·T<sub>p</sub>)</code>, fino al massimo del 100 %.</p>
+        <div style="margin-top:10px;">
+          <div class="bar-row"><span>Stop and Wait (w = 1)</span><div class="bar"><span style="width:3.8%;background:var(--accent2);"></span></div><b style="color:var(--accent2)">3,8 %</b></div>
+          <div class="bar-row"><span>Finestra w = 7</span><div class="bar"><span style="width:26.9%;background:var(--accent3);"></span></div><b style="color:var(--accent3)">26,9 %</b></div>
+          <div class="bar-row"><span>Finestra w = 26</span><div class="bar"><span style="width:100%;background:var(--accent1);"></span></div><b style="color:var(--accent1)">100 %</b></div>
+        </div>
+        <p style="margin-top:8px;">Con 26 frame «in volo» il primo ACK arriva proprio mentre si finisce di trasmettere il ventiseiesimo frame: il canale non resta mai fermo.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">💡</span>
+        <span>Ecco perché esistono le <strong>tecniche a finestra</strong>: più il collegamento è veloce e lungo, più frame devono poter viaggiare contemporaneamente senza aspettare il riscontro.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L3 · FINESTRA: GO-BACK-N E SELECTIVE REPEAT ═══ -->
+<div class="slide" data-section="flusso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La tecnica a finestra: Go-Back-N e Selective Repeat</h2>
+    <span class="section-num" data-l="L3"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">La finestra</h3>
+        <p>Il mittente può inviare una <strong>raffica</strong> (burst) di messaggi senza aspettare, fino a un massimo <strong>w</strong> = dimensione della finestra (window size). Il ricevente conferma un gruppo di messaggi con un solo ACK.</p>
+        <p>L'ACK contiene il numero del <strong>prossimo messaggio atteso</strong>: «ACK 3» significa «ho ricevuto 0, 1 e 2, ora aspetto il 3».</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">L'esempio del libro: w = 7</h3>
+        <ol>
+          <li>Il mittente invia 0, 1, 2 → riceve <strong>ACK 3</strong></li>
+          <li>Invia 3, 4, 5 → riceve <strong>ACK 6</strong></li>
+          <li>Invia 6: ha esaurito i 7 invii, la finestra si <strong>chiude</strong></li>
+          <li>Solo con <strong>ACK 7</strong> la finestra si azzera e se ne apre una nuova</li>
+        </ol>
+        <p class="note" style="margin-top:4px;">Il punto debole è la chiusura: il mittente resta fermo anche se ha ricevuto gli ACK precedenti. La sliding window lo risolve.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il frame 2 si perde. Che succede?</h3>
+        <p style="font-weight:700;color:var(--text);font-size:0.86rem;">Go-Back-N</p>
+        <div class="seq-row"><span class="seq-lbl">ricevitore</span><span class="seq"><span class="sb ok">0</span><span class="sb ok">1</span><span class="sb lost">2</span><span class="sb disc">3</span><span class="sb disc">4</span></span></div>
+        <div class="seq-row"><span class="seq-lbl">ritrasmessi</span><span class="seq"><span class="sb re">2</span><span class="sb re">3</span><span class="sb re">4</span></span></div>
+        <p>Il ricevitore accetta solo messaggi <strong>in ordine</strong>: scarta 3 e 4 anche se sono corretti. Allo scadere del timeout il mittente torna indietro e ripete <strong>tutto da 2 in poi</strong>.</p>
+        <p style="font-weight:700;color:var(--text);font-size:0.86rem;margin-top:10px;">Selective Repeat</p>
+        <div class="seq-row"><span class="seq-lbl">ricevitore</span><span class="seq"><span class="sb ok">0</span><span class="sb ok">1</span><span class="sb lost">2</span><span class="sb buf">3</span><span class="sb buf">4</span></span></div>
+        <div class="seq-row"><span class="seq-lbl">ritrasmessi</span><span class="seq"><span class="sb re">2</span></span></div>
+        <p>Il ricevitore conferma ogni messaggio corretto e <strong>tiene da parte</strong> 3 e 4 in un buffer. Si ritrasmette <strong>solo il 2</strong>; poi i dati vengono consegnati in ordine.</p>
+        <div class="legend">
+          <span><span class="sb ok">n</span>ricevuto</span><span><span class="sb lost">n</span>perso</span><span><span class="sb disc">n</span>scartato</span><span><span class="sb buf">n</span>nel buffer</span><span><span class="sb re">n</span>ritrasmesso</span>
+        </div>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">⚖️</span>
+        <span>Go-Back-N è semplice e usa poca memoria, ma spreca banda. Selective Repeat è più efficiente, ma il ricevitore ha bisogno di <strong>più memoria</strong> e di più elaborazione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L3 · SLIDING WINDOW ═══ -->
+<div class="slide" data-section="flusso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">La finestra scorrevole (sliding window)</h2>
+    <span class="section-num" data-l="L3"></span>
+  </div>
+  <div class="two-col-l">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">La finestra non si chiude: scorre</h3>
+        <p>Non serve più completare una finestra prima di aprirne un'altra: ogni ACK fa <strong>avanzare</strong> la finestra, che non supera mai la dimensione w. Numeri di sequenza su 3 bit (da 0 a 7, poi si ricomincia), w = 7, lato mittente:</p>
+        <div class="seq-row"><span class="seq-lbl">all'inizio</span><span class="seq"><span class="win"><span class="sb can">0</span><span class="sb can">1</span><span class="sb can">2</span><span class="sb can">3</span><span class="sb can">4</span><span class="sb can">5</span><span class="sb can">6</span></span><span class="sb">7</span><span class="sb">0</span><span class="sb">1</span><span class="sb">2</span></span></div>
+        <div class="seq-row"><span class="seq-lbl">inviati 0, 1, 2</span><span class="seq"><span class="win"><span class="sb sent">0</span><span class="sb sent">1</span><span class="sb sent">2</span><span class="sb can">3</span><span class="sb can">4</span><span class="sb can">5</span><span class="sb can">6</span></span><span class="sb">7</span><span class="sb">0</span><span class="sb">1</span><span class="sb">2</span></span></div>
+        <div class="seq-row"><span class="seq-lbl">arriva ACK 3</span><span class="seq"><span class="sb ok">0</span><span class="sb ok">1</span><span class="sb ok">2</span><span class="win"><span class="sb can">3</span><span class="sb can">4</span><span class="sb can">5</span><span class="sb can">6</span><span class="sb can">7</span><span class="sb can">0</span><span class="sb can">1</span></span><span class="sb">2</span></span></div>
+        <div class="legend">
+          <span><span class="sb ok">n</span>confermato</span><span><span class="sb sent">n</span>inviato, in attesa di ACK</span><span><span class="sb can">n</span>si può inviare</span><span><span class="sb">n</span>fuori dalla finestra</span>
+        </div>
+        <p style="margin-top:8px;">Il ricevitore ha una finestra analoga: scarta ciò che arriva con un numero fuori dalla sua finestra. Le due finestre non devono avere per forza la stessa dimensione, ma quella più piccola rallenta lo scambio.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Servono buffer</h3>
+        <ul>
+          <li>in trasmissione: una copia di ogni messaggio inviato e non ancora confermato, per poterlo ripetere; a ogni ACK i buffer si liberano</li>
+          <li>in ricezione: spazio per i messaggi arrivati fuori sequenza</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Quanto può essere grande w?</h3>
+        <p>Con <strong>n</strong> bit si numerano 2<sup>n</sup> messaggi (con 3 bit: 000…111, cioè da 0 a 7). La finestra deve essere più piccola, altrimenti un numero vecchio e uno nuovo diventano indistinguibili:</p>
+        <div class="formula">Go-Back-N:  w ≤ 2<sup>n</sup> − 1</div>
+        <div class="formula" style="color:var(--ty);">Selective Repeat:  w ≤ 2<sup>n−1</sup></div>
+        <p>Con 3 bit: <strong>w ≤ 7</strong> per Go-Back-N (è il caso del libro), ma <strong>w ≤ 4</strong> per Selective Repeat.</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Integrazione</span>Il libro riporta solo la regola w ≤ 2<sup>n</sup> − 1, che vale per il Go-Back-N. Con il Selective Repeat il ricevitore accetta anche messaggi fuori ordine: se la finestra superasse metà dei numeri, un messaggio <em>nuovo</em> e la <em>ritrasmissione</em> di uno vecchio potrebbero avere lo stesso numero ed entrare entrambi nella finestra.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🤔</span>
+        <span><strong>Prova tu.</strong> Perché con 3 bit e w = 8 il Go-Back-N non funziona? Pensa al caso in cui il mittente invia 0…7 e <em>tutti</em> gli ACK vanno persi.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · EVOLUZIONE DEGLI STANDARD ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Ethernet (IEEE 802.3): l'evoluzione degli standard</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col-r">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Dal coassiale alla fibra</h3>
+        <p>Ethernet è la tecnologia di rete locale più diffusa al mondo. Diventa standard IEEE 802.3 nel 1985 (poi ISO 8802-3) e da allora cambia <strong>mezzo fisico</strong>, <strong>velocità</strong> e <strong>topologia</strong>:</p>
+        <ul style="margin-top:6px;">
+          <li>coassiale → doppino → fibra ottica</li>
+          <li>da 10 Mb/s a centinaia di Gb/s</li>
+          <li>bus → stella → stella estesa</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Come si legge il nome</h3>
+        <div class="proto-header">
+          <div class="proto-row">
+            <div class="proto-cell hl-yel w2">1000</div><div class="proto-cell hl-blue w2">BASE</div><div class="proto-cell hl">-T</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-cell w2 l">velocità in Mb/s (10G = 10 Gb/s)</div>
+            <div class="proto-cell w2 l">banda base: un solo segnale alla volta sul mezzo</div>
+            <div class="proto-cell l">mezzo</div>
+          </div>
+        </div>
+        <p style="margin-top:8px;">Mezzo: <code>T</code> = doppino (twisted pair) · <code>F</code>, <code>FX</code>, <code>SX</code>, <code>LX</code>, <code>SR</code>, <code>LR</code> = fibra · <code>5</code> e <code>2</code> = coassiale, circa 500 e 200 m di segmento.</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione alla tabella 1</span>Fast Ethernet su doppino (100BASE-TX) e su fibra (100BASE-FX) sono entrambi <strong>802.3u</strong>; l'802.3y (100BASE-T2) non si è mai diffuso. 1000BASE-CX non usa il doppino ma un cavo <strong>twinax schermato</strong> per pochi metri. Abbiamo aggiunto gli standard più recenti.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <table class="tbl">
+          <tr><th>Standard</th><th>Anno</th><th>Nome</th><th>Velocità</th><th>Mezzo</th></tr>
+          <tr class="off"><td class="m">802.3</td><td>1985</td><td class="m">10BASE5 · 10BASE2</td><td>10 Mb/s</td><td>coassiale (thick, thin) a bus</td></tr>
+          <tr><td class="m">802.3i</td><td>1990</td><td class="m">10BASE-T</td><td>10 Mb/s</td><td>doppino, stella con hub</td></tr>
+          <tr><td class="m">802.3j</td><td>1993</td><td class="m">10BASE-F</td><td>10 Mb/s</td><td>fibra</td></tr>
+          <tr class="hi"><td class="m">802.3u</td><td>1995</td><td class="m">100BASE-TX · FX</td><td>100 Mb/s</td><td>doppino Cat5 · fibra</td></tr>
+          <tr><td class="m">802.3z</td><td>1998</td><td class="m">1000BASE-SX · LX · CX</td><td>1 Gb/s</td><td>fibra · twinax (CX)</td></tr>
+          <tr class="hi"><td class="m">802.3ab</td><td>1999</td><td class="m">1000BASE-T</td><td>1 Gb/s</td><td>doppino Cat5e, 4 coppie</td></tr>
+          <tr><td class="m">802.3ae</td><td>2002</td><td class="m">10GBASE-SR · LR · ER</td><td>10 Gb/s</td><td>fibra</td></tr>
+          <tr><td class="m">802.3an</td><td>2006</td><td class="m">10GBASE-T</td><td>10 Gb/s</td><td>doppino Cat6a</td></tr>
+          <tr><td class="m">802.3ba</td><td>2010</td><td class="m">40G · 100G</td><td>40–100 Gb/s</td><td>fibra, data center</td></tr>
+          <tr><td class="m">802.3bz</td><td>2016</td><td class="m">2.5GBASE-T · 5GBASE-T</td><td>2,5–5 Gb/s</td><td>doppino Cat5e/6 già posato (access point)</td></tr>
+          <tr><td class="m">802.3bs · df</td><td>2017 · 2024</td><td class="m">400G · 800G</td><td>fino a 800 Gb/s</td><td>fibra, dorsali e data center</td></tr>
+        </table>
+        <p class="note" style="margin-top:6px;">In verde gli standard che trovi oggi nei laboratori e negli uffici. La distanza massima sul doppino resta 100 m.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · MIGLIORAMENTI ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Dall'hub allo switch: come è migliorata Ethernet</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Half-duplex e hub → full-duplex e switch</h3>
+        <ul>
+          <li>Con l'<strong>hub</strong> tutte le stazioni condividono lo stesso canale (un unico dominio di collisione) e si trasmette in <strong>half-duplex</strong>: o si parla o si ascolta.</li>
+          <li>Con lo <strong>switch</strong> ogni porta è un collegamento a sé; in <strong>full-duplex</strong> si trasmette e si riceve insieme. Le collisioni spariscono e il CSMA/CD non serve più (lo switching è il tema della prossima Unità).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Ridondanza e determinismo</h3>
+        <ul>
+          <li><strong>Ridondanza</strong>: apparati e collegamenti di riserva, perché un singolo guasto (<em>single point of failure</em>) non fermi la rete</li>
+          <li><strong>Determinismo</strong>: il traffico segue percorsi prevedibili e stabili, importante nelle reti industriali e nei servizi critici</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔌</span>
+        <span><strong>Auto-MDIX</strong>: quasi tutte le porte moderne riconoscono da sole il tipo di cavo, quindi tra due switch reali va bene anche un cavo dritto. In Packet Tracer, tra due switch, conviene comunque usare il <strong>cavo cross</strong>.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I principali miglioramenti</h3>
+        <table class="tbl">
+          <tr><th>Standard</th><th>Che cosa introduce</th></tr>
+          <tr><td class="m">802.3x</td><td><strong>Full-duplex</strong> e controllo di flusso con i frame <strong>PAUSE</strong>: chi è sovraccarico chiede all'altro di sospendere l'invio per un tempo stabilito</td></tr>
+          <tr><td class="m">802.1Q<br>(+ 802.3ac)</td><td><strong>VLAN</strong>: un'etichetta (tag) di 4 byte nel frame dice a quale rete virtuale appartiene. L'802.3ac porta la lunghezza massima del frame da 1518 a 1522 byte per farle posto</td></tr>
+          <tr><td class="m">802.3ad<br>→ 802.1AX</td><td><strong>Link aggregation</strong> (protocollo LACP): più collegamenti fisici uniti in un unico canale logico, per avere più banda e ridondanza</td></tr>
+          <tr><td class="m">802.3af · at · bt</td><td><strong>PoE</strong>: alimentazione elettrica sullo stesso cavo dei dati (prossima slide)</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione alla tabella 2</span>Il libro associa l'802.3x alle «sliding windows» e l'802.3ac alle VLAN. L'802.3x usa invece i <strong>frame PAUSE</strong>, senza finestre; le VLAN sono definite da <strong>IEEE 802.1Q</strong>, mentre l'802.3ac si limita ad allungare il frame di 4 byte. La link aggregation dal 2008 è lo standard 802.1AX.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · POE (1) ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">PoE — Power over Ethernet</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Dati ed energia sullo stesso cavo</h3>
+        <p>Nei primi anni 2000 si diffondono i telefoni <strong>VoIP</strong>: per non dover portare una presa elettrica a ogni scrivania, l'IEEE definisce l'<strong>802.3af (PoE)</strong>. Il cavo deve essere un <strong>doppino</strong> (twisted pair); la tensione è di circa <strong>48 V</strong> in corrente continua.</p>
+        <p>Serve per apparati che consumano poco: <strong>telefoni VoIP</strong>, <strong>access point</strong>, <strong>telecamere IP</strong>, webcam, lettori di badge.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">I vantaggi</h3>
+        <ul>
+          <li>un solo cavo per dati e alimentazione: meno cavi, meno prese, meno costi</li>
+          <li>apparati installabili dove la corrente non arriva: controsoffitti, pali, corridoi</li>
+          <li>installazione ed espansione della rete più semplici e ordinate, anche negli armadi rack</li>
+          <li>se lo switch è collegato a un gruppo di continuità (UPS), anche telefoni e telecamere restano accesi durante un blackout</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Chi dà e chi riceve</h3>
+        <ul>
+          <li><strong>PSE</strong> (Power Sourcing Equipment): chi <strong>fornisce</strong> energia — uno <strong>switch PoE</strong> o un <strong>power injector</strong> messo tra uno switch normale e l'apparato</li>
+          <li><strong>PD</strong> (Powered Device): chi <strong>riceve</strong> energia — telefono, access point, telecamera</li>
+        </ul>
+        <p style="margin-top:6px;">Prima di dare tensione il PSE <strong>verifica</strong> che dall'altra parte ci sia un PD: un PC collegato a una porta PoE non corre alcun rischio.</p>
+        <svg class="wa-svg" viewBox="0 0 520 166" style="max-height:26vh;margin-top:10px;" role="img" aria-label="Due scenari. Primo: switch non PoE collegato con un cavo di soli dati a un power injector, alimentato dalla presa, che invia dati e 48 volt all'access point. Secondo: switch PoE che invia direttamente dati e 48 volt all'access point">
+          <text x="0" y="13" font-size="11.5" font-weight="700">① switch normale + power injector</text>
+          <rect x="0" y="24" width="110" height="42" rx="6" class="dev"/>
+          <text x="55" y="42" text-anchor="middle" font-size="11.5" font-weight="700">Switch</text>
+          <text x="55" y="57" text-anchor="middle" font-size="10" class="t-muted">non PoE</text>
+          <line x1="110" y1="45" x2="200" y2="45" class="wire"/>
+          <text x="155" y="39" text-anchor="middle" font-size="9.5" class="t-muted">solo dati</text>
+          <rect x="200" y="24" width="110" height="42" rx="6" class="b-a3"/>
+          <text x="255" y="42" text-anchor="middle" font-size="11.5" font-weight="700">Injector</text>
+          <text x="255" y="57" text-anchor="middle" font-size="10" class="t-muted">PSE</text>
+          <line x1="255" y1="66" x2="255" y2="78" class="wire" stroke-width="1.5"/>
+          <text x="255" y="90" text-anchor="middle" font-size="9.5" class="t-muted">⚡ presa 230 V</text>
+          <line x1="310" y1="45" x2="410" y2="45" class="s-a3" stroke-width="4"/>
+          <text x="360" y="39" text-anchor="middle" font-size="9.5" class="f-a3" font-weight="700">dati + 48 V</text>
+          <rect x="410" y="24" width="110" height="42" rx="6" class="b-a4"/>
+          <text x="465" y="42" text-anchor="middle" font-size="11.5" font-weight="700">Access Point</text>
+          <text x="465" y="57" text-anchor="middle" font-size="10" class="t-muted">PD</text>
+
+          <text x="0" y="111" font-size="11.5" font-weight="700">② switch PoE</text>
+          <rect x="0" y="122" width="110" height="42" rx="6" class="b-a3"/>
+          <text x="55" y="140" text-anchor="middle" font-size="11.5" font-weight="700">Switch PoE</text>
+          <text x="55" y="155" text-anchor="middle" font-size="10" class="t-muted">PSE</text>
+          <line x1="110" y1="143" x2="410" y2="143" class="s-a3" stroke-width="4"/>
+          <text x="260" y="137" text-anchor="middle" font-size="9.5" class="f-a3" font-weight="700">dati + 48 V sullo stesso cavo (fino a 100 m)</text>
+          <rect x="410" y="122" width="110" height="42" rx="6" class="b-a4"/>
+          <text x="465" y="140" text-anchor="middle" font-size="11.5" font-weight="700">Access Point</text>
+          <text x="465" y="155" text-anchor="middle" font-size="10" class="t-muted">PD</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · POE (2) ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">PoE: gli standard e il budget di potenza</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Quanta potenza?</h3>
+        <table class="tbl">
+          <tr><th>Standard</th><th>Nome</th><th>Dalla porta (PSE)</th><th>All'apparato (PD)</th></tr>
+          <tr><td class="m">802.3af · 2003</td><td>PoE (tipo 1)</td><td class="m r">15,4 W</td><td class="m r">12,95 W</td></tr>
+          <tr><td class="m">802.3at · 2009</td><td>PoE+ (tipo 2)</td><td class="m r">30 W</td><td class="m r">25,5 W</td></tr>
+          <tr><td class="m">802.3bt · 2018</td><td>PoE++ (tipo 3)</td><td class="m r">60 W</td><td class="m r">51 W</td></tr>
+          <tr><td class="m">802.3bt · 2018</td><td>PoE++ (tipo 4)</td><td class="m r">90 W</td><td class="m r">71,3 W</td></tr>
+        </table>
+        <p style="margin-top:8px;">La differenza tra le due colonne è l'energia che si disperde nel cavo (fino a 100 m). Con l'802.3bt si alimentano anche access point Wi-Fi 7, telecamere motorizzate, piccoli monitor e lampade LED.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Compatibilità</h3>
+        <p>Un PSE più potente alimenta anche i PD meno esigenti (uno switch PoE+ alimenta un telefono PoE). Al contrario un PD PoE+ collegato a un PSE PoE riceve troppa poca potenza: non si accende, oppure funziona con prestazioni ridotte.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card reveal">
+        <h3 style="color:var(--accent3);">🧮 Il budget di potenza</h3>
+        <p>Uno switch PoE ha un limite complessivo, il <strong>budget</strong>. Abbiamo uno switch a 24 porte con budget di <strong>370 W</strong> e vogliamo collegare access point PoE+ (lo switch riserva <strong>30 W</strong> per ciascuno). Quanti access point possiamo alimentare?</p>
+        <button class="reveal-btn no-js-hide" type="button">Mostra la risposta</button>
+        <div class="reveal-body callout callout-green">
+          <span><strong>12</strong> access point: 370 ÷ 30 = 12,3. Le altre 12 porte funzionano ma senza alimentazione. Il conto si fa con la potenza <em>riservata dalla porta</em> (30 W), non con quella che arriva all'apparato (25,5 W).</span>
+        </div>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione</span>Il libro descrive lo <strong>splitter PoE</strong> come un dispositivo che permette di raggiungere più apparati. In realtà lo splitter si mette accanto a un apparato <strong>che non supporta il PoE</strong> e divide il cavo in due uscite: i dati (presa RJ45) e l'alimentazione a bassa tensione (5 o 12 V). Per alimentare più apparati da un solo cavo serve uno switch PoE alimentato a sua volta via PoE (<em>PoE pass-through</em>) o un <em>extender</em>. Inoltre l'802.3at non è più lo standard più recente: dal 2018 c'è l'<strong>802.3bt</strong>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · IL FRAME ETHERNET ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il frame Ethernet</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3 style="color:var(--accent2);">Due formati che convivono — lunghezza del frame da 64 a 1518 byte (preambolo e SFD esclusi)</h3>
+      <p class="note" style="margin-bottom:4px;">Ethernet II (detto anche DIX o v2.0) — quello usato da TCP/IP</p>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell w2 hl-red">Preambolo<small>7</small></div>
+          <div class="proto-cell hl-red">SFD<small>1</small></div>
+          <div class="proto-cell w2 hl-blue">Destinazione<small>6</small></div>
+          <div class="proto-cell w2 hl-blue">Sorgente<small>6</small></div>
+          <div class="proto-cell w2 hl-ty">Type<small>2</small></div>
+          <div class="proto-cell w6 hl-yel">Data (payload)<small>da 46 a 1500</small></div>
+          <div class="proto-cell w2 hl">FCS<small>4</small></div>
+        </div>
+      </div>
+      <p class="note" style="margin:8px 0 4px;">IEEE 802.3 — al posto di Type c'è Length, e i dati sono un frame LLC</p>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell w2 hl-red">Preambolo<small>7</small></div>
+          <div class="proto-cell hl-red">SFD<small>1</small></div>
+          <div class="proto-cell w2 hl-blue">Destinazione<small>6</small></div>
+          <div class="proto-cell w2 hl-blue">Sorgente<small>6</small></div>
+          <div class="proto-cell w2 hl-ty">Length<small>2</small></div>
+          <div class="proto-cell w4 hl-yel">Data<small>da 0 a 1500</small></div>
+          <div class="proto-cell w2 hl-yel">PAD<small>da 0 a 46</small></div>
+          <div class="proto-cell w2 hl">FCS<small>4</small></div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:4px;">Dimensioni in byte (ottetti). Il campo dati (con l'eventuale PAD) si chiama anche <strong>payload</strong>, il carico utile.</p>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I campi</h3>
+        <ul>
+          <li><strong>Preambolo</strong>: 7 byte di bit alternati 1010…, per sincronizzare il ricevente</li>
+          <li><strong>SFD</strong> (Start Frame Delimiter): segna l'inizio vero del frame</li>
+          <li><strong>Destinazione</strong> e <strong>sorgente</strong>: indirizzi MAC</li>
+          <li><strong>Type</strong>: il protocollo contenuto nei dati (IPv4, ARP, IPv6…)</li>
+          <li><strong>Data</strong>: il pacchetto del livello superiore; se è troppo corto si allunga fino a 46 byte (riempimento, <em>padding</em>)</li>
+          <li><strong>FCS</strong>: CRC a 32 bit per rilevare gli errori</li>
+        </ul>
+        <p class="note" style="margin-top:4px;">Non c'è un campo di fine frame: la fine la segna la pausa obbligatoria tra un frame e l'altro (inter-frame gap).</p>
+      </div>
+      <div class="col">
+        <div class="callout callout-book">
+          <span class="callout-icon">📕</span>
+          <span><span class="bk">Precisazione sul libro</span>Il libro scrive il preambolo come <code>10101010</code> e l'SFD come <code>11010101</code>, mescolando due notazioni. <strong>Sul cavo</strong> i bit sono: preambolo <code>10101010</code> × 7, poi SFD <code>10101011</code>: i due <strong>1 finali</strong> rompono l'alternanza e dicono «da qui inizia il frame». Il libro riporta il valore del byte (0xD5) scritto dal bit più significativo, ma Ethernet trasmette per primo il bit <em>meno</em> significativo.</span>
+        </div>
+        <div class="callout callout-green">
+          <span class="callout-icon">🔎</span>
+          <span>Oggi l'hardware è conforme a IEEE 802.3, ma quasi tutto il traffico usa il formato <strong>Ethernet II</strong>. Le schede di rete riconoscono comunque entrambi i formati.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · TYPE O LENGTH, MINIMO 64 BYTE ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Type o Length? E perché almeno 64 byte?</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--ty);">Lo stesso campo, due significati</h3>
+        <p>I due insiemi di valori sono separati, quindi il ricevente capisce subito il formato:</p>
+        <ul style="margin-top:4px;">
+          <li>valore <strong>≤ 1500</strong> (0x05DC) → è una <strong>Length</strong>: frame IEEE 802.3 con LLC</li>
+          <li>valore <strong>≥ 1536</strong> (0x0600) → è un <strong>Type</strong> (EtherType): frame Ethernet II</li>
+        </ul>
+        <table class="tbl" style="margin-top:8px;">
+          <tr><th>EtherType</th><th>Contenuto</th></tr>
+          <tr><td class="m">0x0800</td><td>IPv4</td></tr>
+          <tr><td class="m">0x0806</td><td>ARP</td></tr>
+          <tr><td class="m">0x86DD</td><td>IPv6</td></tr>
+          <tr><td class="m">0x8100</td><td>tag VLAN 802.1Q</td></tr>
+          <tr><td class="m">0x88CC</td><td>LLDP (i dispositivi annunciano chi sono)</td></tr>
+          <tr><td class="m">0x88B5 · 0x88B6</td><td>riservati agli <strong>esperimenti</strong> (li useremo in laboratorio)</td></tr>
+        </table>
+        <p class="note" style="margin-top:6px;">L'elenco completo è pubblicato dall'IEEE e dalla IANA.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Perché il frame minimo è di 64 byte</h3>
+        <p>64 byte = <strong>512 bit</strong>: è lo <em>slot time</em> di Ethernet (a 10 Mb/s dura 51,2 µs). Con il CSMA/CD il mittente si accorge di una collisione solo <strong>mentre sta ancora trasmettendo</strong>. Il frame deve quindi durare abbastanza perché il segnale raggiunga il punto più lontano della rete e la notizia della collisione torni indietro.</p>
+        <p>Un frame più corto potrebbe finire prima: il mittente lo crederebbe arrivato e non lo ripeterebbe. Per questo i dati brevi vengono allungati con il <strong>PAD</strong>, e ogni frame più corto di 64 byte è considerato un frammento di collisione e scartato.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Le misure da ricordare</h3>
+        <ul>
+          <li><strong>MTU</strong> (Maximum Transmission Unit) = 1500 byte: il pacchetto IP più grande che entra in un frame</li>
+          <li><strong>1518</strong> byte il frame massimo, <strong>1522</strong> con il tag VLAN</li>
+          <li><strong>Jumbo frame</strong>: fino a circa 9000 byte, usati nei data center; non fanno parte dello standard</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L4 · INTER-FRAME GAP E WIRE SPEED ═══ -->
+<div class="slide" data-section="ethernet">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Inter-frame gap e wire speed</h2>
+    <span class="section-num" data-l="L4"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">La pausa obbligatoria</h3>
+        <p>Tra due frame consecutivi c'è una pausa minima, l'<strong>inter-frame gap</strong> (IFG o IPG, Inter-Packet Gap), di <strong>96 bit-time</strong>: il tempo necessario a trasmettere 96 bit. La sua durata dipende dalla velocità:</p>
+        <div class="proto-header" style="margin-top:6px;">
+          <div class="proto-row"><div class="proto-cell hl-blue">10 Mb/s</div><div class="proto-cell hl-blue">100 Mb/s</div><div class="proto-cell hl-blue">1 Gb/s</div><div class="proto-cell hl-blue">10 Gb/s</div></div>
+          <div class="proto-row"><div class="proto-cell">9,6 µs</div><div class="proto-cell">960 ns</div><div class="proto-cell">96 ns</div><div class="proto-cell">9,6 ns</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Quanti frame al secondo?</h3>
+        <p>Un dispositivo lavora a <strong>wire speed</strong> (massima velocità del collegamento) quando riesce a inviare frame di lunghezza minima uno dopo l'altro, separati solo dall'IFG minimo. Si misura in <strong>pps</strong> (pacchetti al secondo). Ogni frame occupa il cavo per <em>frame + 8 byte (preambolo e SFD) + 12 byte (IFG)</em>:</p>
+        <div class="formula">pps = velocità ÷ ((frame + 20) × 8)</div>
+        <p>A 1 Gb/s con frame da 64 byte: <code>1 000 000 000 ÷ (84 × 8) ≈ 1 488 095 pps</code></p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <table class="tbl">
+          <tr><th>Velocità</th><th>64 byte</th><th>750 byte</th><th>1518 byte</th></tr>
+          <tr><td>10 Mb/s</td><td class="m r">14 881</td><td class="m r">1 623</td><td class="m r">813</td></tr>
+          <tr><td>100 Mb/s</td><td class="m r">148 810</td><td class="m r">16 234</td><td class="m r">8 127</td></tr>
+          <tr><td>1 Gb/s</td><td class="m r">1 488 095</td><td class="m r">162 338</td><td class="m r">81 274</td></tr>
+          <tr><td>10 Gb/s</td><td class="m r">14 880 952</td><td class="m r">1 623 377</td><td class="m r">812 744</td></tr>
+        </table>
+        <p class="note" style="margin-top:5px;">Valori in pps, arrotondati all'unità (il libro li tronca: 14 880, 148 800…).</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione alla tabella 3</span>La colonna intitolata «75 ottetti» va letta <strong>«750 ottetti»</strong>: i valori riportati (1 623 pps a 10 Mb/s…) corrispondono a frame di 750 byte. Con frame da 75 byte, a 10 Mb/s, si avrebbero circa 13 158 pps.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Quanta banda è davvero «utile»?</h3>
+        <p>Con frame da 1518 byte, i dati utili sono 1500 byte su 1538 occupati: <strong>97,5 %</strong>. Con frame minimi sono 46 byte su 84: appena <strong>55 %</strong>. I pacchetti piccoli (per esempio quelli della voce VoIP) «costano» molto di più.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L5 · LAB WIRESHARK ═══ -->
+<div class="slide" data-section="lab-wireshark">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Laboratorio · Wireshark: il frame Ethernet dal vivo</h2>
+    <span class="section-num" data-l="L5"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Problema</h3>
+        <p>Catturare i pacchetti generati dalla richiesta di una pagina web e, nel frame Ethernet che trasporta la richiesta <strong>GET</strong>, riconoscere il contenuto di ogni campo.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Procedura</h3>
+        <ol>
+          <li>Svuota la cache del browser</li>
+          <li>In Wireshark scegli l'interfaccia (<em>Cattura → Opzioni</em>) e avvia la cattura</li>
+          <li>Apri un sito che usa ancora <strong>HTTP</strong> in chiaro, per esempio <code>http://neverssl.com</code></li>
+          <li>Ferma la cattura</li>
+          <li>Scrivi il filtro <code>http.request</code> e seleziona la riga della GET</li>
+          <li>Nel riquadro dei dettagli espandi la voce <strong>Ethernet II</strong></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Filtri di visualizzazione utili</h3>
+<pre><span class="cmd">http.request</span>                     <span class="cmt">le richieste HTTP</span>
+<span class="cmd">arp</span>                              <span class="cmt">solo ARP (Type 0x0806)</span>
+<span class="cmd">eth.type</span> == <span class="arg">0x0800</span>               <span class="cmt">solo IPv4</span>
+<span class="cmd">eth.dst</span> == <span class="arg">ff:ff:ff:ff:ff:ff</span>    <span class="cmt">i broadcast</span>
+<span class="cmd">eth.addr</span> == <span class="arg">64:59:f8:2b:64:e0</span>   <span class="cmt">da o verso quel MAC</span></pre>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card reveal">
+        <h3 style="color:var(--accent1);">Le domande del laboratorio</h3>
+        <ul style="list-style:none;padding-left:0;">
+          <li><strong>D1.</strong> Nel frame della GET, qual è il MAC del mittente?</li>
+          <li><strong>D2.</strong> Qual è il MAC del destinatario? È quello del web server?</li>
+          <li><strong>D3.</strong> Quanto vale il campo Type? Quale protocollo indica?</li>
+          <li><strong>D4.</strong> Wireshark mostra il produttore delle schede: da dove lo ricava?</li>
+          <li><strong>D5.</strong> Prendi un frame ARP: che Type ha, a chi è indirizzato, chi lo riceve?</li>
+        </ul>
+        <button class="reveal-btn no-js-hide" type="button">Mostra le risposte</button>
+        <div class="reveal-body callout callout-green">
+          <ol style="padding-left:16px;">
+            <li>Il MAC della scheda del <strong>tuo PC</strong> (nell'esempio del libro <code>00:16:d4:a1:fc:f9</code>).</li>
+            <li><strong>No</strong>: è il MAC del <strong>router</strong> (default gateway). Il server sta in un'altra rete e a livello 2 il frame arriva solo fino al prossimo salto; a ogni router il frame viene ricostruito con nuovi MAC.</li>
+            <li><code>0x0800</code> = <strong>IPv4</strong> (sarebbe <code>0x86DD</code> se il sito fosse raggiunto in IPv6).</li>
+            <li>Dai primi 3 byte, l'<strong>OUI</strong>: Wireshark li cerca nel suo database dei produttori (<code>00:16:d4</code> = Compal). Con <em>Risolvi gli indirizzi MAC</em> mostra il nome al posto delle cifre.</li>
+            <li>Type <code>0x0806</code> = ARP, destinazione <code>ff:ff:ff:ff:ff:ff</code>: è un <strong>broadcast</strong>, lo ricevono tutti gli host della rete locale.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione alla procedura</span>Il libro usa <code>https://www.wireshark.org/</code>: con <strong>HTTPS</strong> la GET viaggia cifrata dentro TLS e Wireshark non mostra nessuna riga HTTP. Per vederla serve un sito in HTTP. Il frame Ethernet invece è visibile sempre: la cifratura protegge i livelli superiori, non le intestazioni MAC.</span>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">📶</span>
+        <span>Se catturi dalla scheda <strong>Wi-Fi</strong> Wireshark mostra comunque «Ethernet II»: in modalità normale la scheda converte i frame 802.11 in formato Ethernet prima di consegnarli al sistema operativo. I veri frame 802.11 si vedono solo in <em>monitor mode</em>.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🧪</span>
+        <span><strong>Verifica di fine laboratorio:</strong> trova il MAC del mittente e il campo Type anche nel riquadro esadecimale in basso, contando i byte dall'inizio del frame.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L6 · LAB SCAPY: AMBIENTE ═══ -->
+<div class="slide" data-section="lab-scapy">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Laboratorio · Python e Scapy: una «chat» su Ethernet</h2>
+    <span class="section-num" data-l="L6"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Problema</h3>
+        <p>PC1 e PC2 devono scambiarsi brevi messaggi di testo usando <strong>solo Ethernet</strong>, senza IP: il testo va direttamente nel payload del frame. È come inventare un nostro protocollo di livello 2. Useremo la libreria <strong>Scapy</strong>, che costruisce, invia e cattura frame.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Ambiente di prova (rete isolata)</h3>
+        <svg class="wa-svg" viewBox="0 0 460 150" style="max-height:22vh;" role="img" aria-label="PC1 e PC2 eseguono gli script Python e sono collegati a uno switch managed; lo switch copia il loro traffico sulla porta di PC3, che esegue Wireshark">
+          <defs>
+            <marker id="sc-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
+          </defs>
+          <rect x="170" y="14" width="120" height="44" rx="6" class="b-a2"/>
+          <text x="230" y="33" text-anchor="middle" font-size="12" font-weight="700">Switch managed</text>
+          <text x="230" y="49" text-anchor="middle" font-size="10" class="t-muted">port mirroring (SPAN)</text>
+          <line x1="60" y1="104" x2="190" y2="58" class="s-a1" stroke-width="2.5"/>
+          <line x1="230" y1="104" x2="230" y2="58" class="s-a1" stroke-width="2.5"/>
+          <line x1="270" y1="58" x2="396" y2="102" class="arw s-a4 dash" marker-end="url(#sc-a)"/>
+          <text x="98" y="70" text-anchor="middle" font-size="10" class="f-a1" font-weight="700">frame 0x88B5</text>
+          <text x="364" y="70" text-anchor="middle" font-size="10" class="f-a4" font-weight="700">copia del traffico</text>
+          <rect x="10" y="104" width="100" height="40" rx="6" class="dev"/>
+          <text x="60" y="121" text-anchor="middle" font-size="12" font-weight="700">PC1</text>
+          <text x="60" y="136" text-anchor="middle" font-size="9.5" class="t-muted">script Python</text>
+          <rect x="180" y="104" width="100" height="40" rx="6" class="dev"/>
+          <text x="230" y="121" text-anchor="middle" font-size="12" font-weight="700">PC2</text>
+          <text x="230" y="136" text-anchor="middle" font-size="9.5" class="t-muted">script Python</text>
+          <rect x="350" y="104" width="100" height="40" rx="6" class="b-a4"/>
+          <text x="400" y="121" text-anchor="middle" font-size="12" font-weight="700">PC3</text>
+          <text x="400" y="136" text-anchor="middle" font-size="9.5" class="t-muted">Wireshark</text>
+        </svg>
+        <p style="margin-top:6px;">Lo switch inoltra un frame unicast solo verso la porta del destinatario, quindi PC3 non lo vedrebbe: serve il <strong>port mirroring</strong> (sugli switch Cisco <em>SPAN</em>, Switched Port Analyzer), che copia il traffico di PC1 e PC2 sulla porta di PC3.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🖥️</span>
+        <span><strong>In alternativa</strong>, a casa: due macchine virtuali Ubuntu in VirtualBox con la scheda di rete in modalità <em>Scheda con bridge</em>. Il traffico si registra con <code>VBoxManage modifyvm … --nictrace1 on</code> a VM spente, poi si apre il file .pcap in Wireshark.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Preparazione (su ogni PC)</h3>
+<pre>$ <span class="cmd">cd</span> PythonLab
+$ <span class="cmd">mkdir</span> EthernetFrame <span class="cmt">&amp;&amp;</span> <span class="cmd">cd</span> EthernetFrame
+$ <span class="cmd">python3 -m venv</span> venv  <span class="cmt"># se manca: sudo apt install python3-venv</span>
+$ <span class="cmd">venv/bin/pip install</span> scapy
+$ <span class="cmd">ip a</span>     <span class="cmt"># nome della scheda (es. enp0s3) e MAC</span>
+$ <span class="cmd">sudo</span> venv/bin/python3 EthSender.py</pre>
+        <p style="margin-top:6px;">Gli script vanno eseguiti con <code>sudo</code>: inviare e catturare frame «grezzi» richiede i privilegi di amministratore. Su ogni PC si aprono <strong>due terminali</strong>: uno per inviare, uno per ricevere.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--ty);">Quale valore per il campo Type?</h3>
+        <p>Il nostro «protocollo» ha bisogno di un EtherType che non sia già usato da altri, così switch, sistemi operativi e Wireshark non lo scambiano per IPv4 o ARP.</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Scelta migliore</span>Il libro sceglie <code>0x9999</code> dopo aver controllato che non compare nell'elenco della IANA. Per gli esperimenti però lo standard IEEE 802 <strong>riserva</strong> due valori appositi: <code>0x88B5</code> e <code>0x88B6</code> (<em>Local Experimental EtherType</em>), che non verranno mai assegnati a un protocollo reale. Noi usiamo <strong><code>0x88B5</code></strong>; il filtro in Wireshark diventa <code>eth.type == 0x88b5</code>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L6 · LAB SCAPY: IL CODICE ═══ -->
+<div class="slide" data-section="lab-scapy">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Laboratorio · Gli script di invio e ricezione</h2>
+    <span class="section-num" data-l="L6"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">EthSender.py — crea e invia i frame</h3>
+<pre class="copy"><span class="cmt"># EthSender.py - invia messaggi a PC2 su Ethernet (con sudo)</span>
+<span class="kw">from</span> scapy.all <span class="kw">import</span> Ether, Raw, sendp, get_if_hwaddr
+
+IFACE = <span class="str">"enp0s3"</span>               <span class="cmt"># nome della scheda (comando ip a)</span>
+DST_MAC = <span class="str">"08:00:27:6e:ad:6f"</span>  <span class="cmt"># MAC di PC2, scritto a mano</span>
+ETH_TYPE = <span class="arg">0x88B5</span>              <span class="cmt"># EtherType per esperimenti</span>
+
+mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    testo = <span class="cmd">input</span>(<span class="str">"Messaggio da inviare: "</span>)
+    dati = testo.<span class="cmd">encode</span>(<span class="str">"utf-8"</span>)
+    frame = <span class="cmd">Ether</span>(dst=DST_MAC, src=mio_mac, type=ETH_TYPE) / <span class="cmd">Raw</span>(load=dati)
+    <span class="cmd">sendp</span>(frame, iface=IFACE, verbose=<span class="kw">False</span>)</pre>
+        <p style="margin-top:6px;">Il <code>/</code> di Scapy <strong>incapsula</strong> il payload (<code>Raw</code>) nel frame; preambolo e FCS li aggiunge la scheda.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Perché <code>rstrip(b"\x00")</code>? Il PAD in azione</h3>
+        <p>«ciao» occupa 4 byte, ma il payload di un frame Ethernet deve essere di almeno <strong>46 byte</strong>: la scheda aggiunge 42 byte a zero. Il nostro protocollo non ha un campo Length, quindi il ricevente si trova gli zeri attaccati al testo. È la regola del <strong>frame minimo di 64 byte</strong>, vista dal vivo.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">EthReceiver.py — cattura e mostra i messaggi</h3>
+<pre class="copy"><span class="cmt"># EthReceiver.py - mostra i messaggi ricevuti (con sudo)</span>
+<span class="kw">from</span> scapy.all <span class="kw">import</span> sniff, Ether, Raw, get_if_hwaddr
+
+IFACE = <span class="str">"enp0s3"</span>
+ETH_TYPE = <span class="arg">0x88B5</span>
+mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
+
+<span class="kw">def</span> <span class="cmd">receive_message</span>(pkt):      <span class="cmt"># callback: chiamata per ogni frame</span>
+    <span class="kw">if</span> Ether <span class="kw">not in</span> pkt <span class="kw">or</span> Raw <span class="kw">not in</span> pkt:
+        <span class="kw">return</span>
+    <span class="kw">if</span> pkt[Ether].type != ETH_TYPE <span class="kw">or</span> pkt[Ether].src == mio_mac:
+        <span class="kw">return</span>                     <span class="cmt"># altro protocollo o frame nostro</span>
+    dati = pkt[Raw].load.<span class="cmd">rstrip</span>(<span class="str">b"\x00"</span>)  <span class="cmt"># tolgo il PAD</span>
+    testo = dati.<span class="cmd">decode</span>(<span class="str">"utf-8"</span>, errors=<span class="str">"replace"</span>)
+    <span class="cmd">print</span>(<span class="str">f"</span>{pkt[Ether].src}<span class="str"> -&gt; </span>{pkt[Ether].dst}<span class="str">: </span>{testo}<span class="str">"</span>)
+
+<span class="cmd">print</span>(<span class="str">"In ascolto dei messaggi... (Ctrl+C per uscire)"</span>)
+<span class="cmd">sniff</span>(iface=IFACE, prn=receive_message, store=<span class="kw">False</span>)  <span class="cmt"># non accumula i frame</span></pre>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzioni al codice del libro</span>Nella figura 16 la scheda si chiama <code>'Ethernet'</code> (un nome di Windows), ma le VM sono Ubuntu (<code>enp0s3</code>): usa lo stesso nome nei due script. Nella figura 17 il <code>while True</code> attorno a <code>sniff()</code> non serve: <code>sniff()</code> ascolta già finché non premi <kbd>Ctrl</kbd>+<kbd>C</kbd>.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · STANDARD 802.11 ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Wi-Fi (IEEE 802.11): gli standard</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="two-col-r">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Una storia di lettere</h3>
+        <p>Il primo 802.11 (1997) arrivava a 2 Mb/s e quasi nessuno lo usò. Il successo inizia nel <strong>1999</strong> con l'<strong>802.11b</strong> (11 Mb/s a 2,4 GHz) e l'<strong>802.11a</strong> (54 Mb/s a 5 GHz, con la modulazione OFDM). Vince l'802.11b: costa meno e la banda a 2,4 GHz è libera in quasi tutto il mondo.</p>
+        <p>Dal 2018 la <strong>Wi-Fi Alliance</strong>, il consorzio che certifica che i prodotti funzionano insieme, usa nomi più semplici: <strong>Wi-Fi 4, 5, 6, 7</strong>.</p>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span>Le velocità della tabella sono <strong>massimi teorici</strong>, con tutte le antenne e il canale più largo. Uno smartphone con 2 antenne ne usa una parte, e la velocità reale dei dati è circa la metà di quella di collegamento.</span>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazioni sul libro</span>«Wi-Fi» è un <strong>marchio</strong>, non un acronimo: «Wireless Fidelity» è nato da uno slogan pubblicitario, e la Wi-Fi Alliance precisa che il nome non significa nulla. Nella tabella 4 le velocità sono di prodotti tipici o obiettivi di progetto; quelle a fianco sono i massimi dello standard. Il <strong>6 GHz</strong> non c'è nel Wi-Fi 6 «base»: arriva con il <strong>Wi-Fi 6E</strong>.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <table class="tbl">
+          <tr><th>Standard</th><th>Nome</th><th>Anno</th><th>Bande</th><th>Velocità max</th></tr>
+          <tr class="off"><td class="m">802.11</td><td>—</td><td>1997</td><td>2,4 GHz</td><td class="m">2 Mb/s</td></tr>
+          <tr class="off"><td class="m">802.11b</td><td>—</td><td>1999</td><td>2,4 GHz</td><td class="m">11 Mb/s</td></tr>
+          <tr class="off"><td class="m">802.11a</td><td>—</td><td>1999</td><td>5 GHz</td><td class="m">54 Mb/s</td></tr>
+          <tr class="off"><td class="m">802.11g</td><td>—</td><td>2003</td><td>2,4 GHz</td><td class="m">54 Mb/s</td></tr>
+          <tr><td class="m">802.11n</td><td><strong>Wi-Fi 4</strong></td><td>2009</td><td>2,4 e 5 GHz</td><td class="m">600 Mb/s</td></tr>
+          <tr><td class="m">802.11ac</td><td><strong>Wi-Fi 5</strong></td><td>2013</td><td>5 GHz</td><td class="m">6,9 Gb/s</td></tr>
+          <tr class="hi"><td class="m">802.11ax</td><td><strong>Wi-Fi 6 · 6E</strong></td><td>2019–21</td><td>2,4 e 5 GHz (+ 6 GHz con il 6E)</td><td class="m">9,6 Gb/s</td></tr>
+          <tr class="hi"><td class="m">802.11be</td><td><strong>Wi-Fi 7</strong></td><td>2024</td><td>2,4 · 5 · 6 GHz</td><td class="m">≈ 46 Gb/s</td></tr>
+          <tr><td class="m">802.11bn</td><td><strong>Wi-Fi 8</strong></td><td>in arrivo</td><td>2,4 · 5 · 6 GHz</td><td>punta sull'<strong>affidabilità</strong> più che sulla velocità</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Le novità degli ultimi standard, in breve</h3>
+        <ul>
+          <li><strong>MIMO</strong> (Wi-Fi 4): più antenne trasmettono più flussi contemporaneamente</li>
+          <li><strong>MU-MIMO</strong> e <strong>OFDMA</strong> (Wi-Fi 5 e 6): l'access point serve più dispositivi nello stesso istante, utile in un'aula piena</li>
+          <li><strong>Canali da 320 MHz</strong> e <strong>MLO</strong> (Wi-Fi 7): un dispositivo usa più bande insieme, per esempio 5 e 6 GHz</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · BANDE E CANALI ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Bande e canali</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Bande libere, con regole</h3>
+        <p>Il Wi-Fi usa bande <strong>senza licenza</strong> (la 2,4 GHz è la banda <strong>ISM</strong>, Industrial, Scientific and Medical): chiunque può trasmettere, ma rispettando limiti di potenza (in Europa 100 mW a 2,4 GHz) e usando tecniche che distribuiscono il segnale su una banda larga per disturbarsi meno a vicenda (<em>spread spectrum</em>, poi OFDM).</p>
+      </div>
+      <div class="card">
+        <table class="tbl">
+          <tr><th></th><th>2,4 GHz</th><th>5 GHz</th><th>6 GHz</th></tr>
+          <tr><td><strong>Portata</strong></td><td class="best">la maggiore</td><td class="mid">minore</td><td class="bad">la minore</td></tr>
+          <tr><td><strong>Muri</strong></td><td class="best">li attraversa meglio</td><td class="mid">più attenuazione</td><td class="bad">ancora di più</td></tr>
+          <tr><td><strong>Canali</strong></td><td class="bad">solo 3 indipendenti</td><td class="best">circa 19 da 20 MHz</td><td class="best">in Europa 24 da 20 MHz</td></tr>
+          <tr><td><strong>Affollamento</strong></td><td class="bad">Bluetooth, microonde, cordless, vecchi dispositivi</td><td class="mid">medio; alcuni canali condivisi con i radar (DFS)</td><td class="best">solo dispositivi Wi-Fi 6E/7</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Aggiornamento</span>Il libro afferma che «la maggioranza degli standard usa la banda a 2,4 GHz»: oggi è il contrario, i nuovi standard puntano su <strong>5 e 6 GHz</strong>, mentre i 2,4 GHz restano per la copertura e i dispositivi IoT. Anche la portata «4 volte superiore» (80 m contro 20 m) va presa come valore indicativo: dipende da ostacoli, potenza e antenne; in campo aperto è circa il doppio.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">I canali a 2,4 GHz</h3>
+        <svg class="wa-svg" viewBox="0 0 620 190" style="max-height:28vh;" role="img" aria-label="I 13 canali europei a 2,4 GHz, larghi 22 MHz e distanti 5 MHz l'uno dall'altro, si sovrappongono. I canali 1, 6 e 11 sono evidenziati perché non si sovrappongono. Il canale 14 si usa solo in Giappone">
+          <line x1="20" y1="150" x2="610" y2="150" class="tl" stroke-width="1.5"/>
+          <path d="M57.2,150 A68.2,82 0 0 1 193.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M88.2,150 A68.2,82 0 0 1 224.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M119.2,150 A68.2,82 0 0 1 255.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M150.2,150 A68.2,82 0 0 1 286.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M212.2,150 A68.2,82 0 0 1 348.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M243.2,150 A68.2,82 0 0 1 379.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M274.2,150 A68.2,82 0 0 1 410.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M305.2,150 A68.2,82 0 0 1 441.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M367.2,150 A68.2,82 0 0 1 503.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M398.2,150 A68.2,82 0 0 1 534.6,150" fill="none" class="tl dash" stroke-width="1" opacity="0.6"/>
+          <path d="M472.6,150 A68.2,60 0 0 1 609,150" fill="none" class="tl dash" stroke-width="1" opacity="0.35"/>
+          <path d="M26.2,150 A68.2,104 0 0 1 162.6,150" class="b-a1" stroke-width="2"/>
+          <path d="M181.2,150 A68.2,104 0 0 1 317.6,150" class="b-a1" stroke-width="2"/>
+          <path d="M336.2,150 A68.2,104 0 0 1 472.6,150" class="b-a1" stroke-width="2"/>
+          <line x1="26.2" y1="36" x2="162.6" y2="36" class="s-a1" stroke-width="1.2"/>
+          <text x="94.4" y="31" text-anchor="middle" font-size="10" class="f-a1">22 MHz</text>
+          <g font-size="11" text-anchor="middle" class="mono">
+            <text x="94.4" y="166" class="f-a1" font-weight="700">1</text><text x="125.4" y="166" class="t-muted">2</text>
+            <text x="156.4" y="166" class="t-muted">3</text><text x="187.4" y="166" class="t-muted">4</text>
+            <text x="218.4" y="166" class="t-muted">5</text><text x="249.4" y="166" class="f-a1" font-weight="700">6</text>
+            <text x="280.4" y="166" class="t-muted">7</text><text x="311.4" y="166" class="t-muted">8</text>
+            <text x="342.4" y="166" class="t-muted">9</text><text x="373.4" y="166" class="t-muted">10</text>
+            <text x="404.4" y="166" class="f-a1" font-weight="700">11</text><text x="435.4" y="166" class="t-muted">12</text>
+            <text x="466.4" y="166" class="t-muted">13</text><text x="540.8" y="166" class="t-muted" opacity="0.6">14</text>
+          </g>
+          <g font-size="9.5" text-anchor="middle" class="mono t-muted">
+            <text x="94.4" y="182">2,412</text><text x="249.4" y="182">2,437</text>
+            <text x="404.4" y="182">2,462</text><text x="540.8" y="182">2,484</text>
+          </g>
+          <text x="540.8" y="80" text-anchor="middle" font-size="9.5" class="t-muted">solo Giappone</text>
+          <text x="612" y="182" text-anchor="end" font-size="9.5" class="t-muted">GHz</text>
+        </svg>
+        <p style="margin-top:6px;">Il canale <em>n</em> è centrato su <code>2407 + 5·n</code> MHz: i centri distano 5 MHz ma ogni canale è largo 22 MHz (20 MHz con 802.11g/n), quindi due canali vicini si <strong>sovrappongono</strong> e si disturbano.</p>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">5️⃣</span>
+        <span><strong>Regola del 5</strong>: due canali sono indipendenti se distano almeno 5. In Europa (13 canali) si possono usare <strong>1-6-11</strong>, oppure 2-7-12 o 3-8-13. Nella stessa zona conviene che <strong>tutti</strong> gli access point usino lo stesso schema: mescolare 1-6-11 con 2-7-12 crea di nuovo sovrapposizioni.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · ARCHITETTURA WLAN ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Com'è fatta una rete Wi-Fi</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">I due tipi di dispositivi</h3>
+        <ul>
+          <li><strong>Wireless Terminal</strong> (WT, o stazioni): smartphone, tablet, notebook, ma anche PC fissi e stampanti con una scheda Wi-Fi</li>
+          <li><strong>Access Point</strong> (AP): collega le stazioni tra loro e alla parte cablata (wired) della rete</li>
+        </ul>
+        <p style="margin-top:6px;">Le LAN di oggi sono quasi sempre <strong>miste</strong>: Ethernet per i PC fissi e gli apparati, Wi-Fi per i dispositivi mobili.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Le parole chiave</h3>
+        <ul>
+          <li><strong>SSID</strong>: il nome della rete, quello che vedi nell'elenco (es. «Scuola»)</li>
+          <li><strong>BSS</strong> (Basic Service Set): un AP e le stazioni collegate; il <strong>BSSID</strong> è il MAC della radio dell'AP</li>
+          <li><strong>ESS</strong> (Extended Service Set): più AP con lo stesso SSID collegati alla stessa rete cablata; ci si sposta da uno all'altro senza perdere la connessione (<em>roaming</em>)</li>
+          <li><strong>Ad hoc</strong> (IBSS): stazioni collegate direttamente, senza AP</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <svg class="wa-svg" viewBox="0 0 520 210" style="max-height:28vh;" role="img" aria-label="Un router e uno switch collegano due access point. Ciascun access point crea il proprio BSS con BSSID diverso; i due BSS hanno lo stesso SSID e formano un ESS, nella cui zona di sovrapposizione avviene il roaming">
+          <rect x="10" y="8" width="110" height="38" rx="6" class="dev"/>
+          <text x="65" y="25" text-anchor="middle" font-size="12" font-weight="700">Router</text>
+          <text x="65" y="39" text-anchor="middle" font-size="9.5" class="t-muted">default gateway</text>
+          <rect x="210" y="8" width="100" height="38" rx="6" class="dev"/>
+          <text x="260" y="31" text-anchor="middle" font-size="12" font-weight="700">Switch</text>
+          <line x1="120" y1="27" x2="210" y2="27" class="wire"/>
+          <ellipse cx="130" cy="132" rx="122" ry="54" class="range s-a4"/>
+          <ellipse cx="390" cy="132" rx="122" ry="54" class="range s-a4"/>
+          <line x1="235" y1="46" x2="140" y2="96" class="wire"/>
+          <line x1="285" y1="46" x2="380" y2="96" class="wire"/>
+          <rect x="95" y="96" width="70" height="28" rx="6" class="b-a4"/>
+          <text x="130" y="115" text-anchor="middle" font-size="11.5" font-weight="700">AP 1</text>
+          <rect x="355" y="96" width="70" height="28" rx="6" class="b-a4"/>
+          <text x="390" y="115" text-anchor="middle" font-size="11.5" font-weight="700">AP 2</text>
+          <circle cx="50" cy="148" r="9" class="dev"/><circle cx="200" cy="155" r="9" class="dev"/>
+          <circle cx="330" cy="156" r="9" class="dev"/><circle cx="465" cy="146" r="9" class="dev"/>
+                    <text x="322" y="31" font-size="10.5" class="f-a1" font-weight="700">stesso SSID «Scuola» → un ESS</text>
+          <text x="110" y="168" text-anchor="middle" font-size="9.5" class="t-muted">BSS 1 · BSSID = MAC di AP 1</text>
+          <text x="410" y="168" text-anchor="middle" font-size="9.5" class="t-muted">BSS 2 · BSSID = MAC di AP 2</text>
+          <text x="260" y="205" text-anchor="middle" font-size="10" class="f-a4" font-weight="700">⟷ roaming: la stazione passa da AP 1 ad AP 2</text>
+        </svg>
+        <p class="note" style="margin-top:4px;">I cerchietti sono le stazioni (WT). Ogni AP ha il suo BSSID; il nome della rete è lo stesso.</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione</span>Il libro dice che l'AP «agisce da gateway». L'AP lavora a <strong>livello 2</strong>: inoltra i frame tra la parte radio (802.11) e la parte cablata (802.3) come un <strong>bridge</strong>, senza guardare gli indirizzi IP. Il gateway, cioè il dispositivo che porta i pacchetti verso altre reti, è il <strong>router</strong>. Nel «modem Wi-Fi» di casa router, switch e access point stanno nella stessa scatola: da qui nasce la confusione.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · STAZIONE NASCOSTA ED ESPOSTA ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Perché nel Wi-Fi non basta ascoltare il canale</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="card" style="margin-bottom:10px;">
+    <p>Nell'aria le collisioni <strong>non si possono rilevare</strong>: mentre trasmette, una stazione è «assordata» dal proprio segnale, molto più forte di quello degli altri. Il CSMA/CD quindi non funziona e le collisioni vanno <strong>evitate</strong> prima. Ascoltare il canale prima di trasmettere aiuta, ma non basta: lo dimostrano due casi.</p>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <h3 style="color:var(--accent2);">La stazione nascosta</h3>
+      <svg class="wa-svg" viewBox="0 0 400 230" style="max-height:27vh;" role="img" aria-label="A e C sono fuori portata l'una dall'altra ma entrambe raggiungono B. A trasmette a B; C ascolta, non sente A, trasmette anch'essa a B e in B i due segnali collidono">
+        <defs>
+          <marker id="hs-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
+          <marker id="hs-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a3"/></marker>
+        </defs>
+        <circle cx="118" cy="115" r="108" class="range s-a4"/>
+        <circle cx="278" cy="115" r="108" class="range s-a3" style="fill:rgba(217,119,6,0.05)"/>
+        <line x1="136" y1="108" x2="178" y2="108" class="arw s-a4" marker-end="url(#hs-a)"/>
+        <line x1="260" y1="122" x2="218" y2="122" class="arw s-a3" marker-end="url(#hs-c)"/>
+        <circle cx="118" cy="115" r="17" class="dev"/><text x="118" y="120" text-anchor="middle" font-size="14" font-weight="800">A</text>
+        <circle cx="198" cy="115" r="17" class="dev"/><text x="198" y="120" text-anchor="middle" font-size="14" font-weight="800">B</text>
+        <circle cx="278" cy="115" r="17" class="dev"/><text x="278" y="120" text-anchor="middle" font-size="14" font-weight="800">C</text>
+        <text x="198" y="84" text-anchor="middle" font-size="11" class="f-a2" font-weight="700">💥 collisione</text>
+        <text x="60" y="40" font-size="10" class="f-a4">portata di A</text>
+        <text x="340" y="40" text-anchor="end" font-size="10" class="f-a3">portata di C</text>
+      </svg>
+      <p style="margin-top:6px;">A trasmette a B. C non sente A (è fuori portata), crede il canale libero e trasmette anche lei a B: in B i segnali si sovrappongono e <strong>entrambe devono ritrasmettere</strong>.</p>
+      <p><strong>Rimedio:</strong> lo scambio <strong>RTS/CTS</strong> (prossima slide): C non sente l'RTS di A, ma sente il CTS di B.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent3);">La stazione esposta</h3>
+      <svg class="wa-svg" viewBox="0 0 330 230" style="max-height:27vh;" role="img" aria-label="Quattro stazioni in fila A, B, C, D. B trasmette ad A. C vorrebbe trasmettere a D, sente B e rinuncia, anche se D è fuori dalla portata di B e A è fuori dalla portata di C">
+        <defs>
+          <marker id="es-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
+          <marker id="es-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a3"/></marker>
+        </defs>
+        <circle cx="130" cy="115" r="100" class="range s-a4"/>
+        <circle cx="200" cy="115" r="100" class="range s-a3" style="fill:rgba(217,119,6,0.05)"/>
+        <line x1="113" y1="115" x2="78" y2="115" class="arw s-a4" marker-end="url(#es-a)"/>
+        <line x1="217" y1="115" x2="252" y2="115" class="arw s-a3 dash" marker-end="url(#es-c)"/>
+        <circle cx="60" cy="115" r="16" class="dev"/><text x="60" y="120" text-anchor="middle" font-size="14" font-weight="800">A</text>
+        <circle cx="130" cy="115" r="16" class="dev"/><text x="130" y="120" text-anchor="middle" font-size="14" font-weight="800">B</text>
+        <circle cx="200" cy="115" r="16" class="dev"/><text x="200" y="120" text-anchor="middle" font-size="14" font-weight="800">C</text>
+        <circle cx="270" cy="115" r="16" class="dev"/><text x="270" y="120" text-anchor="middle" font-size="14" font-weight="800">D</text>
+        <text x="235" y="104" text-anchor="middle" font-size="12" class="f-a3" font-weight="800">?</text>
+        <text x="40" y="34" font-size="10" class="f-a4">portata di B</text>
+        <text x="300" y="34" text-anchor="end" font-size="10" class="f-a3">portata di C</text>
+      </svg>
+      <p style="margin-top:6px;">B trasmette ad A. C vorrebbe trasmettere a D, ma sente B e <strong>rinuncia</strong>. Eppure le due trasmissioni potrebbero avvenire insieme: D non sente B e A non sente C.</p>
+      <p><strong>Rimedio:</strong> si riduce con una buona <strong>progettazione</strong> della rete, posizionando AP e stazioni in modo che si sentano tutte.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · CSMA/CA ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">CSMA/CA: evitare le collisioni</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="card" style="margin-bottom:10px;">
+    <svg class="wa-svg" viewBox="0 0 640 200" style="max-height:28vh;" role="img" aria-label="Diagramma temporale. Il mittente attende DIFS e un backoff casuale, invia RTS; dopo SIFS il destinatario risponde CTS; dopo SIFS il mittente invia i dati; dopo SIFS il destinatario invia ACK. Le altre stazioni impostano il NAV dalla durata letta nell'RTS e nel CTS e restano in silenzio fino alla fine dell'ACK">
+      <g font-size="11.5" font-weight="700">
+        <text x="0" y="54">Mittente</text>
+        <text x="0" y="109">Destinatario</text>
+        <text x="0" y="164">Altre stazioni</text>
+      </g>
+      <line x1="95" y1="62" x2="636" y2="62" class="tl" stroke-width="1"/>
+      <line x1="95" y1="117" x2="636" y2="117" class="tl" stroke-width="1"/>
+      <line x1="95" y1="180" x2="636" y2="180" class="tl" stroke-width="1"/>
+      <path d="M97,30 v6 h46 v-6" class="arw s-muted" stroke-width="1.2"/>
+      <text x="120" y="25" text-anchor="middle" font-size="10" class="t-muted">DIFS</text>
+      <g class="s-muted" stroke-width="1"><line x1="148" y1="56" x2="148" y2="62"/><line x1="162" y1="56" x2="162" y2="62"/><line x1="176" y1="56" x2="176" y2="62"/><line x1="190" y1="56" x2="190" y2="62"/><line x1="204" y1="56" x2="204" y2="62"/></g>
+      <path d="M148,30 v6 h56 v-6" class="arw s-a3" stroke-width="1.2"/>
+      <text x="176" y="25" text-anchor="middle" font-size="10" class="f-a3">backoff</text>
+      <rect x="206" y="38" width="40" height="24" rx="3" class="b-a4"/>
+      <text x="226" y="55" text-anchor="middle" font-size="11" font-weight="700">RTS</text>
+      <rect x="258" y="93" width="40" height="24" rx="3" class="b-a1"/>
+      <text x="278" y="110" text-anchor="middle" font-size="11" font-weight="700">CTS</text>
+      <rect x="310" y="38" width="190" height="24" rx="3" class="b-a4"/>
+      <text x="405" y="55" text-anchor="middle" font-size="11" font-weight="700">DATI</text>
+      <rect x="512" y="93" width="40" height="24" rx="3" class="b-a1"/>
+      <text x="532" y="110" text-anchor="middle" font-size="11" font-weight="700">ACK</text>
+      <g font-size="8.5" class="t-muted" text-anchor="middle">
+        <text x="252" y="80">SIFS</text><text x="304" y="80">SIFS</text><text x="506" y="80">SIFS</text>
+      </g>
+      <rect x="246" y="140" width="306" height="14" rx="3" class="b-ty"/>
+      <text x="399" y="151" text-anchor="middle" font-size="9.5" font-weight="700">NAV impostato leggendo l'RTS</text>
+      <rect x="298" y="160" width="254" height="14" rx="3" class="b-ty"/>
+      <text x="425" y="171" text-anchor="middle" font-size="9.5" font-weight="700">NAV impostato leggendo il CTS</text>
+      <text x="596" y="160" text-anchor="middle" font-size="9.5" class="t-muted">poi DIFS</text>
+      <text x="596" y="172" text-anchor="middle" font-size="9.5" class="t-muted">e backoff</text>
+      <text x="636" y="196" text-anchor="end" font-size="10" class="t-muted">tempo →</text>
+    </svg>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <h3 style="color:var(--accent4);">I passi</h3>
+      <ol>
+        <li>Il mittente ascolta: il canale deve restare libero per un intervallo <strong>DIFS</strong> (con la qualità del servizio si chiama <strong>AIFS</strong> ed è diverso per voce, video, traffico normale e di fondo)</li>
+        <li>Poi aspetta ancora un <strong>backoff</strong>: un numero casuale di intervalli (slot) tra 0 e CW, la <em>contention window</em></li>
+        <li>Facoltativo: invia un <strong>RTS</strong> con la durata prevista; il destinatario risponde <strong>CTS</strong>. Chi li sente imposta il <strong>NAV</strong> e tace per quel tempo (<em>carrier sense virtuale</em>)</li>
+        <li>Trasmette i dati; il destinatario risponde con un <strong>ACK</strong> dopo un breve intervallo SIFS</li>
+        <li>Niente ACK = collisione presunta: CW <strong>raddoppia</strong> e si riprova. Dopo un invio riuscito CW torna al minimo</li>
+      </ol>
+    </div>
+    <div class="col">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🎲</span>
+        <span><strong>Perché raddoppiare CW?</strong> Le collisioni sono indice di affollamento: con un intervallo più ampio da cui pescare il numero casuale è meno probabile che due stazioni scelgano lo stesso slot. Valori tipici: <strong>15 → 31 → 63 → … → 1023</strong> slot per il traffico normale; voce e video usano finestre più piccole per avere la precedenza.</span>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazioni sul libro</span>Nell'algoritmo del libro manca l'<strong>ACK</strong>: nel Wi-Fi ogni frame dati unicast deve essere confermato, ed è proprio l'ACK mancante a far capire che c'è stata una collisione. RTS/CTS è <strong>facoltativo</strong>: di solito si attiva solo per frame grandi (soglia RTS), perché aggiunge ritardo. La finestra CW da 7 a 255 indicata dal libro non corrisponde ai valori standard (vedi sopra).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · IL FRAME 802.11 ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il frame 802.11: perché tre indirizzi?</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3 style="color:var(--accent4);">Il frame dati (semplificato)</h3>
+      <div class="proto-header">
+        <div class="proto-row">
+          <div class="proto-cell w2 hl-ty">Frame Control<small>2</small></div>
+          <div class="proto-cell w2 hl-ty">Duration<small>2</small></div>
+          <div class="proto-cell w2 hl-blue">Address 1<small>6</small></div>
+          <div class="proto-cell w2 hl-blue">Address 2<small>6</small></div>
+          <div class="proto-cell w2 hl-blue">Address 3<small>6</small></div>
+          <div class="proto-cell w2 hl-ty">Seq. Control<small>2</small></div>
+          <div class="proto-cell w2">Address 4<small>6, solo tra AP</small></div>
+          <div class="proto-cell w4 hl-yel">Dati (LLC/SNAP + pacchetto IP)<small>variabile</small></div>
+          <div class="proto-cell w2 hl">FCS<small>4</small></div>
+        </div>
+      </div>
+      <p style="margin-top:7px;">In <strong>Frame Control</strong> due bit, <strong>To DS</strong> e <strong>From DS</strong>, dicono se il frame va verso il <em>Distribution System</em> (la rete dietro l'AP) o ne arriva. <strong>Duration</strong> è il valore che le altre stazioni usano per il NAV. Nei dati c'è l'intestazione <strong>LLC/SNAP</strong> con l'EtherType: ecco dove sopravvive LLC.</p>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Chi è chi</h3>
+        <table class="tbl">
+          <tr><th>Il frame va…</th><th>To DS · From DS</th><th>Address 1 <br>(chi riceve via radio)</th><th>Address 2 <br>(chi trasmette via radio)</th><th>Address 3</th></tr>
+          <tr class="hi"><td>dalla stazione all'AP</td><td class="m">1 · 0</td><td><strong>BSSID</strong> (l'AP)</td><td>sorgente</td><td>destinazione finale</td></tr>
+          <tr><td>dall'AP alla stazione</td><td class="m">0 · 1</td><td>destinazione</td><td><strong>BSSID</strong> (l'AP)</td><td>sorgente originale</td></tr>
+          <tr><td>tra due stazioni ad hoc</td><td class="m">0 · 0</td><td>destinazione</td><td>sorgente</td><td>BSSID</td></tr>
+          <tr><td>tra due AP (bridge, mesh)</td><td class="m">1 · 1</td><td>AP ricevente</td><td>AP trasmittente</td><td>destinazione (+ Address 4 = sorgente)</td></tr>
+        </table>
+        <p style="margin-top:6px;">In Ethernet bastano due indirizzi perché lo switch è «trasparente». Nel Wi-Fi l'AP è una tappa intermedia: chi riceve il frame via radio (l'AP) non è il destinatario finale, e servono entrambi gli indirizzi.</p>
+      </div>
+      <div class="col">
+        <div class="callout callout-book">
+          <span class="callout-icon">📕</span>
+          <span><span class="bk">Correzione al tema risolto (p. 66)</span>Il libro interpreta l'Address 1 del frame tra Laptop e Access Point come «il MAC della porta Ethernet del Laptop, inutilizzato». Secondo lo standard, in un frame dalla stazione all'AP l'<strong>Address 1 è il BSSID</strong>, cioè il MAC della radio dell'AP che deve ricevere il frame; Address 2 è il Laptop, Address 3 lo Smartphone.</span>
+        </div>
+        <div class="callout callout-yellow">
+          <span class="callout-icon">🔍</span>
+          <span><strong>Verificalo in Packet Tracer:</strong> confronta l'Address 1 della scheda <em>Inbound PDU Details</em> con il MAC address della <em>Port 1</em> (la radio) dell'Access Point, che trovi in <em>Config</em>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L8 · LAB PACKET TRACER: SCENARIO ═══ -->
+<div class="slide" data-section="lab-pt">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Laboratorio · Packet Tracer: rete Ethernet e Wi-Fi</h2>
+    <span class="section-num" data-l="L8"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Problema</h3>
+        <p>Allestire una piccola LAN con una parte <strong>cablata</strong> (802.3) realizzata con 2 switch e una parte <strong>wireless</strong> (802.11) realizzata con un access point protetto da una chiave. Tutti gli host appartengono alla rete <code>192.168.1.0</code> con subnet mask <code>255.255.255.0</code> (l'indirizzamento IP lo approfondiremo nell'Unità 4).</p>
+      </div>
+      <div class="card">
+        <svg class="wa-svg" viewBox="0 0 540 214" style="max-height:30vh;" role="img" aria-label="Topologia: il router 4331 è collegato in Gigabit allo Switch1, centro stella. Allo Switch1 sono collegati con cavi dritti quattro PC e l'access point, e con un cavo cross lo Switch2, a cui sono collegati altri quattro PC. L'access point serve quattro dispositivi wireless">
+          <rect x="215" y="4" width="110" height="36" rx="6" class="dev"/>
+          <text x="270" y="20" text-anchor="middle" font-size="11.5" font-weight="700">Router 4331</text>
+          <text x="270" y="34" text-anchor="middle" font-size="9.5" class="mono t-muted">192.168.1.100</text>
+          <rect x="215" y="66" width="110" height="36" rx="6" class="b-a2"/>
+          <text x="270" y="82" text-anchor="middle" font-size="11.5" font-weight="700">Switch1 (2960)</text>
+          <text x="270" y="96" text-anchor="middle" font-size="9.5" class="t-muted">centro stella</text>
+          <line x1="270" y1="40" x2="270" y2="66" class="wire" stroke-width="3"/>
+          <text x="276" y="57" font-size="9" class="t-muted">Gig</text>
+          <rect x="20" y="128" width="110" height="34" rx="6" class="dev"/>
+          <text x="75" y="149" text-anchor="middle" font-size="11.5" font-weight="700">Switch2 (2960)</text>
+          <line x1="215" y1="90" x2="105" y2="128" class="s-a3 dash" stroke-width="2.5"/>
+          <text x="152" y="102" text-anchor="middle" font-size="9.5" class="f-a3" font-weight="700">cavo cross</text>
+          <rect x="215" y="128" width="110" height="34" rx="6" class="dev"/>
+          <text x="270" y="143" text-anchor="middle" font-size="11" font-weight="700">PC1 – PC4</text>
+          <text x="270" y="156" text-anchor="middle" font-size="9" class="mono t-muted">.1 – .4</text>
+          <line x1="270" y1="102" x2="270" y2="128" class="wire"/>
+          <rect x="20" y="180" width="110" height="32" rx="6" class="dev"/>
+          <text x="75" y="194" text-anchor="middle" font-size="11" font-weight="700">PC5 – PC8</text>
+          <text x="75" y="207" text-anchor="middle" font-size="9" class="mono t-muted">.5 – .8</text>
+          <line x1="75" y1="162" x2="75" y2="180" class="wire"/>
+          <rect x="410" y="128" width="110" height="34" rx="6" class="b-a4"/>
+          <text x="465" y="143" text-anchor="middle" font-size="11.5" font-weight="700">Access Point</text>
+          <text x="465" y="156" text-anchor="middle" font-size="9" class="t-muted">AP-PT</text>
+          <line x1="325" y1="90" x2="440" y2="128" class="wire"/>
+          <path d="M440,172 q25,12 50,0 M430,182 q35,16 70,0" fill="none" class="s-a4" stroke-width="1.5"/>
+          <text x="465" y="200" text-anchor="middle" font-size="9.5">Smartphone · Tablet</text>
+          <text x="465" y="212" text-anchor="middle" font-size="9.5">Laptop · WirelessEndDevice</text>
+        </svg>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">I dispositivi (il primo proposto nei menu)</h3>
+        <ul>
+          <li>1 <strong>router 4331</strong>: 3 porte GigabitEthernet, ne usiamo una con IP <code>192.168.1.100</code></li>
+          <li>2 <strong>switch 2960</strong>: 24 porte FastEthernet + 2 GigabitEthernet</li>
+          <li>1 <strong>AP-PT</strong>: una porta FastEthernet e una radio</li>
+          <li>8 <strong>PC-PT</strong> con IP statici da <code>192.168.1.1</code> a <code>192.168.1.8</code></li>
+          <li>4 dispositivi mobili: <strong>Smartphone</strong>, <strong>Tablet</strong>, <strong>WirelessEndDevice</strong>, <strong>Laptop</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Cablaggio</h3>
+        <ul>
+          <li>porte <strong>Gigabit</strong> tra router e Switch1; <strong>FastEthernet</strong> per PC e AP</li>
+          <li>cavi <strong>dritti</strong> (straight-through) ovunque, tranne il cavo <strong>cross</strong> tra i due switch</li>
+          <li>sul router la porta va accesa (<em>Port Status: On</em>): è l'unico dispositivo che lo richiede</li>
+          <li><em>Options → Preferences → Always Show Port Labels</em> mostra i nomi delle porte sui collegamenti</li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">💻</span>
+        <span><strong>Il Laptop nasce con una scheda cablata.</strong> Scheda <em>Physical</em> → spegnilo → trascina il modulo FastEthernet tra i <em>MODULES</em> → inserisci al suo posto <code>PT-LAPTOP-NM-1W-AC</code> → riaccendilo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L8 · LAB PACKET TRACER: WI-FI E SICUREZZA ═══ -->
+<div class="slide" data-section="lab-pt">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Laboratorio · Configurare il Wi-Fi in sicurezza</h2>
+    <span class="section-num" data-l="L8"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Sull'Access Point (Config → Port 1)</h3>
+        <ul>
+          <li><strong>SSID</strong>: <code>ReteETH-WIFI</code></li>
+          <li><strong>Canale</strong>: 6, quello predefinito (uno dei tre indipendenti: 1, 6, 11)</li>
+          <li><strong>Autenticazione</strong>: <code>WPA2-PSK</code>, cifratura <strong>AES</strong></li>
+          <li><strong>Passphrase</strong>: almeno 8 caratteri, per esempio <code>Midossi2026!</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Su ogni dispositivo mobile (Config → Wireless0)</h3>
+        <p>Stessi <strong>SSID</strong>, tipo di autenticazione e <strong>passphrase</strong> dell'AP, più un indirizzo IP statico della rete <code>192.168.1.0/24</code>. Se un parametro è diverso il dispositivo non si associa all'AP e non compare la linea tratteggiata del collegamento radio.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Verifica</h3>
+        <ol>
+          <li>Dal Tablet un <code>ping 192.168.1.1</code> verso un PC cablato: risponde?</li>
+          <li>In modalità <strong>Simulation</strong> segui il pacchetto ICMP: apri la busta sull'AP e confronta il frame <strong>802.11</strong> in ingresso con il frame <strong>Ethernet II</strong> in uscita</li>
+          <li>Conta gli indirizzi MAC dei due frame e spiega la differenza (vedi la slide sul frame 802.11)</li>
+        </ol>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Da WEP a WPA3</h3>
+        <table class="tbl">
+          <tr><th>Protocollo</th><th>Anno</th><th>Stato</th></tr>
+          <tr><td><strong>WEP</strong></td><td>1997</td><td class="bad">violato: la chiave si ricava in pochi minuti; abbandonato dal 2004</td></tr>
+          <tr><td><strong>WPA</strong> (TKIP)</td><td>2003</td><td class="bad">soluzione temporanea, oggi deprecata</td></tr>
+          <tr class="hi"><td><strong>WPA2</strong> (AES)</td><td>2004</td><td class="mid">il minimo accettabile, ancora molto diffuso</td></tr>
+          <tr class="hi"><td><strong>WPA3</strong> (SAE)</td><td>2018</td><td class="best">il più sicuro; obbligatorio nella banda a 6 GHz</td></tr>
+        </table>
+        <p style="margin-top:6px;">Nelle aziende e a scuola si usa la variante <strong>Enterprise</strong>: ogni utente entra con le proprie credenziali, verificate da un server (standard 802.1X).</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Correzione al laboratorio</span>Il libro configura l'AP con <strong>WEP</strong> e la chiave <code>ABCDEF1234</code>. WEP è insicuro da oltre vent'anni e non garantisce affatto una sicurezza «equivalente al cavo», come promette il nome (Wired Equivalent Privacy): non va mai usato in una rete reale. In Packet Tracer scegli <strong>WPA2-PSK</strong>: il procedimento è identico. Approfondiremo la crittografia nel Volume 3.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L9 · LAB PYTHON WI-FI ═══ -->
+<div class="slide" data-section="lab-wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Laboratorio · Python: analisi delle reti Wi-Fi</h2>
+    <span class="section-num" data-l="L9"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Problema</h3>
+        <p>Elencare le reti Wi-Fi nel raggio della scheda del PC con <strong>SSID</strong>, <strong>BSSID</strong>, autenticazione, cifratura e <strong>segnale</strong>. Lo script usa Python su un PC <strong>Windows</strong> con scheda Wi-Fi e lancia il comando di sistema <code>netsh</code> con il modulo <code>subprocess</code>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Prima di iniziare</h3>
+        <ul>
+          <li>Prova il comando a mano nel Prompt: <code>netsh wlan show networks mode=bssid</code></li>
+          <li>Da Windows 11 (24H2) <code>netsh</code> mostra le reti solo se è attivo l'accesso alla <strong>posizione</strong> per le app desktop: <code>Win</code>+<code>R</code> → <code>ms-settings:privacy-location</code></li>
+          <li>Una macchina virtuale VirtualBox non vede la scheda Wi-Fi del PC: serve un PC fisico</li>
+          <li>Se l'elenco resta vuoto, alcune schede vanno prima scollegate: <code>netsh wlan disconnect</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Percentuale o dBm?</h3>
+        <p>Windows mostra il segnale in %, ma i tecnici ragionano in <strong>dBm</strong> (RSSI). Una stima comoda: <code>dBm ≈ % ÷ 2 − 100</code>.</p>
+        <table class="tbl" style="margin-top:6px;">
+          <tr><th>Segnale</th><th>circa</th><th>Che cosa ci fai</th></tr>
+          <tr><td class="m">≥ −67 dBm</td><td class="m">≥ 66 %</td><td class="best">videochiamate, VoIP, tutto</td></tr>
+          <tr><td class="m">−70 dBm</td><td class="m">60 %</td><td class="mid">navigazione e posta</td></tr>
+          <tr><td class="m">≤ −80 dBm</td><td class="m">≤ 40 %</td><td class="bad">connessione instabile</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Che cosa stampa <code>netsh</code> per ogni rete (esempio del libro)</h3>
+<pre>SSID 1 : TIM-23413515
+    Tipo di rete            : Infrastruttura
+    Autenticazione          : WPA2-Personal
+    Crittografia            : CCMP
+    BSSID 1                 : a6:91:b1:65:43:14
+         Segnale            : 5%
+         Tipo di radio      : 802.11ac
+         Banda              : 5 GHz
+         Canale             : 36</pre>
+        <p style="margin-top:6px;">Ogni informazione è su una riga nella forma <code>chiave : valore</code>: lo script la divide in due al primo <code>:</code> e tiene solo le chiavi che gli interessano.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L9 · LAB PYTHON WI-FI: LO SCRIPT ═══ -->
+<div class="slide" data-section="lab-wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Laboratorio · Lo script di scansione</h2>
+    <span class="section-num" data-l="L9"></span>
+  </div>
+  <div class="two-col-l">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">WiFiScan_selected.py — nome della rete e segnale</h3>
+<pre class="copy"><span class="cmt"># WiFiScan_selected.py - elenca le reti Wi-Fi vicine con il segnale (Windows)</span>
+<span class="kw">import</span> subprocess
+
+<span class="kw">def</span> <span class="cmd">scan_wifi</span>():
+    <span class="str">"""Restituisce una lista di coppie (nome della rete, segnale in %)."""</span>
+    risultato = subprocess.<span class="cmd">run</span>(
+        [<span class="str">"netsh"</span>, <span class="str">"wlan"</span>, <span class="str">"show"</span>, <span class="str">"networks"</span>, <span class="str">"mode=bssid"</span>],
+        capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>,
+        encoding=<span class="str">"oem"</span>, errors=<span class="str">"replace"</span>)   <span class="cmt"># la codifica del Prompt</span>
+    reti = []
+    ssid = <span class="kw">None</span>
+    <span class="kw">for</span> riga <span class="kw">in</span> risultato.stdout.<span class="cmd">splitlines</span>():
+        chiave, _, valore = riga.<span class="cmd">strip</span>().<span class="cmd">partition</span>(<span class="str">":"</span>)
+        chiave = chiave.<span class="cmd">strip</span>().<span class="cmd">lower</span>()
+        <span class="kw">if</span> chiave.<span class="cmd">startswith</span>(<span class="str">"ssid"</span>):            <span class="cmt"># "SSID 1 : TIM-23413515"</span>
+            ssid = valore.<span class="cmd">strip</span>() <span class="kw">or</span> <span class="str">"(rete nascosta)"</span>
+        <span class="kw">elif</span> chiave <span class="kw">in</span> (<span class="str">"segnale"</span>, <span class="str">"signal"</span>):    <span class="cmt"># Windows in italiano o in inglese</span>
+            reti.<span class="cmd">append</span>((ssid, <span class="cmd">int</span>(valore.<span class="cmd">strip</span>().<span class="cmd">rstrip</span>(<span class="str">"%"</span>))))
+    <span class="kw">return</span> reti
+
+<span class="cmd">print</span>(<span class="str">"Ricerca delle reti Wi-Fi...\n"</span>)
+<span class="kw">for</span> nome, segnale <span class="kw">in</span> <span class="cmd">scan_wifi</span>():
+    <span class="cmd">print</span>(<span class="str">f"Rete: </span>{nome:&lt;28}<span class="str"> Segnale: </span>{segnale:&gt;3}<span class="str"> %"</span>)</pre>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Come funziona</h3>
+        <ul>
+          <li><code>subprocess.run()</code> esegue <code>netsh</code> e con <code>capture_output=True</code> ne raccoglie il testo invece di stamparlo</li>
+          <li><code>partition(":")</code> divide ogni riga al primo <code>:</code> in chiave e valore</li>
+          <li>la riga <code>SSID n</code> ricorda il nome della rete; la riga <code>Segnale</code> aggiunge una coppia alla lista</li>
+          <li>le righe <code>BSSID 1 : …</code> non vengono confuse con l'SSID perché iniziano con «bssid»</li>
+        </ul>
+        <p style="margin-top:6px;">Una rete può comparire più volte: succede quando ha più BSSID, cioè più access point (o più bande) con lo stesso SSID.</p>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Rispetto allo script del libro</span>Lo script della figura 31 cerca la parola <code>"segnale"</code>: su un Windows in inglese non trova nulla, perché <code>netsh</code> scrive <code>Signal</code>. Inoltre <code>netsh</code> usa la codifica del Prompt dei comandi, non UTF-8: con <code>encoding="oem"</code> le lettere accentate («Velocità») non si rovinano.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">✍️</span>
+        <span><strong>Esercizi del libro:</strong> mostra solo le reti con segnale superiore al 50 % e ordinale dalla più forte alla più debole (suggerimento: <code>sort()</code> con <code>key=</code>).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RIPASSO · MAPPA CONCETTUALE ═══ -->
+<div class="slide" data-section="ripasso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Mappa concettuale — Unità 2</h2>
+    <span class="section-num" data-l="Ripasso"></span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1.7fr 1fr;gap:12px;align-items:center;">
+    <div class="col">
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="font-size:0.86rem;color:var(--accent4);">Progetto IEEE 802</h3>
+        <p style="font-size:0.78rem;">Febbraio 1980 · livelli 1 e 2 di OSI · gruppi di lavoro 802.x</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="font-size:0.86rem;color:var(--accent4);">Accesso al mezzo</h3>
+        <p style="font-size:0.78rem;">A contesa (CSMA/CD, CSMA/CA) · deterministico (token)</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="font-size:0.86rem;color:var(--accent1);">LLC e MAC</h3>
+        <p style="font-size:0.78rem;">DSAP/SSAP · indirizzi MAC a 48 bit · OUI · FCS (CRC-32)</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:9px;">
+      <div style="background:rgba(217,119,6,0.13);border:2px solid var(--accent3);border-radius:12px;padding:12px 22px;text-align:center;">
+        <div style="font-size:1.15rem;font-weight:800;color:var(--accent3);">PHYSICAL LAYER TCP/IP</div>
+        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">= livelli 1 e 2 di ISO/OSI · detto anche Link o Network Access</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;">
+        <div style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.35);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent1);font-size:0.78rem;">LLC · 802.2</div>
+          <div style="font-size:0.7rem;color:var(--muted);">interfaccia unica verso il Network</div>
+        </div>
+        <div style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.35);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent4);font-size:0.78rem;">MAC</div>
+          <div style="font-size:0.7rem;color:var(--muted);">accesso al mezzo, indirizzi</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2);font-size:0.78rem;">ETHERNET · 802.3</div>
+          <div style="font-size:0.7rem;color:var(--muted);">cablata · switch · full-duplex · PoE</div>
+        </div>
+        <div style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.35);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent4);font-size:0.78rem;">WI-FI · 802.11</div>
+          <div style="font-size:0.7rem;color:var(--muted);">wireless · AP · CSMA/CA · canali</div>
+        </div>
+      </div>
+      <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.35);border-radius:8px;padding:8px 20px;text-align:center;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent3);font-size:0.78rem;">CONTROLLO DI FLUSSO</div>
+        <div style="font-size:0.7rem;color:var(--muted);">Stop and Wait · Go-Back-N · Selective Repeat · sliding window</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-left:3px solid var(--accent2);">
+        <h3 style="font-size:0.86rem;color:var(--accent2);">Frame Ethernet</h3>
+        <p style="font-size:0.78rem;">64–1518 byte · Type ≥ 0x0600 · PAD · IFG 96 bit · wire speed</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="font-size:0.86rem;color:var(--accent4);">Wi-Fi</h3>
+        <p style="font-size:0.78rem;">2,4 · 5 · 6 GHz · canali 1-6-11 · stazione nascosta · RTS/CTS · ACK</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="font-size:0.86rem;color:var(--accent1);">Strumenti</h3>
+        <p style="font-size:0.78rem;">Wireshark · Python e Scapy · netsh · Packet Tracer</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RIPASSO · RIEPILOGO ═══ -->
+<div class="slide" data-section="ripasso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Ripassiamo insieme</h2>
+    <span class="section-num" data-l="Ripasso"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">L1 · Il progetto IEEE 802</h3>
+        <ul>
+          <li>Standard per le LAN ai livelli 1 e 2 di OSI; oggi contano soprattutto 802.1, 802.3 e 802.11</li>
+          <li>Accesso a contesa (attesa non prevedibile) o deterministico (a turno, con token)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">L2 · LLC e MAC</h3>
+        <ul>
+          <li>LLC: interfaccia unica verso il Network (DSAP, SSAP, Control); in Ethernet II il suo posto lo prende il campo Type</li>
+          <li>MAC: accesso al mezzo e indirizzi a 48 bit (OUI + numero di serie); bit I/G per unicast/multicast</li>
+          <li>FCS: CRC a 32 bit che <em>rileva</em> gli errori</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">L3 · Controllo di flusso</h3>
+        <ul>
+          <li>Stop and Wait: semplice ma lento sulle lunghe distanze</li>
+          <li>Finestra: Go-Back-N (ripete tutto, w ≤ 2<sup>n</sup>−1) e Selective Repeat (ripete solo il perso, w ≤ 2<sup>n−1</sup>)</li>
+          <li>Sliding window: la finestra scorre a ogni ACK; la ritroveremo in TCP</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">L4 · Ethernet</h3>
+        <ul>
+          <li>Da 10 Mb/s su coassiale a 800 Gb/s su fibra; con switch e full-duplex niente più collisioni</li>
+          <li>PoE: PSE e PD; 15,4 W (af) · 30 W (at) · fino a 90 W (bt)</li>
+          <li>Frame 64–1518 byte, Ethernet II con Type (0x0800 = IPv4); IFG di 96 bit-time</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">L7 · Wi-Fi</h3>
+        <ul>
+          <li>Da 802.11b (11 Mb/s) a Wi-Fi 7; bande 2,4, 5 e 6 GHz; a 2,4 GHz canali 1-6-11</li>
+          <li>AP = bridge di livello 2; SSID, BSSID, ESS e roaming</li>
+          <li>CSMA/CA con backoff, ACK e (facoltativo) RTS/CTS; sicurezza con WPA2/WPA3</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">L5 · L6 · L8 · L9 · Laboratori</h3>
+        <ul>
+          <li>Wireshark: leggere i campi del frame; Scapy: costruire frame con EtherType 0x88B5</li>
+          <li>Packet Tracer: LAN mista con 2 switch e un AP in WPA2; Python + netsh: scansione delle reti</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Prossima unità (3):</strong> lo switching e le VLAN — come lavorano gli switch, lo Spanning Tree, le reti virtuali.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AUTOVERIFICA ═══ -->
+<div class="slide" data-section="verifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Verifica conoscenze e abilità</h2>
+    <span class="section-num" data-l="Autoverifica"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card reveal">
+        <h3 style="color:var(--accent2);">Vero o falso</h3>
+        <ul class="qa">
+          <li>1. Il Progetto 802 prevede 10 categorie. <span class="sol f">F</span> <span class="why">— ne elenca 20</span></li>
+          <li>2. Con MAC si può intendere sia un sottolivello sia un indirizzo. <span class="sol">V</span></li>
+          <li>3. Con 802.3 si intende la Token Ring. <span class="sol f">F</span> <span class="why">— è Ethernet; Token Ring è 802.5</span></li>
+          <li>4. Il sottolivello LLC offre un'interfaccia unificata verso il livello Transport. <span class="sol f">F</span> <span class="why">— verso il Network</span></li>
+          <li>5. Le tecniche a contesa non possono prevedere a priori i tempi di trasmissione. <span class="sol">V</span></li>
+          <li>6. L'indirizzo MAC si scrive in notazione decimale puntata. <span class="sol f">F</span> <span class="why">— in esadecimale</span></li>
+          <li>7. L'FCS permette di correggere gli errori di trasmissione. <span class="sol f">F</span> <span class="why">— li rileva soltanto</span></li>
+          <li>8. Nella Stop and Wait il mittente non attende l'ACK. <span class="sol f">F</span></li>
+          <li>9. La Selective Repeat ritrasmette solo i messaggi errati o persi. <span class="sol">V</span></li>
+          <li>10. Lo splitter PoE serve ad alimentare più dispositivi PoE. <span class="sol f">F</span> <span class="why">— separa dati e alimentazione per un apparato non PoE (il libro la considera vera)</span></li>
+          <li>11. La banda ISM del Wi-Fi è intorno ai 10 GHz. <span class="sol f">F</span> <span class="why">— 2,4 GHz</span></li>
+          <li>12. Le reti wireless usano la Collision Detection come Ethernet. <span class="sol f">F</span> <span class="why">— Collision Avoidance</span></li>
+          <li>13. L'access point fa da gateway verso Internet. <span class="sol f">F</span> <span class="why">— è un bridge di livello 2; il gateway è il router</span></li>
+        </ul>
+        <button class="reveal-btn no-js-hide" type="button">Mostra le soluzioni</button>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card reveal">
+        <h3 style="color:var(--accent4);">Scelta multipla</h3>
+        <ul class="qa">
+          <li>1. LLC e MAC sono: A) livelli di TCP/IP · B) livelli di OSI · C) sottolivelli del Data Link · D) sottolivelli del Network <span class="sol">C</span></li>
+          <li>2. L'802.11g raggiunge: A) 54 Mb/s a 5 GHz · B) 11 Mb/s a 2,4 GHz · C) 54 Mb/s a 2,4 GHz · D) 11 Mb/s a 5 GHz <span class="sol">C</span></li>
+          <li>3. Il primo standard PoE è: A) 802.3ac · B) 802.3ad · C) 802.3af · D) 802.3at <span class="sol">C</span></li>
+          <li>4. Nel frame IEEE 802.3 il campo Length sostituisce: A) Preamble · B) Type · C) Data · D) FCS <span class="sol">B</span></li>
+          <li>5. Quale sequenza rispetta la regola del 5? A) 0-5-10 · B) 2-7-12 · C) 3-9-13 · D) 5-10-15 <span class="sol">B</span></li>
+          <li>6. Un MAC è multicast se: A) inizia con FF · B) il primo byte è dispari · C) l'ultimo byte è 00 · D) l'OUI è 000000 <span class="sol">B</span></li>
+          <li>7. Con numeri di sequenza su 3 bit, la finestra massima del Selective Repeat è: A) 3 · B) 4 · C) 7 · D) 8 <span class="sol">B</span></li>
+        </ul>
+        <button class="reveal-btn no-js-hide" type="button">Mostra le soluzioni</button>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Preparati per il colloquio orale</h3>
+        <ul>
+          <li>Differenza tra tecnica di accesso a contesa e deterministica</li>
+          <li>Compiti dei sottolivelli LLC e MAC e informazioni principali dei loro frame</li>
+          <li>Che cosa contengono i campi FCS e Type del frame Ethernet?</li>
+          <li>Perché serve il controllo di flusso? Descrivi la sliding window</li>
+          <li>Stazione nascosta e stazione esposta: problemi e rimedi</li>
+          <li>Spiega la tecnica CSMA/CA e il ruolo di RTS, CTS e ACK</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (1/2) ═══ -->
+<div class="slide teacher-only" data-section="docente">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--ty)"></div>
+    <h2 style="color:var(--ty)">Errata corrige del libro (1/2)</h2>
+    <span class="section-num" data-l="Docente"></span>
+  </div>
+  <div class="card">
+    <table class="tbl">
+      <tr><th>Pag.</th><th>Il libro dice</th><th>Correzione o precisazione</th></tr>
+      <tr><td class="m">27–28</td><td>Il livello più basso di TCP/IP si chiama «Physical Layer»</td><td>RFC 1122: <strong>Link Layer</strong>; Cisco: Network Access. Comprende i livelli 1 e 2 di OSI</td></tr>
+      <tr><td class="m">28</td><td>20 categorie del Progetto 802</td><td>Molti gruppi sono sciolti o in pausa (802.4, 802.5, 802.6, 802.12…)</td></tr>
+      <tr><td class="m">31</td><td>Gli indirizzi del frame MAC sono «di tipo DSAP e SSAP»</td><td>Sono DA e SA (MAC destinazione e sorgente); DSAP/SSAP sono campi di 1 byte dell'LLC</td></tr>
+      <tr><td class="m">31</td><td>FCS = «tecnica di correzione degli errori»</td><td>Il CRC <strong>rileva</strong> gli errori, non li corregge</td></tr>
+      <tr><td class="m">31</td><td>«Non esistono due indirizzi MAC uguali»</td><td>Vero per gli indirizzi universali; MAC casuali (privacy) e amministrati localmente (bit U/L = 1)</td></tr>
+      <tr><td class="m">32</td><td>Multicast nella forma <code>FF-FF-FF-[0:F]X-XX-XX</code></td><td>Multicast = bit I/G a 1, primo byte dispari (01-00-5E-…, 33-33-…)</td></tr>
+      <tr><td class="m">33</td><td>Controllo di flusso «gestito dal Physical Layer»</td><td>Data Link (HDLC, LLC tipo 2) e soprattutto Transport (TCP); Ethernet usa i frame PAUSE</td></tr>
+      <tr><td class="m">36</td><td>Solo la regola w ≤ 2<sup>n</sup> − 1</td><td>Vale per Go-Back-N; per Selective Repeat w ≤ 2<sup>n−1</sup></td></tr>
+      <tr><td class="m">37</td><td>Tab. 1: 802.3y = Fast Ethernet su doppino; 1000Base-CX «su doppino»</td><td>Fast Ethernet TX e FX = 802.3u; 802.3y = 100BASE-T2 (mai diffuso); CX = twinax</td></tr>
+      <tr><td class="m">37–38</td><td>«Cavi full-duplex» e flussi gestiti «con le sliding windows»; tab. 2: 802.3x = sliding windows, 802.3ac = VLAN</td><td>802.3x = frame PAUSE; VLAN = 802.1Q (802.3ac porta il frame a 1522 byte); 802.3ad → 802.1AX</td></tr>
+      <tr><td class="m">39</td><td>Lo splitter PoE permette di raggiungere più dispositivi; 802.3at «tra le versioni più recenti»</td><td>Lo splitter separa dati e alimentazione per un apparato non PoE; dal 2018 c'è l'802.3bt (60/90 W)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (2/2) ═══ -->
+<div class="slide teacher-only" data-section="docente">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--ty)"></div>
+    <h2 style="color:var(--ty)">Errata corrige del libro (2/2)</h2>
+    <span class="section-num" data-l="Docente"></span>
+  </div>
+  <div class="card">
+    <table class="tbl">
+      <tr><th>Pag.</th><th>Il libro dice</th><th>Correzione o precisazione</th></tr>
+      <tr><td class="m">40</td><td>Preambolo <code>10101010</code>, SFD <code>11010101</code></td><td>Notazioni miste: sul cavo l'SFD è <code>10101011</code>; 11010101 è il byte 0xD5 scritto MSB-first</td></tr>
+      <tr><td class="m">41</td><td>Tab. 3: colonna «75 ottetti»</td><td>I valori corrispondono a frame di <strong>750</strong> byte</td></tr>
+      <tr><td class="m">42</td><td>Lab 5: cercare la GET HTTP verso <code>https://www.wireshark.org/</code></td><td>Con HTTPS la GET è cifrata e non compare; usare un sito HTTP (<code>http://neverssl.com</code>)</td></tr>
+      <tr><td class="m">44</td><td>Lab 6: EtherType 0x9999</td><td>IEEE 802 riserva 0x88B5/0x88B6 agli esperimenti</td></tr>
+      <tr><td class="m">47</td><td>Fig. 16–17: <code>iface='Ethernet'</code> nel sender, <code>enp0s3</code> nel receiver; <code>while True</code> attorno a <code>sniff()</code></td><td>Usare lo stesso nome di interfaccia; il ciclo è superfluo; togliere il padding dai messaggi brevi</td></tr>
+      <tr><td class="m">49</td><td>«Wi-Fi (Wireless Fidelity)»</td><td>Wi-Fi è un marchio, non un acronimo</td></tr>
+      <tr><td class="m">49</td><td>A 2,4 GHz distanza 4 volte superiore; «la maggioranza degli standard usa i 2,4 GHz»</td><td>Valore indicativo (in campo libero circa il doppio); oggi gli standard puntano su 5 e 6 GHz</td></tr>
+      <tr><td class="m">50</td><td>Tab. 4: 300/450 Mb/s, 1,3 Gb/s, 10 Gb/s, 30 Gb/s; 6 GHz nel Wi-Fi 6</td><td>Massimi teorici: 600 Mb/s, 6,9 Gb/s, 9,6 Gb/s, ≈ 46 Gb/s; 6 GHz solo dal Wi-Fi 6E</td></tr>
+      <tr><td class="m">50</td><td>Gli AP «agiscono da gateway»</td><td>L'AP è un bridge di livello 2; il gateway è il router</td></tr>
+      <tr><td class="m">52–53</td><td>CSMA/CA senza ACK; RTS/CTS sempre; CW da 7 a 255</td><td>Ogni frame unicast ha un ACK; RTS/CTS facoltativo (soglia); CW tipica 15…1023</td></tr>
+      <tr><td class="m">54, 56</td><td>Lab 8: crittografia WEP</td><td>WEP è violato: usare WPA2-PSK (o WPA3)</td></tr>
+      <tr><td class="m">60</td><td>Script cerca <code>"segnale"</code>, <code>encoding="utf-8"</code></td><td>Su Windows in inglese è <code>Signal</code>; netsh usa la code page OEM</td></tr>
+      <tr><td class="m">64</td><td>V/F 26: «lo splitter PoE consente di raggiungere più dispositivi PoE»</td><td>Da considerare falsa (vedi p. 39)</td></tr>
+      <tr><td class="m">66</td><td>Tema risolto: Address 1 = «MAC della porta Ethernet del Laptop (inutilizzato)»</td><td>Address 1 = BSSID (radio dell'AP), Address 2 = Laptop, Address 3 = Smartphone</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ SOLO DOCENTE · SOLUZIONI ═══ -->
+<div class="slide teacher-only" data-section="docente">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--ty)"></div>
+    <h2 style="color:var(--ty)">Soluzioni degli esercizi</h2>
+    <span class="section-num" data-l="Docente"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Lab 9 · esercizi 5 e 6: filtro e ordinamento</h3>
+<pre class="copy"><span class="cmt"># da aggiungere in fondo a WiFiScan_selected.py, al posto del ciclo finale</span>
+reti = [r <span class="kw">for</span> r <span class="kw">in</span> <span class="cmd">scan_wifi</span>() <span class="kw">if</span> r[<span class="arg">1</span>] &gt; <span class="arg">50</span>]      <span class="cmt"># es. 5: segnale &gt; 50 %</span>
+reti.<span class="cmd">sort</span>(key=<span class="kw">lambda</span> r: r[<span class="arg">1</span>], reverse=<span class="kw">True</span>)       <span class="cmt"># es. 6: dalla più forte</span>
+<span class="kw">for</span> nome, segnale <span class="kw">in</span> reti:
+    dbm = segnale // <span class="arg">2</span> - <span class="arg">100</span>                     <span class="cmt"># stima in dBm</span>
+    <span class="cmd">print</span>(<span class="str">f"</span>{nome:&lt;28}<span class="str"> </span>{segnale:&gt;3}<span class="str"> %  (circa </span>{dbm}<span class="str"> dBm)"</span>)</pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">«Prova tu» della sliding window (w = 8 con 3 bit)</h3>
+        <p>Il mittente invia 0…7; arrivano tutti, il ricevente ora aspetta il <strong>nuovo 0</strong>. Se tutti gli ACK si perdono, allo scadere del timeout il mittente ritrasmette il <strong>vecchio 0</strong>: il ricevente lo accetta come nuovo e consegna un duplicato. Con w = 7 invece il ricevente aspetterebbe il 7 e scarterebbe lo 0 ritrasmesso.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Problema 3 (p. 65): aggiungere l'ACK alla chat Scapy</h3>
+        <ul>
+          <li>Nel ricevitore, dopo aver stampato un messaggio, rispondere al mittente con un frame dello stesso EtherType e payload <code>b"ACK"</code>; i frame il cui payload inizia con <code>ACK</code> non vanno stampati come messaggi</li>
+          <li>Nel mittente, prima di <code>sendp()</code> avviare un <code>AsyncSniffer(count=1, timeout=2, lfilter=…)</code> che attende un ACK da <code>DST_MAC</code>; se non arriva, ritrasmettere (al massimo 3 volte)</li>
+          <li>Per gestire i duplicati, aggiungere al payload un numero di sequenza 0/1: è lo <strong>Stop and Wait</strong> della Lezione 3</li>
+        </ul>
+<pre class="copy"><span class="cmt"># nel ricevitore, dentro receive_message(), dopo la print</span>
+ack = <span class="cmd">Ether</span>(dst=pkt[Ether].src, src=mio_mac, type=ETH_TYPE) / <span class="cmd">Raw</span>(load=<span class="str">b"ACK"</span>)
+<span class="cmd">sendp</span>(ack, iface=IFACE, verbose=<span class="kw">False</span>)</pre>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🔒</span>
+        <span>Queste tre slide compaiono solo aprendo il deck con <code>?docente</code> (o <code>#docente</code>) in fondo all'indirizzo.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" type="button" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next" type="button">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  // Modalità docente: aggiungere ?docente (o #docente) all'indirizzo per vedere errata corrige e soluzioni.
+  const DOCENTE = /[?&#]docente\b/.test(location.search + location.hash);
+  if (DOCENTE) document.documentElement.classList.add('docente');
+  else document.querySelectorAll('.slide.teacher-only').forEach(s => s.remove());
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':         'Introduzione',
+    'ieee802':       'L1 · Progetto IEEE 802',
+    'llcmac':        'L2 · Sottolivelli LLC e MAC',
+    'flusso':        'L3 · Controllo di flusso',
+    'ethernet':      'L4 · Ethernet IEEE 802.3',
+    'lab-wireshark': 'L5 · Lab Wireshark',
+    'lab-scapy':     'L6 · Lab Python e Scapy',
+    'wifi':          'L7 · Wi-Fi IEEE 802.11',
+    'lab-pt':        'L8 · Lab Packet Tracer',
+    'lab-wifi':      'L9 · Lab Python Wi-Fi',
+    'ripasso':       'Ripassiamo insieme',
+    'verifica':      'Autoverifica',
+    'docente':       'Solo docente'
+  };
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  // numerazione automatica nell'intestazione: «L3 · 07/34»
+  slides.forEach(function (s, i) {
+    var num = s.querySelector('.section-num[data-l]');
+    if (num) num.textContent = num.dataset.l + ' · ' + pad2(i + 1) + '/' + pad2(total);
+  });
+
+  function updateUI() {
+    document.getElementById('slide-counter').textContent = pad2(current + 1) + ' / ' + pad2(total);
+    document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total || idx === current) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    updateUI();
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp')   { e.preventDefault(); goTo(current - 1); }
+  });
+
+  function aggiornaPulsanteTema() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.getElementById('theme-btn').textContent = isDark ? '◑ Light' : '◑ Dark';
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const nuovo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', nuovo);
+    try { localStorage.setItem('slidemidossi-tema', nuovo); } catch (e) {}
+    aggiornaPulsanteTema();
+  }
+  aggiornaPulsanteTema();
+
+  // swipe sui dispositivi touch (nei riquadri di codice lo swipe scorre il codice)
+  let _touchStartX = 0, _touchStartY = 0, _touchInPre = false;
+  document.addEventListener('touchstart', function (e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+    _touchInPre = !!(e.target.closest && e.target.closest('pre'));
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (_touchInPre) return;
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: data-goto = sezione o numero di slide
+  document.querySelectorAll('[data-goto]').forEach(function (el) {
+    var v = el.getAttribute('data-goto'), t = -1;
+    if (/^[0-9]+$/.test(v)) {
+      t = parseInt(v, 10) - 1;
+    } else {
+      for (var k = 0; k < slides.length; k++) {
+        if (slides[k].dataset.section === v) { t = k; break; }
+      }
+    }
+    if (t < 0 || t >= slides.length) return;
+    el.classList.add('ov-link');
+    el.setAttribute('role', 'link');
+    el.setAttribute('tabindex', '0');
+    el.addEventListener('click', function () { goTo(t); });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(t); }
+    });
+  });
+
+  // pulsante «Copia» sui riquadri di codice pre.copy
+  function copia(testo, btn) {
+    function ok() {
+      btn.textContent = 'Copiato ✓'; btn.classList.add('ok');
+      setTimeout(function () { btn.textContent = 'Copia'; btn.classList.remove('ok'); }, 1600);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = testo; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { btn.textContent = 'Seleziona e copia'; }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(testo).then(ok, fallback);
+    } else {
+      fallback();
+    }
+  }
+  document.querySelectorAll('pre.copy').forEach(function (pre) {
+    var testo = pre.textContent;
+    var wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'copy-btn'; btn.textContent = 'Copia';
+    btn.addEventListener('click', function () { copia(testo, btn); });
+    wrap.appendChild(btn);
+  });
+
+  // risposte a scomparsa
+  document.querySelectorAll('.reveal').forEach(function (box) {
+    var btn = box.querySelector('.reveal-btn');
+    if (!btn) return;
+    var label = btn.textContent;
+    btn.addEventListener('click', function () {
+      var open = box.classList.toggle('open');
+      btn.textContent = open ? 'Nascondi' : label;
+    });
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
