@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – La Classifica del Torneo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>LA CLASSIFICA DEL TORNEO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: lista con indici, array di struct a dimensione fissa,<br>scansione con next, inserimento ordinato</span>
+      <span class="time">Tempo a disposizione: 30 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Il torneo di calcetto delle quarte ha posto per <strong>8 squadre</strong> al massimo: per questo il programma usa
+    un <strong>array di 8 celle</strong>, di dimensione fissa. Ogni squadra occupa una cella in ordine di
+    <strong>iscrizione</strong> e da lì <strong>non si sposta più</strong>. La <strong>classifica</strong>, invece,
+    è una <strong>lista con indici</strong>: <code>testa</code> dice in quale cella si trova la prima classificata e
+    il campo <code>next</code> di ogni squadra dice in quale cella si trova quella che la segue. Il tuo compito è
+    calcolare la classifica, stamparla e inserire nel posto giusto le squadre che si iscrivono in ritardo.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct e la classifica di partenza</h2>
+
+  <h3>1a. Definisci la struct <strong>Squadra</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome della squadra, cioè la classe (es. "4A")</td></tr>
+      <tr><td><code>vittorie</code></td><td>partite vinte</td></tr>
+      <tr><td><code>pareggi</code></td><td>partite pareggiate</td></tr>
+      <tr><td><code>sconfitte</code></td><td>partite perse</td></tr>
+      <tr><td><code>next</code></td><td><strong>cella</strong> della squadra che segue in classifica, <code>-1</code> se è l'ultima</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Su carta, calcola la classifica di partenza.</h3>
+  <p>Le squadre si ordinano per <strong>punti</strong>, dal più alto al più basso: ogni vittoria vale
+    <strong>3 punti</strong>, ogni pareggio <strong>1 punto</strong>, le sconfitte 0. Completa la tabella: per ogni
+    squadra calcola i punti e scrivi in <code>next</code> la cella della squadra che la segue in classifica. Poi
+    scrivi il valore di <code>testa</code>.</p>
+  <table class="center-table">
+    <thead>
+      <tr><th>Cella</th><th>Squadra</th><th>Vittorie</th><th>Pareggi</th><th>Sconfitte</th><th>Punti</th><th>next</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>0</td><td>4A</td><td>2</td><td>1</td><td>2</td><td>?</td><td>?</td></tr>
+      <tr><td>1</td><td>4B</td><td>4</td><td>0</td><td>1</td><td>?</td><td>?</td></tr>
+      <tr><td>2</td><td>4C</td><td>1</td><td>2</td><td>2</td><td>?</td><td>?</td></tr>
+      <tr><td>3</td><td>4D</td><td>3</td><td>1</td><td>1</td><td>?</td><td>?</td></tr>
+      <tr><td>4</td><td>4E</td><td>0</td><td>3</td><td>2</td><td>?</td><td>?</td></tr>
+      <tr><td>5 – 7</td><td colspan="6"><em>celle libere</em></td></tr>
+    </tbody>
+  </table>
+  <p><code>testa</code> = ? &nbsp;(la cella della prima classificata, che non è per forza la cella 0)</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>punti(Squadra s)</code></td>
+        <td>Restituisce i punti della squadra <code>s</code> (3 a vittoria, 1 a pareggio)</td>
+      </tr>
+      <tr>
+        <td><code>stampa(Squadra lista[], int testa)</code></td>
+        <td>Stampa la classifica partendo da <code>testa</code> e seguendo i <code>next</code> finché non trova
+          <code>-1</code>, nel formato della Parte 3</td>
+      </tr>
+      <tr>
+        <td><code>inserisci(Squadra lista[], int testa, int cella)</code></td>
+        <td>La squadra nella cella <code>cella</code> è appena stata iscritta, ma non è ancora collegata a nessuno.
+          La funzione la aggancia alla classifica <strong>nel posto giusto secondo i punti</strong> e restituisce la
+          testa, che cambia se la nuova squadra va al primo posto. Non sposta nessuna squadra: cambia solo dei
+          <code>next</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>rimuovi(Squadra lista[], int testa, string nome)</code></td>
+        <td>La squadra <code>nome</code> si ritira: la toglie dalla classifica collegando la precedente alla
+          successiva e restituisce la testa. La sua cella resta occupata, ma nessuno la raggiunge più</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La funzione contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo
+    dopo aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – La stampa</h2>
+
+  <p>Una riga per squadra, con la posizione in classifica (da 1) e i punti calcolati con <code>punti</code>.
+    Ad esempio, con tre squadre:</p>
+<pre class="out">1. 4X - 9 punti
+2. 4Y - 6 punti
+3. 4Z - 4 punti</pre>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Nel <code>main</code> copia queste righe e sostituisci ogni <code>?</code> con i valori che hai calcolato nella
+    Parte 1:</p>
+
+<pre class="code">const int N = 8;
+Squadra lista[N] = {
+    {"4A", 2, 1, 2, ?},
+    {"4B", 4, 0, 1, ?},
+    {"4C", 1, 2, 2, ?},
+    {"4D", 3, 1, 1, ?},
+    {"4E", 0, 3, 2, ?}
+};                  // celle da 5 a 7 libere
+int n = 5;          // celle occupate
+int testa = ?;
+
+Squadra nuove[4] = {
+    {"4F", 2, 2, 1, -1},
+    {"4G", 4, 1, 0, -1},
+    {"4H", 0, 2, 3, -1},
+    {"4I", 1, 1, 3, -1}
+};</pre>
+
+  <p>Poi esegui, in ordine, i passi seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Classifica</td>
+        <td>stampa la classifica di partenza: se l'ordine è sbagliato, ricontrolla la tabella della Parte 1</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Iscrizioni</td>
+        <td>per ogni squadra di <code>nuove</code>: se c'è ancora una cella libera (<code>n &lt; N</code>) copiala nella
+          cella <code>n</code>, chiama <code>inserisci</code>, stampa ad esempio <code>4F iscritta nella cella 5</code> e
+          aumenta <code>n</code>; altrimenti stampa <code>Torneo pieno: 4I non iscritta</code>. Alla fine stampa la
+          classifica</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 3</td>
+        <td>Ritiri</td>
+        <td>si ritirano la <code>4G</code> e poi la <code>4D</code>: toglile con <code>rimuovi</code> e stampa la
+          classifica</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve stampare esattamente l'output seguente.
+  </div>
+
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Passi 1 – 2</div>
+<pre class="out">1. 4B - 12 punti
+2. 4D - 10 punti
+3. 4A - 7 punti
+4. 4C - 5 punti
+5. 4E - 3 punti
+4F iscritta nella cella 5
+4G iscritta nella cella 6
+4H iscritta nella cella 7
+Torneo pieno: 4I non iscritta
+1. 4G - 13 punti
+2. 4B - 12 punti
+3. 4D - 10 punti
+4. 4F - 8 punti
+5. 4A - 7 punti
+6. 4C - 5 punti
+7. 4E - 3 punti
+8. 4H - 2 punti</pre>
+    </div>
+    <div>
+      <div class="out-label"><span class="star">&#9733;</span> Passo 3</div>
+<pre class="out">1. 4B - 12 punti
+2. 4F - 8 punti
+3. 4A - 7 punti
+4. 4C - 5 punti
+5. 4E - 3 punti
+6. 4H - 2 punti</pre>
+      <div class="out-label" style="margin-top: 12px;">Da notare</div>
+      <ul>
+        <li>le tre iscritte coprono i tre casi di <code>inserisci</code>: la 4F va in mezzo, la 4G in testa, la 4H
+          in coda</li>
+        <li>nei dati di prova non ci sono squadre a pari punti</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li>Dopo le iscrizioni la 4G è prima in classifica ma si trova nella cella 6. Quali valori sono cambiati
+      nel programma perché diventasse la prima?</li>
+    <li>Se la classifica fosse un normale array ordinato, quante squadre avresti dovuto spostare per mettere la 4G
+      al primo posto? E con la lista?</li>
+    <li>La 4I non può iscriversi. Che cosa servirebbe per far crescere la lista senza un limite fissato in
+      partenza?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> la classifica si legge come nella lezione: si parte da <code>i = testa</code>, si
+    continua finché <code>i != -1</code> e si salta alla squadra successiva con <code>i = lista[i].next</code>.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> in <code>inserisci</code> ci sono due casi. Se la lista è vuota o la nuova squadra
+    ha più punti della prima, la nuova squadra diventa la testa e il suo <code>next</code> è la vecchia testa.
+    Altrimenti scorri la lista fermandoti sull'<strong>ultima squadra con più punti</strong> della nuova, cioè quella
+    dopo cui va inserita.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> quando agganci la nuova squadra dopo la cella <code>i</code>, l'ordine delle
+    istruzioni conta: prima il <code>next</code> della nuova prende il valore di <code>lista[i].next</code>, poi
+    <code>lista[i].next</code> diventa la cella della nuova. Al contrario, perderesti il resto della classifica.
+  </div>
+
+  <div class="nota">
+    <strong>Prima di scrivere <code>inserisci</code></strong> aggiorna su carta la tabella della Parte 1 per le tre
+    iscrizioni: quali <code>next</code> cambiano ogni volta? E quando cambia <code>testa</code>?
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Array</td>
+        <td>8 celle, dimensione fissa. Una squadra iscritta non cambia mai cella: per cambiare la classifica si
+          modificano solo <code>testa</code> e i campi <code>next</code></td>
+      </tr>
+      <tr>
+        <td>Fine lista</td>
+        <td><code>next</code> vale <code>-1</code> per l'ultima classificata; <code>testa</code> vale <code>-1</code>
+          se la classifica è vuota</td>
+      </tr>
+      <tr>
+        <td>Punti</td>
+        <td>Si calcolano sempre con la funzione <code>punti</code>: non aggiungere un campo punti alla struct</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le risposte della Parte 5 in fondo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
