@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 1 — Crittografia e Sicurezza nella Vita Reale</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+
+  html { font-size: 119%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent2); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 13px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--ct);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent2); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent2); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  /* ═══ stili aggiuntivi per questo deck ═══ */
+
+  /* timeline orizzontale a step (kill chain, cronologie) */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .flow-step {
+    flex: 1; min-width: 0; position: relative;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin-right: 22px;
+  }
+  .flow-step:last-child { margin-right: 0; }
+  .flow-step::after {
+    content: '\2192'; position: absolute; right: -18px; top: 50%; transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--muted);
+  }
+  .flow-step:last-child::after { content: none; }
+  .flow-step .fs-num { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; }
+  .flow-step h4 { font-size: 0.88rem; font-weight: 700; margin: 3px 0; }
+  .flow-step p { font-size: 0.76rem; color: var(--muted); line-height: 1.45; }
+
+  /* timeline verticale (casi reali) */
+  .tl { position: relative; padding-left: 26px; }
+  .tl::before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 11px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -23px; top: 3px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--dotc, var(--accent2));
+  }
+  .tl-date { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--dotc, var(--accent2)); }
+  .tl-item p { font-size: 0.85rem; color: var(--ct); line-height: 1.5; margin-top: 1px; }
+
+  /* mockup email di phishing */
+  .mail {
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    font-family: 'JetBrains Mono', monospace; background: var(--code-bg);
+  }
+  .mail-head { padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .mail-line { font-size: 0.76rem; color: var(--ct); margin-bottom: 2px; }
+  .mail-line .lbl { color: var(--muted); display: inline-block; min-width: 68px; }
+  .mail-body { padding: 11px 13px; font-size: 0.8rem; color: var(--ct); line-height: 1.6; font-family: 'Syne', sans-serif; }
+  .mark { position: relative; cursor: help; }
+  .mark-red { background: rgba(220,38,38,0.18); border-bottom: 2px dashed var(--accent2); color: var(--text); padding: 0 2px; border-radius: 2px; }
+  .flag { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; color: var(--accent2); margin-top: 4px; }
+
+  /* spettro dei cappelli */
+  .hat-bar { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .hat-seg { flex: 1; padding: 11px 12px; }
+  .hat-seg h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 3px; }
+  .hat-seg p { font-size: 0.76rem; line-height: 1.45; }
+
+  /* tabella tempi crack password */
+  .crack-table { border-collapse: collapse; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; margin-top: 6px; }
+  .crack-table td, .crack-table th { border: 1px solid var(--border); padding: 5px 8px; text-align: center; }
+  .crack-table th { background: rgba(220,38,38,0.1); color: var(--accent2); font-weight: 700; }
+  .crack-table td:first-child { text-align: left; color: var(--text); font-weight: 700; }
+  .t-instant { color: #dc2626; font-weight: 700; }
+  .t-weak    { color: #d97706; font-weight: 700; }
+  .t-strong  { color: #059669; font-weight: 700; }
+  [data-theme="dark"] .t-instant { color: #f87171; }
+  [data-theme="dark"] .t-weak { color: #fbbf24; }
+  [data-theme="dark"] .t-strong { color: #34d399; }
+
+  /* pill numerica grande per i casi reali */
+  .bignum { font-family: 'JetBrains Mono', monospace; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; overflow-y: auto; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l { grid-template-columns: 1fr !important; }
+    .three-col { grid-template-columns: 1fr !important; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+    /* responsive degli schemi nuovi */
+    .flow { flex-direction: column; }
+    .flow-step { margin-right: 0; margin-bottom: 22px; }
+    .flow-step::after { content: '\2193'; right: 50%; top: auto; bottom: -19px; transform: translateX(50%); }
+    .flow-step:last-child { margin-bottom: 0; }
+    .hat-bar { flex-direction: column; }
+    .crack-table { font-size: 0.68rem; }
+    .crack-table td, .crack-table th { padding: 4px 5px; }
+  }
+</style>
+</head>
+<body>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(248,113,113,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(248,113,113,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(248,113,113,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Quinto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 1 — Crittografia e Sicurezza nella Vita Reale</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 19</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <svg viewBox="0 0 240 180" width="196" style="margin-bottom:18px;" aria-label="Lucchetto: metà difesa, metà sotto attacco" role="img">
+    <!-- alone di sfondo -->
+    <circle cx="120" cy="104" r="92" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.7"/>
+    <circle cx="120" cy="104" r="78" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+    <!-- tracce circuito lato difesa (sinistra) -->
+    <g stroke="var(--accent1)" opacity="0.55">
+      <line x1="30" y1="112" x2="52" y2="112" stroke-width="2"/>
+      <line x1="34" y1="140" x2="50" y2="140" stroke-width="2"/>
+    </g>
+    <circle cx="28" cy="112" r="3.5" fill="var(--accent1)" opacity="0.7"/>
+    <circle cx="32" cy="140" r="3" fill="var(--accent1)" opacity="0.6"/>
+    <!-- arco del lucchetto -->
+    <path d="M88 88 V66 a32 32 0 0 1 64 0 V88" fill="none" stroke="var(--accent3)" stroke-width="10" stroke-linecap="round"/>
+    <!-- corpo: metà difesa (verde) -->
+    <path d="M120 88 H74 a9 9 0 0 0 -9 9 V152 a9 9 0 0 0 9 9 H120 Z" fill="rgba(5,150,105,0.16)" stroke="var(--accent1)" stroke-width="3"/>
+    <!-- corpo: metà attacco (rosso) -->
+    <path d="M120 88 H166 a9 9 0 0 1 9 9 V152 a9 9 0 0 1 -9 9 H120 Z" fill="rgba(220,38,38,0.13)" stroke="var(--accent2)" stroke-width="3"/>
+    <!-- buco della serratura -->
+    <circle cx="120" cy="118" r="10" fill="var(--text)"/>
+    <rect x="115" y="122" width="10" height="23" rx="2" fill="var(--text)"/>
+    <!-- "frammenti" che si staccano dal lato attacco (breach) -->
+    <g fill="var(--accent2)">
+      <rect x="181" y="96" width="13" height="13" rx="2" transform="rotate(16 187 102)" opacity="0.85"/>
+      <rect x="199" y="86" width="9" height="9" rx="1.5" transform="rotate(28 203 90)" opacity="0.65"/>
+      <rect x="201" y="120" width="8" height="8" rx="1.5" transform="rotate(-18 205 124)" opacity="0.6"/>
+      <rect x="213" y="104" width="6" height="6" rx="1" opacity="0.45"/>
+    </g>
+  </svg>
+  <div class="big" style="color:var(--accent2);">La Sicurezza</div>
+  <div class="big">nel Mondo Reale</div>
+  <div class="sub" style="font-size:1.1rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Crittografia, attacchi hacker e difesa — Unità 1 · Parte pratica
+  </div>
+  <div class="sub">Quinto anno · Sistemi e Reti · Dagli algoritmi ai casi reali</div>
+  <div class="tag-row">
+    <span class="tag tag-red">Attacchi reali</span>
+    <span class="tag tag-yellow">La vita dell'hacker</span>
+    <span class="tag tag-blue">Come difendersi</span>
+    <span class="tag tag-green">Hacking etico</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Dove sta la crittografia che usi ogni giorno?</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="quotidiano">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content">
+        <h4>La crittografia che hai in tasca</h4>
+        <p>Il lucchetto HTTPS · WhatsApp e Signal · SPID · Wi-Fi · bancomat</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="attacco">
+      <div class="ov-num" style="color:var(--accent2)">02</div>
+      <div class="ov-content">
+        <h4>Anatomia di un attacco</h4>
+        <p>Le 6 fasi della "cyber kill chain" · phishing · ransomware</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="casi">
+      <div class="ov-num" style="color:var(--accent3)">03</div>
+      <div class="ov-content">
+        <h4>Tre casi reali</h4>
+        <p>Regione Lazio 2021 · Twitter 2020 · Deepfake Arup 2024</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="password">
+      <div class="ov-num" style="color:var(--accent3)">04</div>
+      <div class="ov-content">
+        <h4>Password: quanto reggono?</h4>
+        <p>Brute force e dizionario · tempi di crack · l'errore più comune</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:#a855f7;" data-goto="hacker">
+      <div class="ov-num" style="color:#a855f7">05</div>
+      <div class="ov-content">
+        <h4>La vita dell'hacker</h4>
+        <p>Cappelli bianchi, grigi e neri · dove passa il confine della legge</p>
+      </div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="difesa">
+      <div class="ov-num" style="color:var(--accent1)">06</div>
+      <div class="ov-content">
+        <h4>Difendersi &amp; diventare "bravi"</h4>
+        <p>Kit di sopravvivenza digitale · come si diventa hacker etico</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — LA CRITTOGRAFIA CHE HAI IN TASCA ═══ -->
+<div class="slide" data-section="quotidiano">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">La crittografia che hai in tasca ADESSO</h2>
+    <span class="section-num">Vita reale · 01/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">📱</span>
+        <span>Non è roba da spie: hai usato <strong>almeno 5 sistemi crittografici</strong> prima ancora di entrare a scuola stamattina. Spesso senza accorgertene.</span>
+      </div>
+      <div class="card">
+        <h3>🔒 Il lucchetto nella barra degli indirizzi</h3>
+        <p>Quando vedi <code>https://</code> e il lucchetto, è attivo <strong>TLS</strong>: tra il tuo browser e il server c'è un tunnel cifrato. Senza, chiunque sulla stessa rete Wi-Fi leggerebbe password e messaggi in chiaro.</p>
+      </div>
+      <div class="card">
+        <h3>💬 WhatsApp, Signal, iMessage</h3>
+        <p>Usano la <strong>crittografia end-to-end</strong>: nemmeno l'azienda che gestisce l'app può leggere i tuoi messaggi. Solo tu e il destinatario avete le chiavi.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3>🪪 SPID &amp; CIE</h3>
+        <p>Quando accedi al registro elettronico o all'INPS con SPID stai usando <strong>certificati digitali</strong> e firma asimmetrica: la stessa RSA studiata in teoria.</p>
+      </div>
+      <div class="card">
+        <h3>📶 Il Wi-Fi di casa (WPA2/WPA3)</h3>
+        <p>La password del Wi-Fi non serve solo a "entrare": genera una chiave che <strong>cifra tutto il traffico radio</strong>. Senza, il vicino intercetterebbe i pacchetti con un'antenna.</p>
+      </div>
+      <div class="card">
+        <h3>💳 Bancomat, carte contactless, SIM</h3>
+        <p>Il chip della carta e la SIM contengono <strong>chiavi segrete</strong> che non escono mai dal chip. Il PIN non viaggia mai in chiaro verso la banca.</p>
+      </div>
+      <div class="callout callout-green" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">💡</span>
+        <span>Morale: la teoria di questa unità (simmetrica, asimmetrica, hash, firma) <strong>non è "vecchia"</strong> — è esattamente ciò che gira ora nel tuo telefono.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — HTTPS / END-TO-END SPIEGATO ═══ -->
+<div class="slide" data-section="quotidiano">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <svg viewBox="0 0 48 48" width="32" height="32" style="flex-shrink:0;" role="img" aria-label="Lucchetto e chiave">
+      <rect x="7" y="20" width="20" height="16" rx="3" fill="rgba(37,99,235,0.12)" stroke="var(--accent4)" stroke-width="2.2"/>
+      <path d="M11 20 v-4 a6 6 0 0 1 12 0 v4" fill="none" stroke="var(--accent4)" stroke-width="2.2"/>
+      <circle cx="17" cy="27" r="2.3" fill="var(--accent4)"/>
+      <circle cx="35" cy="18" r="5" fill="none" stroke="var(--accent1)" stroke-width="2.2"/>
+      <path d="M38.5 21.5 L44 27 M41 24 l-2.5 2.5 M44 27 l-2.5 2.5" stroke="var(--accent1)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h2 style="color:var(--accent4)">Dietro il lucchetto: come nasce il tunnel HTTPS</h2>
+    <span class="section-num">Vita reale · 02/02</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-yellow">
+      <span class="callout-icon">🤝</span>
+      <span>HTTPS unisce <strong>asimmetrica + simmetrica</strong> esattamente come la "soluzione ibrida" vista a teoria: l'asimmetrica serve solo a scambiarsi in segreto una chiave simmetrica veloce.</span>
+    </div>
+    <div class="flow" style="margin-top:4px;">
+      <div class="flow-step" style="border-top:3px solid var(--accent4);">
+        <div class="fs-num" style="color:var(--accent4);">FASE 1</div>
+        <h4>Hello</h4>
+        <p>Il browser contatta il server (es. la banca) e chiede una connessione sicura.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent1);">
+        <div class="fs-num" style="color:var(--accent1);">FASE 2</div>
+        <h4>Certificato</h4>
+        <p>Il server invia il suo <strong>certificato X.509</strong> con la chiave pubblica, firmato da una CA fidata.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent3);">
+        <div class="fs-num" style="color:var(--accent3);">FASE 3</div>
+        <h4>Verifica</h4>
+        <p>Il browser controlla la firma della CA: il sito è davvero chi dice di essere?</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent2);">
+        <div class="fs-num" style="color:var(--accent2);">FASE 4</div>
+        <h4>Scambio chiave</h4>
+        <p>Si concorda una <strong>chiave di sessione simmetrica</strong>, protetta con l'asimmetrica.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid #a855f7;">
+        <div class="fs-num" style="color:#a855f7;">FASE 5</div>
+        <h4>Tunnel attivo</h4>
+        <p>Da qui tutto viaggia cifrato veloce (AES). Il lucchetto si chiude. 🔒</p>
+      </div>
+    </div>
+    <div class="two-col" style="flex:0;margin-top:4px;">
+      <div class="callout callout-red" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">⚠️</span>
+        <span>Se il certificato è scaduto o falso, il browser mostra l'avviso rosso "connessione non sicura". <strong>Non ignorarlo mai</strong>: potrebbe esserci un man-in-the-middle.</span>
+      </div>
+      <div class="callout callout-green" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">🔎</span>
+        <span>Prova in classe: clicca sul lucchetto del sito della scuola → "Certificato" → vedrai la CA che l'ha emesso e la data di scadenza reale.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — ANATOMIA DI UN ATTACCO (KILL CHAIN) ═══ -->
+<div class="slide" data-section="attacco">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Anatomia di un attacco — la "Kill Chain"</h2>
+    <span class="section-num">Attacco · 01/04</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-red">
+      <span class="callout-icon">🎯</span>
+      <span>Un attacco serio <strong>non è un clic magico</strong>: è un percorso a fasi. Conoscerle serve a capire <em>dove</em> spezzare la catena. Basta bloccare un anello per fermare tutto.</span>
+    </div>
+    <div class="flow" style="margin-top:2px;">
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent4);">01 · RICOGNIZIONE</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><circle cx="10.5" cy="10.5" r="6"/><line x1="15" y1="15" x2="20.5" y2="20.5"/></svg>Studio del bersaglio</h4><p>L'attaccante raccoglie info pubbliche: email, nomi, social, tecnologie usate (OSINT).</p></div>
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent4);">02 · ARMAMENTO</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><ellipse cx="12" cy="14" rx="5" ry="6"/><circle cx="12" cy="6.5" r="2.3"/><path d="M10.4 5 L8.6 3.2 M13.6 5 L15.4 3.2 M7 12 L4 10.5 M7 14.5 L3.8 14.5 M7.3 17.5 L4.6 19.5 M17 12 L20 10.5 M17 14.5 L20.2 14.5 M16.7 17.5 L19.4 19.5"/></svg>Preparazione</h4><p>Crea l'esca: un allegato infetto, un link, un finto portale di login.</p></div>
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent3);">03 · CONSEGNA</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><path d="M21 3 L3 10.5 L10 13 L13 20 Z"/><path d="M21 3 L10 13"/></svg>Invio</h4><p>Manda l'esca alla vittima: email di phishing, chiavetta USB "dimenticata", SMS.</p></div>
+    </div>
+    <div class="flow" style="margin-top:2px;">
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent3);">04 · EXPLOIT</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><path d="M13 2 L5 13 L11 13 L10 22 L18 10 L12 10 Z"/></svg>Lo sfruttamento</h4><p>La vittima clicca: il codice malevolo gira sfruttando una vulnerabilità o la fiducia.</p></div>
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent2);">05 · INSTALLAZIONE</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><path d="M7 21 V4.5 a1.5 1.5 0 0 1 1.5 -1.5 H16 a1.5 1.5 0 0 1 1.5 1.5 V21"/><line x1="4" y1="21" x2="20" y2="21"/><circle cx="14" cy="12.5" r="1" fill="var(--accent2)"/></svg>Presa di posizione</h4><p>Installa una backdoor: ora rientra quando vuole, anche se la vittima cambia password.</p></div>
+      <div class="flow-step"><div class="fs-num" style="color:var(--accent2);">06 · AZIONE</div><h4><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px;"><line x1="6" y1="21" x2="6" y2="3.5"/><path d="M6 4.5 H18 L15 8 L18 11.5 H6"/></svg>Obiettivo raggiunto</h4><p>Ruba dati, cifra tutto (ransomware), spia o si sposta su altre macchine.</p></div>
+    </div>
+    <div class="callout callout-green" style="font-size:0.84rem;padding:8px 11px;margin-top:2px;">
+      <span class="callout-icon">🛡️</span>
+      <span>Il difensore vince spezzando <strong>anche solo un anello</strong>: un filtro antispam blocca la fase 03, un dipendente attento la 04, un antivirus la 05, la segmentazione della rete la 06.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — PHISHING: SMONTIAMO UNA MAIL ═══ -->
+<div class="slide" data-section="attacco">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <svg viewBox="0 0 48 48" width="34" height="34" style="flex-shrink:0;" aria-label="Amo che aggancia un'email" role="img">
+      <path d="M24 3 V22 a7 7 0 1 1 -7 -7" fill="none" stroke="var(--accent2)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M17 15 l-4 -3 M17 15 l4 -2.5" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="21" y="27" width="24" height="17" rx="2.5" fill="rgba(220,38,38,0.12)" stroke="var(--accent2)" stroke-width="2"/>
+      <path d="M21.5 29 L33 37 L44.5 29" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h2 style="color:var(--accent2)">Phishing: smontiamo una mail truffa</h2>
+    <span class="section-num">Attacco · 02/04</span>
+  </div>
+  <div class="two-col-l">
+    <div class="mail">
+      <div class="mail-head">
+        <div class="mail-line"><span class="lbl">Da:</span> Poste Italiane <span class="mark mark-red">servizio@poste-sicurezza-info.com</span></div>
+        <div class="mail-line"><span class="lbl">A:</span> tu@email.it</div>
+        <div class="mail-line"><span class="lbl">Oggetto:</span> <span class="mark mark-red">URGENTE</span>: conto bloccato, verifica entro 24h</div>
+      </div>
+      <div class="mail-body">
+        Gentile <span class="mark mark-red">Cliente</span>,<br><br>
+        abbiamo rilevato un accesso sospetto. Il suo conto è stato temporaneamente <strong>bloccato</strong>.
+        Per riattivarlo <span class="mark mark-red">clicchi subito</span> sul link e confermi i dati:<br><br>
+        <span class="mark mark-red" style="color:var(--accent4);text-decoration:underline;">https://poste.it-verifica-account.ru/login</span><br><br>
+        In mancanza di verifica entro 24 ore il conto sarà chiuso <span class="mark mark-red">definitivamnte</span>.<br><br>
+        Cordiali saluti,<br>Il Team Sicurezza
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🚩 I 6 campanelli d'allarme</h3>
+        <div class="flag">① Mittente strano — non è un dominio <code>@poste.it</code></div>
+        <div class="flag">② Urgenza e minaccia — "entro 24h", "bloccato"</div>
+        <div class="flag">③ Saluto generico — "Gentile Cliente", non il tuo nome</div>
+        <div class="flag">④ Link mascherato — il dominio vero è <code>.ru</code></div>
+        <div class="flag">⑤ Errori — "definitivamnte"</div>
+        <div class="flag">⑥ Chiede dati/credenziali — nessuna banca lo fa via mail</div>
+      </div>
+      <div class="callout callout-green" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">✅</span>
+        <span>Regola d'oro: <strong>passa il mouse sul link senza cliccare</strong> e guarda in basso il vero indirizzo. Nel dubbio, apri tu il sito ufficiale digitandolo a mano.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — RANSOMWARE ═══ -->
+<div class="slide" data-section="attacco">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Ransomware — quando la crittografia diventa un'arma</h2>
+    <span class="section-num">Attacco · 03/04</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-red">
+        <span class="callout-icon">🔐</span>
+        <span>Il <strong>ransomware</strong> usa la stessa crittografia che protegge te — ma al contrario: cifra i <em>tuoi</em> file e tiene la chiave in ostaggio. "Ransom" = riscatto.</span>
+      </div>
+      <div class="card">
+        <h3>⚙️ Come funziona (il paradosso)</h3>
+        <ul style="font-size:0.85rem;">
+          <li>Entra (phishing, RDP esposto, credenziali rubate)</li>
+          <li>Genera una chiave e <strong>cifra con AES</strong> tutti i file</li>
+          <li>La chiave AES viene a sua volta cifrata con la <strong>chiave pubblica RSA dell'attaccante</strong></li>
+          <li>Solo lui, con la sua chiave privata, può restituirla → chiede il riscatto in <strong>criptovaluta</strong></li>
+        </ul>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.84rem;padding:8px 10px;">
+        <span class="callout-icon">💣</span>
+        <span>Spesso c'è la <strong>doppia estorsione</strong>: "paga o pubblico i tuoi dati". Così il backup da solo non basta più.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🛡️ La difesa che funziona davvero</h3>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:4px;font-size:0.85rem;color:var(--ct);">
+          <div><strong>Backup 3-2-1</strong>: 3 copie, 2 supporti diversi, 1 fuori sede e <em>scollegata</em> (offline).</div>
+          <div><strong>Aggiornamenti</strong>: chiudono le vulnerabilità che l'exploit sfrutta.</div>
+          <div><strong>Segmentazione</strong>: se una parte cade, il resto resta isolato.</div>
+          <div><strong>2FA ovunque</strong>: le credenziali rubate da sole non bastano a entrare.</div>
+        </div>
+      </div>
+      <div class="callout callout-red" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🚫</span>
+        <span><strong>Pagare non conviene</strong>: non garantisce il recupero, finanzia il crimine e ti marca come "bersaglio che paga". La Polizia Postale raccomanda di denunciare.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE — APPROFONDIMENTO: RDP ESPOSTO ═══ -->
+<div class="slide" data-section="attacco">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Approfondimento — "RDP esposto": la porta lasciata aperta</h2>
+    <span class="section-num">Attacco · 04/04</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-blue">
+      <span class="callout-icon">🖥️</span>
+      <span><strong>RDP (Remote Desktop Protocol)</strong> fa controllare un PC Windows a distanza — lavora sulla porta <strong>3389</strong>. Comodissimo per assistenza e smart working. Ma se è <strong>raggiungibile direttamente da Internet</strong> senza protezioni, è una porta spalancata.</span>
+    </div>
+    <div class="flow" style="margin-top:2px;">
+      <div class="flow-step" style="border-top:3px solid var(--accent4);">
+        <svg viewBox="0 0 56 56" width="38" height="38" style="margin-bottom:5px;" role="img" aria-label="Radar che scansiona">
+          <circle cx="28" cy="28" r="17" fill="none" stroke="var(--accent4)" stroke-width="2.5"/>
+          <circle cx="28" cy="28" r="9" fill="none" stroke="var(--accent4)" stroke-width="1.5" opacity="0.5"/>
+          <line x1="28" y1="28" x2="28" y2="11" stroke="var(--accent4)" stroke-width="2"/>
+          <line x1="28" y1="28" x2="41" y2="37" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="37" cy="21" r="2.4" fill="var(--accent2)"/>
+          <circle cx="21" cy="35" r="2" fill="var(--accent2)"/>
+        </svg>
+        <div class="fs-num" style="color:var(--accent4);">01</div>
+        <h4>Scansione continua</h4>
+        <p>Bot automatici setacciano Internet 24 ore su 24 in cerca di porte aperte.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent3);">
+        <svg viewBox="0 0 56 56" width="38" height="38" style="margin-bottom:5px;" role="img" aria-label="Server con porta aperta">
+          <rect x="17" y="8" width="22" height="40" rx="3" fill="none" stroke="var(--accent3)" stroke-width="2.5"/>
+          <line x1="22" y1="15" x2="34" y2="15" stroke="var(--accent3)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="22" y1="21" x2="34" y2="21" stroke="var(--accent3)" stroke-width="2" stroke-linecap="round"/>
+          <rect x="22" y="30" width="12" height="11" rx="1.5" fill="rgba(220,38,38,0.15)" stroke="var(--accent2)" stroke-width="2"/>
+          <path d="M28 33.5 v4 M26 35.5 h4" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="fs-num" style="color:var(--accent3);">02</div>
+        <h4>Porta 3389 aperta</h4>
+        <p>Trovano l'RDP esposto, pronto a ricevere connessioni da chiunque.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent2);">
+        <svg viewBox="0 0 56 56" width="38" height="38" style="margin-bottom:5px;" role="img" aria-label="Lucchetto forzato a tentativi">
+          <rect x="16" y="26" width="22" height="18" rx="3" fill="none" stroke="var(--accent2)" stroke-width="2.5"/>
+          <path d="M20 26 v-5 a7 7 0 0 1 14 0 v5" fill="none" stroke="var(--accent2)" stroke-width="2.5"/>
+          <circle cx="27" cy="34" r="2.4" fill="var(--accent2)"/>
+          <g fill="var(--accent3)"><circle cx="43" cy="18" r="1.8"/><circle cx="48" cy="18" r="1.8"/><circle cx="53" cy="18" r="1.8" opacity="0.55"/></g>
+        </svg>
+        <div class="fs-num" style="color:var(--accent2);">03</div>
+        <h4>Forzano l'accesso</h4>
+        <p>Brute force sulle password deboli o credenziali già rubate dal dark web.</p>
+      </div>
+      <div class="flow-step" style="border-top:3px solid var(--accent2);">
+        <svg viewBox="0 0 56 56" width="38" height="38" style="margin-bottom:5px;" role="img" aria-label="Teschio del ransomware">
+          <path d="M28 10 a16 16 0 0 1 16 16 v5 a4 4 0 0 1 -4 4 v4 a3 3 0 0 1 -3 3 h-18 a3 3 0 0 1 -3 -3 v-4 a4 4 0 0 1 -4 -4 v-5 a16 16 0 0 1 16 -16 Z" fill="none" stroke="var(--accent2)" stroke-width="2.5"/>
+          <circle cx="22" cy="27" r="3.3" fill="var(--accent2)"/>
+          <circle cx="34" cy="27" r="3.3" fill="var(--accent2)"/>
+          <path d="M28 31 l-2.5 5 h5 Z" fill="var(--accent2)"/>
+          <line x1="24" y1="42" x2="24" y2="46" stroke="var(--accent2)" stroke-width="2"/>
+          <line x1="28" y1="42" x2="28" y2="47" stroke="var(--accent2)" stroke-width="2"/>
+          <line x1="32" y1="42" x2="32" y2="46" stroke="var(--accent2)" stroke-width="2"/>
+        </svg>
+        <div class="fs-num" style="color:var(--accent2);">04</div>
+        <h4>Dentro!</h4>
+        <p>Installano ransomware, rubano dati e si spostano sulle altre macchine.</p>
+      </div>
+    </div>
+    <div class="two-col" style="flex:0;margin-top:2px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔓 Perché è così pericoloso</h3>
+        <ul style="font-size:0.85rem;">
+          <li>La porta è visibile a <strong>tutto il pianeta</strong>, non solo alla tua rete</li>
+          <li>Motori come <strong>Shodan</strong> elencano i servizi esposti: i bot sanno già dove bussare</li>
+          <li>Basta una password debole o una <strong>vecchia vulnerabilità</strong> (es. BlueKeep, 2019)</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🚪 Come si chiude la porta</h3>
+        <ul style="font-size:0.85rem;">
+          <li><strong>Mai RDP diretto su Internet</strong>: ci si collega prima a una <strong>VPN</strong></li>
+          <li><strong>Firewall</strong> che apre la 3389 solo a indirizzi IP fidati</li>
+          <li><strong>2FA</strong> anche sull'accesso remoto + aggiornamenti installati</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout callout-yellow" style="font-size:0.84rem;padding:8px 11px;">
+      <span class="callout-icon">🏠</span>
+      <span>È come lasciare la <strong>porta di casa sulla strada</strong> con una serratura semplice, in una via dove migliaia di ladri provano la maniglia di ogni porta giorno e notte: prima o poi qualcuno entra.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — CASO 1: REGIONE LAZIO ═══ -->
+<div class="slide" data-section="casi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Caso reale #1 — Regione Lazio, agosto 2021</h2>
+    <span class="section-num">Casi reali · 01/03</span>
+  </div>
+  <div class="two-col-l">
+    <div class="card" style="--dotc:var(--accent2);">
+      <h3 style="color:var(--accent2);">🗓️ Cronologia</h3>
+      <div class="tl" style="margin-top:6px;">
+        <div class="tl-item" style="--dotc:var(--accent4);">
+          <div class="tl-date">PRIMA</div>
+          <p>Gli attaccanti ottengono le <strong>credenziali di un dipendente in smart working</strong> (società Lazio Crea). Gli account erano <strong>senza 2FA</strong>.</p>
+        </div>
+        <div class="tl-item" style="--dotc:var(--accent3);">
+          <div class="tl-date">NOTTE DEL 1° AGOSTO</div>
+          <p>Da quell'accesso scalano i privilegi fino all'amministratore ed entrano nei sistemi regionali.</p>
+        </div>
+        <div class="tl-item" style="--dotc:var(--accent2);">
+          <div class="tl-date">ATTACCO</div>
+          <p>Ransomware (famiglia RansomEXX) <strong>cifra i sistemi</strong>: va KO il portale per le prenotazioni dei vaccini Covid in piena campagna.</p>
+        </div>
+        <div class="tl-item" style="--dotc:#a855f7;">
+          <div class="tl-date">RISCATTO</div>
+          <p>Richiesta di pagamento in Bitcoin. La Regione <strong>non paga</strong> e lavora al ripristino dai backup.</p>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="text-align:center;border-top:3px solid var(--accent2);">
+        <div class="bignum" style="font-size:2rem;color:var(--accent2);">1 account</div>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:3px;">senza 2FA è bastato per bloccare la sanità di una Regione intera</p>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🎓</span>
+        <span><strong>La lezione:</strong> l'anello debole non è stato un algoritmo rotto, ma un <em>processo</em>: smart working senza autenticazione forte. La crittografia era a posto; mancava la <strong>difesa umana</strong>.</span>
+      </div>
+      <div class="callout callout-green" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">🔗</span>
+        <span>Ricollega alla kill chain: qui bastava bloccare la fase 01-04 con la 2FA per spezzare tutto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — CASO 2: TWITTER 2020 ═══ -->
+<div class="slide" data-section="casi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Caso reale #2 — Twitter, luglio 2020</h2>
+    <span class="section-num">Casi reali · 02/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🐦</span>
+        <span>Gli account di <strong>Obama, Musk, Bill Gates, Apple</strong> twittano tutti insieme: "Mandami 1000$ in Bitcoin e te ne rimando 2000". In poche ore arrivano ~117.000 $.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">🎭 Non è stato bucato un algoritmo</h3>
+        <p>Un ragazzo di <strong>17 anni</strong> e complici hanno usato il <strong>social engineering</strong>: telefonando ai dipendenti Twitter fingendosi l'IT interno, si sono fatti dare l'accesso agli <strong>strumenti di amministrazione</strong> interni.</p>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🧠</span>
+        <span>"È più facile ingannare una persona che un computer." La crittografia non protegge da chi <strong>consegna la chiave spontaneamente</strong>.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="--dotc:var(--accent3);">
+        <h3 style="color:var(--accent3);">⚖️ Come è finita</h3>
+        <div class="tl" style="margin-top:6px;">
+          <div class="tl-item" style="--dotc:var(--accent4);">
+            <div class="tl-date">LUGLIO 2020</div>
+            <p>L'attacco. Twitter blocca gli account verificati di mezzo mondo per ore.</p>
+          </div>
+          <div class="tl-item" style="--dotc:var(--accent3);">
+            <div class="tl-date">POCHI GIORNI DOPO</div>
+            <p>L'FBI identifica e arresta il "mastermind", Graham Ivan Clark, 17 anni, in Florida.</p>
+          </div>
+          <div class="tl-item" style="--dotc:var(--accent2);">
+            <div class="tl-date">MARZO 2021</div>
+            <p>Si dichiara colpevole: <strong>3 anni di carcere + 3 di libertà vigilata</strong> (processato come "youthful offender").</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-red" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">🚨</span>
+        <span>Minorenne, ma con conseguenze reali e pesanti. L'età non è uno scudo: online i reati informatici lasciano tracce.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — CASO 3: DEEPFAKE ARUP ═══ -->
+<div class="slide" data-section="casi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Caso reale #3 — Deepfake Arup, 2024</h2>
+    <span class="section-num">Casi reali · 03/03</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-red">
+        <span class="callout-icon">🎥</span>
+        <span>Un impiegato della filiale di Hong Kong partecipa a una <strong>videochiamata col direttore finanziario</strong> e altri colleghi. Erano <strong>tutti deepfake generati dall'IA</strong>: volti e voci finti in tempo reale.</span>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:14px;">
+        <svg viewBox="0 0 124 128" width="128" aria-label="Volto metà reale, metà deepfake sintetico" role="img">
+          <!-- testa -->
+          <ellipse cx="62" cy="62" rx="42" ry="48" fill="var(--panel)" stroke="var(--border)" stroke-width="2"/>
+          <!-- METÀ SINISTRA: reale, linee pulite (blu) -->
+          <circle cx="44" cy="54" r="4.5" fill="var(--accent4)"/>
+          <path d="M34 42 q8 -5 16 -1" fill="none" stroke="var(--accent4)" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M40 80 q12 9 22 9" fill="none" stroke="var(--accent4)" stroke-width="3" stroke-linecap="round"/>
+          <!-- divisore -->
+          <line x1="62" y1="16" x2="62" y2="108" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <!-- METÀ DESTRA: sintetica, glitch (rosso) -->
+          <rect x="72" y="49" width="16" height="7" fill="var(--accent2)"/>
+          <g fill="var(--accent2)">
+            <rect x="74" y="62" width="8" height="8" opacity="0.7"/>
+            <rect x="85" y="60" width="6" height="6" opacity="0.5"/>
+            <rect x="80" y="72" width="7" height="7" opacity="0.55"/>
+          </g>
+          <path d="M62 89 l9 -3 l5 5 l9 -4" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linejoin="round"/>
+          <g stroke="var(--accent2)" stroke-width="1" opacity="0.3">
+            <line x1="66" y1="30" x2="98" y2="30"/>
+            <line x1="66" y1="38" x2="94" y2="38"/>
+            <line x1="66" y1="98" x2="92" y2="98"/>
+          </g>
+        </svg>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent4);border:1px solid var(--accent4);border-radius:4px;padding:2px 8px;">ciò che vedi</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--accent2);border:1px solid var(--accent2);border-radius:4px;padding:2px 8px;">ciò che è</span>
+        </div>
+      </div>
+      <div class="card" style="text-align:center;border-top:3px solid var(--accent2);">
+        <div class="bignum" style="font-size:2.3rem;color:var(--accent2);">~25 mln $</div>
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:3px;">trasferiti in 15 bonifici, convinto da colleghi che non erano reali</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3 style="color:var(--accent4);">🔮 Perché ci riguarda</h3>
+        <p style="font-size:0.85rem;">L'impiegato aveva avuto un primo sospetto (una mail strana), ma la videochiamata lo ha convinto: "li vedevo e li sentivo, erano loro". L'IA ha reso l'inganno <strong>credibile come la realtà</strong>.</p>
+      </div>
+      <div class="callout callout-green" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🛡️</span>
+        <span><strong>La difesa del futuro:</strong> per richieste di denaro o dati, <em>verifica su un secondo canale</em> (una telefonata a un numero noto, una "parola d'ordine" aziendale). Non fidarti solo di ciò che vedi/senti.</span>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">🤖</span>
+        <span>Il deepfake è il motivo per cui l'<strong>autenticazione</strong> (uno dei 5 requisiti X.800) diventa sempre più centrale: "chi sei davvero?"</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — PASSWORD: QUANTO REGGONO ═══ -->
+<div class="slide" data-section="password">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Password: quanto reggono a un attacco?</h2>
+    <span class="section-num">Password · 01/02</span>
+  </div>
+  <div class="two-col-l">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <h3 style="color:var(--accent2);">⏱️ Tempo per indovinarla a forza bruta</h3>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:2px;">Ordini di grandezza indicativi, con hardware moderno. Il messaggio è la <em>tendenza</em>, non il numero esatto.</p>
+        <table class="crack-table">
+          <tr><th>Password</th><th>Solo numeri</th><th>+ lettere</th><th>+ MAIUSC e simboli</th></tr>
+          <tr><td>6 caratteri</td><td class="t-instant">istantaneo</td><td class="t-instant">secondi</td><td class="t-weak">minuti</td></tr>
+          <tr><td>8 caratteri</td><td class="t-instant">istantaneo</td><td class="t-weak">ore</td><td class="t-weak">settimane</td></tr>
+          <tr><td>10 caratteri</td><td class="t-instant">secondi</td><td class="t-strong">anni</td><td class="t-strong">secoli</td></tr>
+          <tr><td>12 caratteri</td><td class="t-weak">minuti</td><td class="t-strong">secoli</td><td class="t-strong">millenni</td></tr>
+        </table>
+        <p style="font-size:0.78rem;color:var(--muted);margin-top:5px;">Ogni carattere in più moltiplica il tempo. La <strong>lunghezza</strong> conta più della complessità.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🗡️ I due attacchi classici</h3>
+        <p style="font-size:0.84rem;"><strong>Forza bruta:</strong> prova tutte le combinazioni. Lento ma inesorabile sulle password corte.</p>
+        <p style="font-size:0.84rem;margin-top:5px;"><strong>Dizionario:</strong> prova parole comuni e password già trapelate. <code>password123</code>, <code>juventus</code>, <code>123456</code> cadono in millisecondi.</p>
+      </div>
+      <div class="callout callout-red" style="font-size:0.82rem;padding:8px 10px;">
+        <span class="callout-icon">💀</span>
+        <span>La password più usata al mondo è ancora <code>123456</code>. Se è nel dizionario, la lunghezza non la salva.</span>
+      </div>
+      <div class="callout callout-green" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🔑</span>
+        <span><strong>Trucco:</strong> una <em>passphrase</em> di 4 parole a caso — <code>gatto-vela-pioggia-74</code> — è lunga, facile da ricordare e durissima da bucare.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — PERCHÉ LE PASSWORD NON SI SALVANO MAI IN CHIARO ═══ -->
+<div class="slide" data-section="password">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il sito NON conosce la tua password (e meno male)</h2>
+    <span class="section-num">Password · 02/02</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-blue">
+      <span class="callout-icon">🔍</span>
+      <span>Un sito fatto bene non salva mai la password in chiaro: ne salva solo l'<strong>hash</strong> (l'impronta one-way vista a teoria). Così, anche se rubano il database, non hanno le password.</span>
+    </div>
+    <div class="two-col" style="flex:0;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">✅ Come dovrebbe funzionare</h3>
+        <div class="flow" style="flex-direction:column;">
+          <div class="flow-step" style="margin-right:0;margin-bottom:16px;"><div class="fs-num" style="color:var(--accent4);">REGISTRAZIONE</div><p>Scrivi <code>Estate2026!</code> → il sito calcola l'<strong>hash</strong> e salva solo quello (una stringa illeggibile).</p></div>
+          <div class="flow-step" style="margin-right:0;margin-bottom:0;"><div class="fs-num" style="color:var(--accent1);">LOGIN</div><p>Riscrivi la password → il sito ricalcola l'hash e <strong>confronta</strong>. Se combacia, entri. La password vera non è mai memorizzata.</p></div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--muted);margin-top:8px;">Difese extra: <strong>salt</strong> (un dato casuale per utente) e hash lenti (bcrypt) rendono inutili le "tabelle precalcolate".</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card" style="border-top:3px solid var(--accent2);">
+          <h3 style="color:var(--accent2);">🧪 Esperimento: effetto valanga</h3>
+          <pre style="font-size:0.72rem;">SHA-256("ciao")
+ 1a3c... completamente diverso da ↓
+SHA-256("Ciao")
+ e6f1... (ho cambiato 1 sola lettera!)</pre>
+          <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">Cambi un bit → l'impronta cambia del tutto. È ciò che rende la firma digitale sicura.</p>
+        </div>
+        <div class="callout callout-green" style="font-size:0.82rem;padding:8px 10px;">
+          <span class="callout-icon">🌐</span>
+          <span>Su <code>haveibeenpwned.com</code> puoi controllare se la tua email è finita in un data breach noto. Provalo a casa.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — LA VITA DELL'HACKER: I CAPPELLI ═══ -->
+<div class="slide" data-section="hacker">
+  <div class="section-header">
+    <div class="section-dot" style="background:#a855f7"></div>
+    <h2 style="color:#a855f7">La vita dell'hacker — bianco, grigio o nero?</h2>
+    <span class="section-num">Hacker · 01/02</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-blue">
+      <span class="callout-icon">🎩</span>
+      <span>"Hacker" non significa criminale. In origine è chi <strong>capisce i sistemi a fondo</strong> e li piega a usi nuovi. A fare la differenza è l'<strong>intenzione</strong> e il <strong>permesso</strong>.</span>
+    </div>
+    <div class="hat-bar" style="margin-top:4px;">
+      <div class="hat-seg" style="background:rgba(5,150,105,0.1);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <svg viewBox="0 0 60 34" width="42" height="24" style="flex-shrink:0;" aria-label="Cappello bianco" role="img">
+            <ellipse cx="30" cy="25" rx="26" ry="5.5" fill="#e8edf4" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M17 25 Q17 7 30 7 Q43 7 43 25 Z" fill="#e8edf4" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M17 23 Q30 27.5 43 23" fill="none" stroke="var(--accent1)" stroke-width="2.5"/>
+          </svg>
+          <h4 style="color:var(--accent1);margin:0;">White Hat</h4>
+        </div>
+        <p style="color:var(--ct);">Hacker <strong>etico</strong>. Attacca <em>con autorizzazione</em> per trovare le falle e farle correggere. È un lavoro vero, pagato e legale.</p>
+      </div>
+      <div class="hat-seg" style="background:rgba(217,119,6,0.1);border-left:1px solid var(--border);border-right:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <svg viewBox="0 0 60 34" width="42" height="24" style="flex-shrink:0;" aria-label="Cappello grigio" role="img">
+            <ellipse cx="30" cy="25" rx="26" ry="5.5" fill="#9aa3b2" stroke="#6b7280" stroke-width="1.5"/>
+            <path d="M17 25 Q17 7 30 7 Q43 7 43 25 Z" fill="#9aa3b2" stroke="#6b7280" stroke-width="1.5"/>
+            <path d="M17 23 Q30 27.5 43 23" fill="none" stroke="var(--accent3)" stroke-width="2.5"/>
+          </svg>
+          <h4 style="color:var(--accent3);margin:0;">Grey Hat</h4>
+        </div>
+        <p style="color:var(--ct);">Entra <strong>senza permesso</strong> ma "per segnalare" la falla. Buone intenzioni, ma <em>è comunque illegale</em>: nessuno gli aveva dato le chiavi.</p>
+      </div>
+      <div class="hat-seg" style="background:rgba(220,38,38,0.1);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <svg viewBox="0 0 60 34" width="42" height="24" style="flex-shrink:0;" aria-label="Cappello nero" role="img">
+            <ellipse cx="30" cy="25" rx="26" ry="5.5" fill="#15181f" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M17 25 Q17 7 30 7 Q43 7 43 25 Z" fill="#15181f" stroke="#94a3b8" stroke-width="1.5"/>
+            <path d="M17 23 Q30 27.5 43 23" fill="none" stroke="var(--accent2)" stroke-width="2.5"/>
+          </svg>
+          <h4 style="color:var(--accent2);margin:0;">Black Hat</h4>
+        </div>
+        <p style="color:var(--ct);">Il <strong>criminale</strong>. Attacca per soldi, danno o potere: ransomware, furto dati, truffe. Fuori dalla legge, punto.</p>
+      </div>
+    </div>
+    <div class="three-col" style="flex:0;margin-top:4px;">
+      <div class="card"><h3 style="font-size:0.9rem;">🕵️ Chi incontri davvero</h3><p style="font-size:0.8rem;">Dallo "<strong>script kiddie</strong>" che usa tool pronti, ai gruppi <strong>criminali organizzati</strong>, fino agli <strong>attori statali</strong> (cyber-spionaggio).</p></div>
+      <div class="card"><h3 style="font-size:0.9rem;">💰 Il mercato nero</h3><p style="font-size:0.8rem;">Nel <strong>dark web</strong> si comprano credenziali rubate, kit ransomware "a noleggio" (RaaS) e vulnerabilità sconosciute (0-day).</p></div>
+      <div class="card"><h3 style="font-size:0.9rem;">🏆 Il mercato legale</h3><p style="font-size:0.8rem;">I <strong>bug bounty</strong>: le aziende pagano chi segnala falle in regola. Google e Microsoft versano <strong>milioni</strong> l'anno ai ricercatori.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — DOVE PASSA IL CONFINE (LEGGE) ═══ -->
+<div class="slide" data-section="hacker">
+  <div class="section-header">
+    <div class="section-dot" style="background:#a855f7"></div>
+    <h2 style="color:#a855f7">Dove passa il confine: una riga di legge</h2>
+    <span class="section-num">Hacker · 02/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">⚖️ Art. 615-ter Codice Penale</h3>
+        <p style="font-size:0.85rem;">"Chiunque <strong>abusivamente si introduce</strong> in un sistema informatico o telematico protetto da misure di sicurezza, ovvero vi si mantiene contro la volontà di chi ha diritto di escluderlo…"</p>
+        <p style="font-size:0.84rem;margin-top:6px;color:var(--text);">→ pena base la <strong>reclusione fino a 3 anni</strong>; con aggravanti (sistemi pubblici, danni) si arriva <strong>fino a diversi anni</strong>. La legge 90/2024 ha <strong>inasprito</strong> le pene.</p>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🔑</span>
+        <span>La parola chiave è <strong>"abusivamente"</strong>: conta se avevi o no il <em>permesso</em>. Lo stesso identico comando è un lavoro o un reato a seconda dell'autorizzazione.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card">
+        <h3 style="color:var(--accent1);">✅ Hacking etico = con regole scritte</h3>
+        <ul style="font-size:0.85rem;">
+          <li><strong>Autorizzazione</strong> firmata prima di toccare qualsiasi cosa</li>
+          <li><strong>Perimetro</strong> definito: cosa posso testare e cosa no</li>
+          <li><strong>Non danneggiare</strong> né divulgare i dati trovati</li>
+          <li><strong>Report</strong> onesto al committente per correggere</li>
+        </ul>
+      </div>
+      <div class="callout callout-red" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">🚫</span>
+        <span>"Volevo solo provare / avvisarli" <strong>non è una scusa valida</strong> davanti alla legge. Testa solo su sistemi <em>tuoi</em> o su piattaforme fatte apposta (prossima slide).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — KIT DI SOPRAVVIVENZA DIGITALE ═══ -->
+<div class="slide" data-section="difesa">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Il tuo kit di sopravvivenza digitale</h2>
+    <span class="section-num">Difesa · 01/02</span>
+  </div>
+  <div class="one-col">
+    <div class="callout callout-green">
+      <span class="callout-icon">🛡️</span>
+      <span>Non serve essere esperti: <strong>6 abitudini</strong> fermano la stragrande maggioranza degli attacchi che colpiscono le persone comuni.</span>
+    </div>
+    <div class="three-col" style="flex:0;">
+      <div class="card" style="border-top:3px solid var(--accent4);"><h3 style="font-size:0.92rem;color:var(--accent4);">🔐 2FA ovunque</h3><p style="font-size:0.82rem;">L'autenticazione a due fattori: anche se ti rubano la password, senza il secondo codice non entrano. È la difesa che è mancata alla Regione Lazio.</p></div>
+      <div class="card" style="border-top:3px solid var(--accent1);"><h3 style="font-size:0.92rem;color:var(--accent1);">🗝️ Password manager</h3><p style="font-size:0.82rem;">Una password lunga e <strong>diversa per ogni sito</strong>, memorizzata da un'app. Tu ne ricordi una sola (quella principale).</p></div>
+      <div class="card" style="border-top:3px solid var(--accent3);"><h3 style="font-size:0.92rem;color:var(--accent3);">🔄 Aggiornamenti</h3><p style="font-size:0.82rem;">Ogni update chiude falle note. Rimandare "aggiorna più tardi" lascia aperta la porta all'exploit.</p></div>
+    </div>
+    <div class="three-col" style="flex:0;">
+      <div class="card" style="border-top:3px solid var(--accent2);"><h3 style="font-size:0.92rem;color:var(--accent2);">💾 Backup 3-2-1</h3><p style="font-size:0.82rem;">Una copia offline ti rende immune al ricatto del ransomware: "cancella pure, io ho il backup".</p></div>
+      <div class="card" style="border-top:3px solid #a855f7;"><h3 style="font-size:0.92rem;color:#a855f7;">🧐 Diffidenza sana</h3><p style="font-size:0.82rem;">Link, allegati, urgenze, premi vinti: nel dubbio, <strong>fermati e verifica</strong> su un altro canale. Il 90% degli attacchi parte da un clic.</p></div>
+      <div class="card" style="border-top:3px solid var(--accent4);"><h3 style="font-size:0.92rem;color:var(--accent4);">🌐 HTTPS e reti</h3><p style="font-size:0.82rem;">Controlla il lucchetto. Sul Wi-Fi pubblico evita login bancari o usa una VPN.</p></div>
+    </div>
+    <div class="callout callout-blue" style="font-size:0.84rem;padding:9px 11px;">
+      <span class="callout-icon">👨‍👩‍👧</span>
+      <span>Compito per casa (facile e utile): attiva la 2FA sul tuo account Google/Instagram e insegnala a un genitore. È sicurezza vera, stasera.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 16 — DIVENTARE HACKER ETICO ═══ -->
+<div class="slide" data-section="difesa">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <svg viewBox="0 0 48 48" width="32" height="32" style="flex-shrink:0;" role="img" aria-label="Terminale con bandiera CTF">
+      <rect x="5" y="10" width="38" height="28" rx="3" fill="rgba(5,150,105,0.1)" stroke="var(--accent1)" stroke-width="2.2"/>
+      <line x1="5" y1="17" x2="43" y2="17" stroke="var(--accent1)" stroke-width="2.2"/>
+      <path d="M11 24 l5 4 l-5 4" fill="none" stroke="var(--accent1)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="20" y1="33" x2="27" y2="33" stroke="var(--accent1)" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="33" y1="21" x2="33" y2="35" stroke="var(--accent3)" stroke-width="2"/>
+      <path d="M33 22 h7.5 l-2.2 2.6 l2.2 2.6 h-7.5 Z" fill="var(--accent3)"/>
+    </svg>
+    <h2 style="color:var(--accent1)">Vuoi "attaccare" sul serio? Fallo da bravo</h2>
+    <span class="section-num">Difesa · 02/02</span>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span>La curiosità di "bucare le cose" è esattamente ciò che cercano le aziende di cybersecurity. Il trucco è incanalarla dove è <strong>legale e pagata</strong>.</span>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">🎮 Palestre legali (CTF &amp; lab)</h3>
+        <p style="font-size:0.84rem;">Le <strong>Capture The Flag</strong> sono gare-gioco dove hackerare è l'obiettivo. Piattaforme come <strong>TryHackMe</strong>, <strong>Hack The Box</strong>, <strong>picoCTF</strong> ti danno macchine da attaccare <em>senza rischi legali</em>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">🇮🇹 In Italia, per la tua età</h3>
+        <p style="font-size:0.84rem;"><strong>OliCyber.IT</strong> (Olimpiadi di Cybersicurezza) e <strong>CyberChallenge.IT</strong>: programmi nazionali gratuiti per studenti. Allenamento, gare e borse di studio. Si entra dalle superiori.</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🧭 Un percorso possibile</h3>
+        <div class="tl" style="margin-top:6px;--dotc:var(--accent1);">
+          <div class="tl-item" style="--dotc:var(--accent4);"><div class="tl-date">BASI</div><p>Reti (quello che studi qui!), Linux, un po' di programmazione (Python).</p></div>
+          <div class="tl-item" style="--dotc:var(--accent3);"><div class="tl-date">PRATICA</div><p>CTF e laboratori online. Impari attaccando macchine fatte apposta.</p></div>
+          <div class="tl-item" style="--dotc:#a855f7;"><div class="tl-date">COMPETIZIONI</div><p>OliCyber / CyberChallenge: ti metti alla prova e ti fai notare.</p></div>
+          <div class="tl-item" style="--dotc:var(--accent1);"><div class="tl-date">PROFESSIONE</div><p>Pentester, analista SOC, bug bounty hunter. Certificazioni (es. CEH, OSCP).</p></div>
+        </div>
+      </div>
+      <div class="callout callout-yellow" style="font-size:0.84rem;padding:9px 11px;">
+        <span class="callout-icon">💼</span>
+        <span>È uno dei lavori più richiesti e meglio pagati d'Europa: mancano <strong>centinaia di migliaia</strong> di esperti di sicurezza. Il posto c'è, se ti prepari.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 17 — MAPPA CONCETTUALE ═══ -->
+<div class="slide" data-section="mappa">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Mappa — Attacco, Difesa e il ruolo della Crittografia</h2>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+    <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:12px;flex:1;align-items:center;">
+      <!-- Attaccante -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="border-left:3px solid var(--accent2);">
+          <h3 style="font-size:0.85rem;color:var(--accent2);">⚫ L'attaccante</h3>
+          <p style="font-size:0.75rem;">Phishing · Social engineering · Ransomware · Deepfake · Brute force</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent3);">
+          <h3 style="font-size:0.85rem;color:var(--accent3);">Kill chain</h3>
+          <p style="font-size:0.75rem;">Ricognizione → Esca → Consegna → Exploit → Backdoor → Azione</p>
+        </div>
+      </div>
+      <!-- Centro -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="background:rgba(37,99,235,0.12);border:2px solid var(--accent4);border-radius:12px;padding:12px 20px;text-align:center;">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--accent4);letter-spacing:-0.5px;">LA CRITTOGRAFIA</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">è uno strumento neutro: dipende da chi la impugna</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent1);font-size:0.74rem;">TI PROTEGGE</div>
+            <div style="font-size:0.68rem;color:var(--muted);">HTTPS · E2E · firma · hash</div>
+          </div>
+          <div style="flex:1;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2);font-size:0.74rem;">TI ATTACCA</div>
+            <div style="font-size:0.68rem;color:var(--muted);">ransomware · dark web</div>
+          </div>
+        </div>
+        <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;padding:7px 18px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#a855f7;font-size:0.74rem;">IL CONFINE = IL PERMESSO</div>
+          <div style="font-size:0.68rem;color:var(--muted);">art. 615-ter · "abusivamente"</div>
+        </div>
+      </div>
+      <!-- Difensore -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="card" style="border-left:3px solid var(--accent1);">
+          <h3 style="font-size:0.85rem;color:var(--accent1);">⚪ Il difensore</h3>
+          <p style="font-size:0.75rem;">2FA · Password manager · Backup 3-2-1 · Aggiornamenti · Diffidenza</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent4);">
+          <h3 style="font-size:0.85rem;color:var(--accent4);">L'hacker etico</h3>
+          <p style="font-size:0.75rem;">CTF · OliCyber · CyberChallenge · Bug bounty · Pentest autorizzati</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout callout-green" style="font-size:0.84rem;padding:9px 12px;">
+      <span class="callout-icon">🧩</span>
+      <span>Attaccante e difensore usano <strong>gli stessi strumenti e le stesse conoscenze</strong>. Ciò che hai studiato (DES, AES, RSA, hash, firma) è la base di <em>entrambi</em>: tu scegli da che parte stare.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 18 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Da portare a casa</h2>
+  </div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 La teoria è già nella tua vita</h3>
+        <ul>
+          <li>HTTPS, WhatsApp, SPID, Wi-Fi, bancomat: tutta crittografia reale</li>
+          <li>HTTPS = soluzione ibrida: asimmetrica per lo scambio, simmetrica per la velocità</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 Gli attacchi veri colpiscono le persone</h3>
+        <ul>
+          <li>Kill chain a 6 fasi: basta spezzarne una</li>
+          <li>Lazio, Twitter, Arup: quasi mai si "rompe" un algoritmo — si inganna un umano</li>
+          <li>Phishing e social engineering sono la porta d'ingresso n.1</li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="border-top:3px solid #a855f7;">
+        <h3 style="color:#a855f7;">🟣 L'hacker e il confine</h3>
+        <ul>
+          <li>White / grey / black hat: conta intenzione e <strong>permesso</strong></li>
+          <li>"Abusivamente" (art. 615-ter) = reato, anche se minorenni</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 Difendersi e crescere</h3>
+        <ul>
+          <li>Kit: 2FA · password manager · backup · update · diffidenza</li>
+          <li>Canalizza la curiosità: CTF, OliCyber, CyberChallenge — legale e con sbocchi</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue" style="font-size:0.84rem;">
+        <span class="callout-icon">🎯</span>
+        <span>La sicurezza non è un prodotto che compri: è un <strong>comportamento</strong> che pratichi ogni giorno.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':       'Introduzione',
+    'quotidiano':  'Crittografia quotidiana',
+    'attacco':     'Anatomia di un attacco',
+    'casi':        'Casi reali',
+    'password':    'Password',
+    'hacker':      'La vita dell\'hacker',
+    'difesa':      'Difesa e hacking etico',
+    'mappa':       'Mappa concettuale',
+    'riepilogo':   'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    function jump(i) { goTo(i); }
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { jump(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(t); }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
