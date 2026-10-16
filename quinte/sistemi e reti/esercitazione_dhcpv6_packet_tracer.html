@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione — DHCPv6 stateless e stateful</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f2f7fc; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.88; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px; margin-right: 4px;
+    }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 18px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { line-height: 1.7; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+    td.key { font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d; }
+    td.esempio { font-family: 'Courier New', monospace; font-weight: bold; color: #2b6cb0; font-style: italic; }
+    td.fill, tr:nth-child(even) td.fill {
+      background: #fffff0; border: 1px dashed #cbd5e0;
+      min-width: 110px; height: 34px;
+      font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d;
+    }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .checkpoint { background: #f0fff4; border-left: 4px solid #38a169; border-radius: 4px;
+                  padding: 12px 16px; font-size: 0.88rem; margin-top: 16px; line-height: 1.6; }
+    .checkpoint strong:first-child { color: #22543d; }
+
+    .q-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+             padding: 12px 16px; margin: 14px 0; }
+    .q-box .q { font-size: 0.89rem; line-height: 1.6; }
+    .q-num { display: inline-block; background: #2b6cb0; color: white; border-radius: 4px;
+             padding: 0 7px; margin-right: 6px; font-size: 0.78rem; font-weight: bold; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    td > .tag:first-child { margin-left: 0; }
+    .tag-sala { background: #e9d8fd; color: #553c9a; }
+    .tag-uff  { background: #c6f6d5; color: #22543d; }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+
+    .points { float: right; background: #edf2f7; border-radius: 12px;
+              padding: 2px 10px; font-size: 0.78rem; color: #718096; }
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+    pre.cli {
+      background: #1a202c; color: #e2e8f0; border-radius: 6px;
+      padding: 14px 16px; font-family: 'Courier New', monospace;
+      font-size: 0.8rem; line-height: 1.6; overflow-x: auto; margin: 10px 0;
+    }
+    pre.cli .cmt { color: #718096; font-style: italic; }
+    pre.cli .kw  { color: #f6ad55; }
+    pre.cli .val { color: #68d391; }
+    pre.cli .gap { color: #fbd38d; }
+
+    ol.steps { margin: 6px 0 0 20px; }
+    ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.89rem; }
+    ul.check { margin: 6px 0 0 20px; }
+    ul.check li { font-size: 0.88rem; line-height: 1.6; margin-bottom: 4px; }
+
+    .topo { margin: 6px 0 4px; }
+    .topo svg { width: 100%; height: auto; display: block; }
+
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px 16px; }
+      .points { float: none; display: inline-block; margin-left: 6px; }
+    }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 13px; }
+      header { padding: 18px 24px; margin-bottom: 16px; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 16px 20px; margin-bottom: 14px; }
+      .card h2, .card h3, .card h2 + p { break-after: avoid; page-break-after: avoid; }
+      td, th { padding: 6px 9px; }
+      td.fill, tr:nth-child(even) td.fill { min-width: 70px; height: 30px; }
+      table, pre.cli, .q-box, .topo, .info-box, .warn-box, .checkpoint { page-break-inside: avoid; }
+      header, th, .tag, .q-num, pre.cli, td.fill {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      header { background: #1a365d !important; }
+      footer { margin-top: 6px; padding-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercitazione di laboratorio — DHCPv6 stateless e stateful</h1>
+    <p>Indirizzamento IPv6, SLAAC e server DHCPv6 su un router Cisco: percorso guidato passo passo</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT Informatica — Sistemi e Reti</span>
+    <span class="badge">Durata: 50 min</span>
+    <span class="badge">Punteggio: 30</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>
+      La <strong>Biblioteca comunale</strong> passa a IPv6. Il provider le ha assegnato il blocco
+      <code>2001:db8:acad::/48</code>. Il router <strong>R1</strong> collega due LAN e fa anche da
+      <strong>server DHCPv6</strong>: non serve un server separato.
+    </p>
+    <p>
+      Nella <strong>SALA LETTURA</strong> ci sono i PC pubblici e, in futuro, gli smartphone dei visitatori collegati al
+      Wi-Fi. Android non supporta DHCPv6 stateful, quindi qui i dispositivi si creano l'indirizzo da soli con
+      <strong>SLAAC</strong> e ricevono soltanto il DNS e il dominio da <strong>DHCPv6 stateless</strong>.
+      Negli <strong>UFFICI</strong> ci sono i PC del personale: il responsabile vuole sapere quale indirizzo ha ogni PC,
+      quindi qui si usa <strong>DHCPv6 stateful</strong>.
+    </p>
+    <p>
+      Come server DNS si usa quello pubblico di Google, <code>2001:4860:4860::8888</code>.
+    </p>
+
+    <h3>Reti da realizzare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>Interfaccia di R1</th><th>ID sottorete</th><th>Metodo di assegnazione</th><th>Dominio DNS</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-sala">SALA LETTURA</span></td><td>Gig0/0</td><td class="key">1</td><td>SLAAC + DHCPv6 stateless</td><td><code>sala.biblio.local</code></td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td>Gig0/1</td><td class="key">2</td><td>DHCPv6 stateful</td><td><code>uffici.biblio.local</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Topologia</h3>
+    <div class="topo">
+      <svg viewBox="0 0 960 400" role="img" aria-label="Topologia: il router R1, che fa da server DHCPv6, collega con la porta Gig0/0 lo switch SW-SALA della LAN SALA LETTURA (PC-SALA1 e PC-SALA2, SLAAC più DHCPv6 stateless) e con la porta Gig0/1 lo switch SW-UFF della LAN UFFICI (PC-UFF1 e PC-UFF2, DHCPv6 stateful). Gli switch si collegano al router dalla porta Fa0/1.">
+        <defs>
+          <symbol id="ico-pc" viewBox="0 0 40 36">
+            <rect x="1" y="1" width="38" height="25" rx="3" fill="#718096"/>
+            <rect x="5" y="5" width="30" height="17" rx="1" fill="#ebf8ff"/>
+            <rect x="17" y="26" width="6" height="5" fill="#718096"/>
+            <rect x="10" y="31" width="20" height="4" rx="2" fill="#718096"/>
+          </symbol>
+        </defs>
+
+        <!-- zone -->
+        <rect x="20" y="130" width="440" height="260" rx="12" fill="#faf5ff" stroke="#805ad5" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="36" y="156" font-size="14" font-weight="700" fill="#553c9a">LAN SALA LETTURA</text>
+        <text x="36" y="174" font-size="12" fill="#553c9a">ID sottorete 1 · R1 Gig0/0</text>
+        <rect x="500" y="130" width="440" height="260" rx="12" fill="#f0fff4" stroke="#38a169" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="924" y="156" font-size="14" font-weight="700" fill="#22543d" text-anchor="end">LAN UFFICI</text>
+        <text x="924" y="174" font-size="12" fill="#22543d" text-anchor="end">ID sottorete 2 · R1 Gig0/1</text>
+
+        <!-- cavi -->
+        <g stroke="#4a5568" stroke-width="2" fill="none">
+          <polyline points="480,66 240,66 240,200"/>
+          <polyline points="480,66 720,66 720,200"/>
+          <line x1="240" y1="230" x2="130" y2="272"/>
+          <line x1="240" y1="230" x2="350" y2="272"/>
+          <line x1="720" y1="230" x2="610" y2="272"/>
+          <line x1="720" y1="230" x2="830" y2="272"/>
+        </g>
+
+        <!-- porte -->
+        <g font-size="11" fill="#2d3748" font-family="'Courier New', monospace" font-weight="700">
+          <text x="448" y="58" text-anchor="end">Gig0/0</text>
+          <text x="512" y="58">Gig0/1</text>
+          <text x="248" y="194">Fa0/1</text>
+          <text x="728" y="194">Fa0/1</text>
+        </g>
+
+        <!-- router -->
+        <text x="480" y="30" font-size="11" fill="#718096" text-anchor="middle">Cisco 2911</text>
+        <circle cx="480" cy="66" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+        <text x="480" y="71" font-size="14" font-weight="700" fill="white" text-anchor="middle">R1</text>
+        <rect x="410" y="94" width="140" height="24" rx="12" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+        <text x="480" y="110" font-size="12" font-weight="700" fill="#744210" text-anchor="middle">server DHCPv6</text>
+
+        <!-- switch -->
+        <g font-size="13" font-weight="700" fill="white" text-anchor="middle">
+          <rect x="195" y="200" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="240" y="220">SW-SALA</text>
+          <rect x="675" y="200" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="720" y="220">SW-UFF</text>
+        </g>
+
+        <!-- PC -->
+        <use href="#ico-pc" x="110" y="272" width="40" height="36"/>
+        <use href="#ico-pc" x="330" y="272" width="40" height="36"/>
+        <use href="#ico-pc" x="590" y="272" width="40" height="36"/>
+        <use href="#ico-pc" x="810" y="272" width="40" height="36"/>
+        <g font-size="13" font-weight="700" fill="#1a202c" text-anchor="middle">
+          <text x="130" y="328">PC-SALA1</text>
+          <text x="350" y="328">PC-SALA2</text>
+          <text x="610" y="328">PC-UFF1</text>
+          <text x="830" y="328">PC-UFF2</text>
+        </g>
+
+        <!-- metodo -->
+        <rect x="100" y="346" width="280" height="28" rx="14" fill="white" stroke="#805ad5" stroke-width="1.5"/>
+        <text x="240" y="365" font-size="12" font-weight="700" fill="#553c9a" text-anchor="middle">SLAAC + DHCPv6 stateless</text>
+        <rect x="580" y="346" width="280" height="28" rx="14" fill="white" stroke="#38a169" stroke-width="1.5"/>
+        <text x="720" y="365" font-size="12" font-weight="700" fill="#22543d" text-anchor="middle">DHCPv6 stateful</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PRIMA DI COMINCIARE -->
+  <div class="card">
+    <h2>Prima di cominciare</h2>
+    <ol class="steps">
+      <li><strong>I comandi sono già scritti:</strong> copiali così come sono. Dove trovi
+          <code>____</code> completi tu con i valori della Parte 1.</li>
+      <li><strong>Nella CLI</strong> il tasto <em>Tab</em> completa i comandi. Se compare
+          <code>% Invalid input detected</code>, il simbolo <code>^</code> indica il punto dell'errore: riscrivi la riga.</li>
+      <li><strong>Packet Tracer scrive gli indirizzi IPv6 in maiuscolo:</strong> <code>2001:DB8:ACAD:1::1</code> e
+          <code>2001:db8:acad:1::1</code> sono lo stesso indirizzo.</li>
+      <li><strong>Ogni parte finisce con un punto di controllo.</strong> Se qualcosa non torna, consulta la tabella
+          <em>Se qualcosa non va</em> della Parte 3; se non basta, chiama il docente prima di andare avanti.</li>
+    </ol>
+
+    <h3>Promemoria comandi di verifica</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Comando</th><th>Dove</th><th>A cosa serve</th></tr></thead>
+      <tbody>
+        <tr><td><code>show ipv6 interface brief</code></td><td>R1</td><td>stato delle interfacce e indirizzi IPv6</td></tr>
+        <tr><td><code>show ipv6 interface g0/0</code></td><td>R1</td><td>dettagli di un'interfaccia; le righe <em>Hosts use…</em> indicano il metodo comunicato ai PC</td></tr>
+        <tr><td><code>show ipv6 dhcp pool</code></td><td>R1</td><td>pool DHCPv6 con DNS, dominio e numero di client attivi</td></tr>
+        <tr><td><code>show ipv6 dhcp binding</code></td><td>R1</td><td>indirizzi assegnati dal DHCPv6 stateful, PC per PC</td></tr>
+        <tr><td><code>ipconfig /all</code></td><td>PC → <em>Command Prompt</em></td><td>indirizzo IPv6, MAC, gateway, server DNS e dominio</td></tr>
+        <tr><td><code>ping &lt;indirizzo&gt;</code></td><td>PC → <em>Command Prompt</em></td><td>verifica che un indirizzo sia raggiungibile</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>Salva spesso:</strong> <em>File → Save As</em> con il nome <code>Cognome_Nome_dhcpv6.pkt</code>, almeno
+      alla fine di ogni parte.
+    </div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2>Parte 1 — Piano di indirizzamento IPv6 <span class="points">5 min · 3 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Come è fatto un indirizzo della biblioteca.</strong> Prendiamo <code>2001:db8:acad:1::1/64</code>:<br>
+      <code>2001:db8:acad</code> = blocco assegnato dal provider (i primi tre gruppi, /48) ·
+      <code>1</code> = ID della sottorete (quarto gruppo) ·
+      <code>::1</code> = host. Per convenzione <strong>R1 prende sempre <code>::1</code></strong> in ogni LAN.<br>
+      Ogni LAN ha prefisso <strong>/64</strong>. Su tutte le interfacce R1 usa lo stesso indirizzo link-local,
+      <code>fe80::1</code>, scelto da noi perché è facile da leggere.
+    </div>
+
+    <h3>Tabella di indirizzamento</h3>
+    <p class="muted" style="margin-bottom:6px;">La riga della SALA LETTURA è già svolta: usala come modello.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>ID sottorete</th><th>Prefisso della LAN</th><th>Indirizzo di R1</th><th>Link-local di R1</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-sala">SALA LETTURA</span></td><td class="key">1</td><td class="esempio">2001:db8:acad:1::/64</td><td class="esempio">2001:db8:acad:1::1</td><td class="esempio">fe80::1</td></tr>
+        <tr><td><span class="tag tag-uff">UFFICI</span></td><td class="key">2</td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="warn-box" style="margin-top:12px;">
+      <strong>Regole di scrittura:</strong> si usano solo le cifre <code>0-9</code> e le lettere <code>a-f</code>;
+      gli zeri iniziali di un gruppo si possono omettere (<code>0001</code> = <code>1</code>);
+      <code>::</code> sostituisce una sequenza di gruppi a zero e si usa <strong>una sola volta</strong> per indirizzo.
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D1</span>Con un blocco /48 restano 16 bit per l'ID della sottorete. Quante LAN /64
+        potrebbe creare la biblioteca? Perché anche una LAN con due soli PC usa un prefisso /64?</p>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2>Parte 2 — Topologia <span class="tag tag-gui">GUI</span> <span class="points">10 min · 5 punti</span></h2>
+
+    <h3>Dispositivi da posizionare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Quantità</th><th>Tipo</th><th>Modello</th><th>Nomi da assegnare</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Router</td><td><strong>2911</strong></td><td>R1</td></tr>
+        <tr><td>2</td><td>Switch</td><td><strong>2960-24TT</strong></td><td>SW-SALA, SW-UFF</td></tr>
+        <tr><td>4</td><td>PC</td><td>PC-PT</td><td>PC-SALA1, PC-SALA2, PC-UFF1, PC-UFF2</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Procedura</h3>
+    <ol class="steps">
+      <li>Nel pannello in basso a sinistra scegli la categoria (<em>Network Devices → Routers</em>,
+          <em>Network Devices → Switches</em>, <em>End Devices</em>) e trascina il modello nell'area di lavoro.</li>
+      <li>Per rinominare un dispositivo: clic sul dispositivo → scheda <em>Config</em> → campo <em>Display Name</em>.</li>
+      <li>Per i cavi: icona a forma di fulmine (<em>Connections</em>) → <strong>Copper Straight-Through</strong>
+          (linea nera continua). Clic sul primo dispositivo, scegli la porta, poi clic sul secondo e scegli la porta.</li>
+    </ol>
+
+    <h3>Cavi da collegare (6 collegamenti, tutti dritti)</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Da</th><th>Porta</th><th>A</th><th>Porta</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>PC-SALA1</td><td>Fa0</td><td>SW-SALA</td><td>Fa0/2</td></tr>
+        <tr><td>2</td><td>PC-SALA2</td><td>Fa0</td><td>SW-SALA</td><td>Fa0/3</td></tr>
+        <tr><td>3</td><td>SW-SALA</td><td>Fa0/1</td><td>R1</td><td>Gig0/0</td></tr>
+        <tr><td>4</td><td>SW-UFF</td><td>Fa0/1</td><td>R1</td><td>Gig0/1</td></tr>
+        <tr><td>5</td><td>PC-UFF1</td><td>Fa0</td><td>SW-UFF</td><td>Fa0/2</td></tr>
+        <tr><td>6</td><td>PC-UFF2</td><td>Fa0</td><td>SW-UFF</td><td>Fa0/3</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="info-box" style="margin-top:12px;">
+      I pallini sui cavi tra switch e PC diventano verdi dopo qualche secondo. Quelli tra switch e R1 restano
+      <strong>rossi</strong> finché non accendi le interfacce del router nella Parte 3: è normale.
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>I nomi visualizzati dei dispositivi corrispondono alla tabella.</li>
+        <li>I 6 cavi usano esattamente le porte indicate: passa col mouse sopra un cavo per vedere le porte.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2>Parte 3 — Indirizzi IPv6 su R1 e SLAAC <span class="tag tag-cli">CLI</span> <span class="tag tag-gui">GUI</span> <span class="points">13 min · 8 punti</span></h2>
+    <p style="font-size:0.89rem;">
+      Assegni gli indirizzi alle interfacce di R1 e attivi il routing IPv6. Da quel momento R1 invia nelle due LAN i
+      <strong>Router Advertisement</strong> (RA): con questo soltanto i PC si configurano già da soli con SLAAC.
+    </p>
+
+    <h3>Passo 1 — Apri la CLI di R1</h3>
+    <ol class="steps">
+      <li>Clic su R1 → scheda <em>CLI</em>.</li>
+      <li>Alla domanda <code>Would you like to enter the initial configuration dialog? [yes/no]:</code> scrivi
+          <code>no</code> e premi Invio. Premi ancora Invio finché compare <code>Router&gt;</code>.</li>
+    </ol>
+
+    <h3>Passo 2 — Configura R1</h3>
+<pre class="cli">Router&gt; <span class="kw">enable</span>
+Router# <span class="kw">configure terminal</span>
+Router(config)# <span class="kw">hostname</span> <span class="val">R1</span>
+R1(config)# <span class="kw">ipv6 unicast-routing</span>
+R1(config)# <span class="kw">interface</span> GigabitEthernet0/0                  <span class="cmt">! SALA LETTURA</span>
+R1(config-if)# <span class="kw">ipv6 address</span> <span class="val">2001:db8:acad:1::1/64</span>
+R1(config-if)# <span class="kw">ipv6 address</span> <span class="val">fe80::1</span> <span class="kw">link-local</span>
+R1(config-if)# <span class="kw">no shutdown</span>
+R1(config-if)# <span class="kw">exit</span>
+R1(config)# <span class="kw">interface</span> GigabitEthernet0/1                  <span class="cmt">! UFFICI</span>
+R1(config-if)# <span class="kw">ipv6 address</span> <span class="gap">______________________</span>/64      <span class="cmt">! indirizzo di R1 negli UFFICI (Parte 1)</span>
+R1(config-if)# <span class="kw">ipv6 address</span> <span class="val">fe80::1</span> <span class="kw">link-local</span>
+R1(config-if)# <span class="kw">no shutdown</span>
+R1(config-if)# <span class="kw">end</span>
+R1# <span class="kw">copy running-config startup-config</span>        <span class="cmt">! alla domanda Destination filename premi Invio</span></pre>
+
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Comando</th><th>Che cosa fa</th></tr></thead>
+      <tbody>
+        <tr><td><code>ipv6 unicast-routing</code></td><td>attiva il routing IPv6. Senza questo comando R1 non invia i Router Advertisement e i PC non ricevono nulla.</td></tr>
+        <tr><td><code>ipv6 address …/64</code></td><td>assegna all'interfaccia l'indirizzo global unicast</td></tr>
+        <tr><td><code>ipv6 address fe80::1 link-local</code></td><td>fissa l'indirizzo link-local, che diventerà il default gateway dei PC</td></tr>
+        <tr><td><code>no shutdown</code></td><td>accende l'interfaccia: i pallini verso gli switch diventano verdi</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Passo 3 — Configura i quattro PC</h3>
+    <ol class="steps">
+      <li>Clic sul PC → <em>Desktop → IP Configuration</em>.</li>
+      <li>Nel riquadro <strong>IPv6 Configuration</strong> seleziona <strong>Automatic</strong>. Non toccare la parte IPv4.</li>
+      <li>Dopo qualche secondo compare un <em>IPv6 Address</em> che inizia con <code>2001:DB8:ACAD:</code>.
+          Ripeti su tutti e quattro i PC.</li>
+    </ol>
+    <p class="muted" style="margin-top:6px;">Se nella tua versione di Packet Tracer non trovi la voce <em>Automatic</em>, chiama il docente.</p>
+
+    <h3>Passo 4 — Osserva il risultato</h3>
+    <p style="font-size:0.89rem; margin-bottom:6px;">
+      Su PC-SALA1 e su PC-UFF1 apri <em>Desktop → Command Prompt</em>, scrivi <code>ipconfig /all</code> e completa la tabella.
+    </p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>PC</th><th>IPv6 Address</th><th>Default Gateway</th><th>DNS Servers</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-sala">PC-SALA1</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">PC-UFF1</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Se qualcosa non va</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Che cosa vedi</th><th>Causa probabile</th><th>Che cosa fare</th></tr></thead>
+      <tbody>
+        <tr><td>Il PC ha solo un indirizzo che inizia con <code>FE80</code>, o nessun indirizzo</td><td>R1 non invia i Router Advertisement</td><td>controlla <code>ipv6 unicast-routing</code> e <code>no shutdown</code>, poi sul PC passa a <em>Static</em> e torna su <em>Automatic</em></td></tr>
+        <tr><td>Pallini rossi tra lo switch e R1</td><td>interfaccia del router spenta</td><td>entra nell'interfaccia e scrivi <code>no shutdown</code></td></tr>
+        <tr><td><code>% Invalid input detected</code></td><td>errore di battitura</td><td>il simbolo <code>^</code> indica dove: riscrivi la riga</td></tr>
+        <tr><td>Il ping verso l'altra LAN fallisce</td><td>indirizzo di Gig0/1 sbagliato</td><td><code>show ipv6 interface brief</code> e confronta con la Parte 1</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D2</span>Nell'output di <code>ipconfig /all</code> di PC-SALA1 trovi anche il
+        <em>Physical Address</em> (il MAC). Confrontalo con gli ultimi quattro gruppi dell'<em>IPv6 Address</em>: che cosa
+        riconosci? Quali cifre sono state aggiunte nel mezzo? La prima cifra è rimasta uguale? Come si chiama questo modo
+        di costruire l'identificativo di interfaccia?</p>
+    </div>
+    <div class="q-box">
+      <p class="q"><span class="q-num">D3</span>Sul PC nessuno ha scritto il default gateway, eppure compare
+        <code>FE80::1</code>. Chi l'ha comunicato al PC e con quale tipo di messaggio ICMPv6?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Tutti i pallini della topologia sono verdi.</li>
+        <li>I PC della SALA hanno un indirizzo che inizia con <code>2001:DB8:ACAD:1:</code>, quelli degli UFFICI con <code>2001:DB8:ACAD:2:</code>.</li>
+        <li>Da PC-SALA1 il <code>ping</code> all'indirizzo di PC-UFF1 scritto in tabella funziona. Se il primo tentativo perde qualche pacchetto, ripetilo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2>Parte 4 — DHCPv6 stateless nella SALA LETTURA <span class="tag tag-cli">CLI</span> <span class="points">10 min · 6 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Stateless</strong> vuol dire che il PC continua a crearsi l'indirizzo con SLAAC e chiede al server
+      DHCPv6 soltanto le <strong>altre informazioni</strong>: server DNS e dominio. Servono due cose:
+      un <strong>pool</strong> che contiene solo DNS e dominio, senza indirizzi, e il <strong>flag O</strong>
+      (<em>Other configuration</em>) attivo nei Router Advertisement, che dice ai PC di chiedere quelle informazioni.
+    </div>
+
+<pre class="cli">R1# <span class="kw">configure terminal</span>
+R1(config)# <span class="kw">ipv6 dhcp pool</span> <span class="val">SALA-STATELESS</span>
+R1(config-dhcpv6)# <span class="kw">dns-server</span> <span class="val">2001:4860:4860::8888</span>
+R1(config-dhcpv6)# <span class="kw">domain-name</span> <span class="val">sala.biblio.local</span>
+R1(config-dhcpv6)# <span class="kw">exit</span>
+R1(config)# <span class="kw">interface</span> GigabitEthernet0/0
+R1(config-if)# <span class="kw">ipv6 nd other-config-flag</span>            <span class="cmt">! flag O = 1 nei Router Advertisement</span>
+R1(config-if)# <span class="kw">ipv6 dhcp server</span> <span class="val">SALA-STATELESS</span>      <span class="cmt">! collega il pool all'interfaccia</span>
+R1(config-if)# <span class="kw">end</span></pre>
+
+    <h3>Procedura sui PC della SALA</h3>
+    <ol class="steps">
+      <li>Su PC-SALA1 e PC-SALA2: <em>Desktop → IP Configuration</em>, seleziona <em>Static</em> e poi di nuovo
+          <strong>Automatic</strong>. Così il PC ripete la richiesta e scopre il flag O.</li>
+      <li>Su PC-SALA1 esegui <code>ipconfig /all</code> e confronta l'output con la tabella della Parte 3.</li>
+      <li>Su R1 esegui <code>show ipv6 dhcp pool</code> e leggi il numero di <em>Active clients</em> del pool SALA-STATELESS.</li>
+    </ol>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D4</span>L'<em>IPv6 Address</em> di PC-SALA1 è cambiato rispetto alla Parte 3?
+        Che cosa è cambiato invece nell'output di <code>ipconfig /all</code>? Perché <code>show ipv6 dhcp pool</code>
+        indica <strong>0</strong> client attivi, anche se i PC hanno ricevuto il DNS?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo</strong> (<code>ipconfig /all</code> su PC-SALA1):
+      <ul class="check">
+        <li><em>DNS Servers</em> mostra <code>2001:4860:4860::8888</code>.</li>
+        <li><em>Connection-specific DNS Suffix</em> mostra <code>sala.biblio.local</code>.</li>
+        <li>L'<em>IPv6 Address</em> è lo stesso che hai scritto nella Parte 3.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2>Parte 5 — DHCPv6 stateful negli UFFICI <span class="tag tag-cli">CLI</span> <span class="points">10 min · 8 punti</span></h2>
+
+    <div class="info-box">
+      <strong>Stateful</strong> vuol dire che è R1 ad assegnare l'indirizzo, prendendolo da un pool, e che ne tiene
+      traccia. Servono tre cose: un <strong>pool con il prefisso</strong> della LAN, il <strong>flag M</strong>
+      (<em>Managed address configuration</em>) attivo nei Router Advertisement e SLAAC disattivato su questa LAN,
+      perché i PC non si creino da soli un secondo indirizzo.
+    </div>
+
+<pre class="cli">R1# <span class="kw">configure terminal</span>
+R1(config)# <span class="kw">ipv6 dhcp pool</span> <span class="val">UFFICI-STATEFUL</span>
+R1(config-dhcpv6)# <span class="kw">address prefix</span> <span class="gap">____________________</span>/64   <span class="cmt">! prefisso della LAN UFFICI (Parte 1)</span>
+R1(config-dhcpv6)# <span class="kw">dns-server</span> <span class="val">2001:4860:4860::8888</span>
+R1(config-dhcpv6)# <span class="kw">domain-name</span> <span class="val">uffici.biblio.local</span>
+R1(config-dhcpv6)# <span class="kw">exit</span>
+R1(config)# <span class="kw">interface</span> GigabitEthernet0/1
+R1(config-if)# <span class="kw">ipv6 nd managed-config-flag</span>             <span class="cmt">! flag M = 1: l'indirizzo arriva da DHCPv6</span>
+R1(config-if)# <span class="kw">ipv6 nd prefix default no-autoconfig</span>    <span class="cmt">! disattiva SLAAC su questa LAN</span>
+R1(config-if)# <span class="kw">ipv6 dhcp server</span> <span class="val">UFFICI-STATEFUL</span>
+R1(config-if)# <span class="kw">end</span>
+R1# <span class="kw">copy running-config startup-config</span></pre>
+
+    <div class="warn-box">
+      Se Packet Tracer rifiuta <code>ipv6 nd prefix default no-autoconfig</code> con <code>% Invalid input</code>,
+      salta quel comando e prosegui con il successivo. Annotalo nel documento.
+    </div>
+
+    <h3>Procedura sui PC degli UFFICI</h3>
+    <ol class="steps">
+      <li>Su PC-UFF1 e PC-UFF2: <em>IP Configuration</em> → <em>Static</em> e poi di nuovo <strong>Automatic</strong>.</li>
+      <li>Su entrambi esegui <code>ipconfig /all</code> e completa la tabella.</li>
+      <li>Su R1 esegui <code>show ipv6 dhcp binding</code>: per ogni PC compare l'indirizzo che R1 gli ha assegnato.</li>
+    </ol>
+    <div class="table-wrap" style="margin-top:10px;">
+    <table>
+      <thead><tr><th>PC</th><th>IPv6 Address</th><th>Connection-specific DNS Suffix</th><th>L'indirizzo contiene <code>FFFE</code>? (sì/no)</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-uff">PC-UFF1</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-uff">PC-UFF2</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Riepilogo: confronta le due LAN</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Domanda</th><th><span class="tag tag-sala">SALA LETTURA</span></th><th><span class="tag tag-uff">UFFICI</span></th></tr></thead>
+      <tbody>
+        <tr><td>Flag M nei Router Advertisement (0/1)</td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>Flag O nei Router Advertisement (0/1)</td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>Chi crea l'indirizzo IPv6 del PC?</td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>Chi fornisce DNS e dominio?</td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>Chi fornisce il default gateway, e con quale messaggio?</td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1 sa quale indirizzo ha ogni PC? (sì/no)</td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D5</span>In <code>show ipv6 dhcp binding</code> compaiono solo i PC degli UFFICI:
+        perché quelli della SALA no? Rileggi lo scenario e spiega perché la biblioteca ha scelto lo stateless per la SALA
+        e lo stateful per gli UFFICI, con un motivo per ciascuna LAN.</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>PC-UFF1 e PC-UFF2 hanno un indirizzo che inizia con <code>2001:DB8:ACAD:2:</code> e il suffisso <code>uffici.biblio.local</code>.</li>
+        <li><code>show ipv6 dhcp binding</code> elenca due client, con gli stessi indirizzi che hai scritto in tabella.</li>
+        <li>Da PC-UFF1 il <code>ping</code> verso PC-SALA1 funziona ancora.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Consegna</h2>
+    <ol class="steps">
+      <li>Salva il file Packet Tracer come <code>Cognome_Nome_dhcpv6.pkt</code> e consegnalo secondo le indicazioni del docente.</li>
+      <li>Consegna un <strong>documento Google</strong> <code>Cognome_Nome_dhcpv6</code> con le tabelle delle Parti 1, 3 e 5,
+          il riepilogo e le risposte alle domande D1–D5.</li>
+      <li>Se qualche punto di controllo non è riuscito, descrivi nel documento che cosa hai controllato e dove pensi che sia l'errore.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — DHCPv6 stateless e stateful con Cisco Packet Tracer — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
