@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Il Distributore Automatico</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>IL DISTRIBUTORE AUTOMATICO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: puntatori a struct, operatore -&gt;, nullptr,<br>passaggio per indirizzo, parametri di uscita, aritmetica dei puntatori</span>
+      <span class="time">Tempo a disposizione: 30 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Nell'atrio della scuola c'è un <strong>distributore automatico</strong> di snack. Ogni scomparto ha un
+    <strong>codice</strong> (es. "A1"), uno snack, un <strong>prezzo</strong> e un certo numero di
+    <strong>pezzi</strong>. Si paga con una <strong>tessera prepagata</strong> che contiene il credito dello studente.
+    Il tuo compito è scrivere il programma del distributore: <strong>ricaricare</strong> la tessera,
+    <strong>cercare</strong> uno snack dal codice, gestire l'<strong>acquisto</strong> e fare l'<strong>inventario</strong>.
+    Le funzioni devono modificare i dati del <code>main</code>: lo faranno <strong>attraverso i puntatori</strong>.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Strutture dati</h2>
+
+  <h3>1a. Definisci la struct <strong>Snack</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>codice</code></td><td>codice dello scomparto (es. "A1", "B2")</td></tr>
+      <tr><td><code>nome</code></td><td>nome dello snack (es. "Patatine")</td></tr>
+      <tr><td><code>prezzo</code></td><td>prezzo in euro (es. 1.20)</td></tr>
+      <tr><td><code>quantita</code></td><td>pezzi rimasti nello scomparto (intero, 0 se esaurito)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Definisci la struct <strong>Tessera</strong>:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>nome dello studente proprietario della tessera</td></tr>
+      <tr><td><code>credito</code></td><td>credito disponibile in euro</td></tr>
+    </tbody>
+  </table>
+  <p>Dichiara i campi <strong>esattamente nell'ordine delle tabelle</strong>, perché i dati di prova della Parte 4
+    lo danno per scontato.</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>ricarica(Tessera* t, double euro)</code></td>
+        <td>Aggiunge <code>euro</code> al credito della tessera puntata da <code>t</code></td>
+      </tr>
+      <tr>
+        <td><code>cerca(Snack v[], int n, string codice)</code></td>
+        <td>Restituisce l'<strong>indirizzo</strong> dello snack con quel codice, oppure <code>nullptr</code> se nel
+          distributore non c'è</td>
+      </tr>
+      <tr>
+        <td><code>acquista(Snack* s, Tessera* t)</code></td>
+        <td>Applica le regole della Parte 3: stampa il messaggio e, se l'acquisto riesce, aggiorna i pezzi dello
+          snack e il credito della tessera</td>
+      </tr>
+      <tr>
+        <td><code>inventario(Snack v[], int n, int* esauriti, double* valore)</code></td>
+        <td><strong>Non stampa nulla</strong>: scrive in <code>*esauriti</code> quanti snack hanno 0 pezzi e in
+          <code>*valore</code> il valore della merce rimasta, cioè la somma di prezzo × quantità di tutti gli snack</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>rifornisci(Snack* v, int n, int pezzi)</code></td>
+        <td>Porta a <code>pezzi</code> la quantità di ogni snack che ne ha di meno (gli altri non li tocca) e
+          restituisce quanti pezzi ha aggiunto in tutto. <strong>Vietate le parentesi quadre</strong>: scorri l'array
+          con un puntatore</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La funzione contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo
+    dopo aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Le regole dell'acquisto</h2>
+
+  <p><code>acquista</code> controlla le condizioni <strong>in questo ordine</strong>:</p>
+  <ol>
+    <li>se lo snack ha <strong>0 pezzi</strong> stampa che è esaurito e non cambia nulla;</li>
+    <li>altrimenti, se il <strong>credito è minore del prezzo</strong>, stampa che il credito non basta e non cambia nulla;</li>
+    <li>altrimenti toglie <strong>un pezzo</strong> allo snack, toglie il <strong>prezzo</strong> dal credito e stampa
+      il credito residuo.</li>
+  </ol>
+  <p>Osserva gli esempi: i tuoi messaggi devono essere <strong>identici</strong>.</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Acquisto riuscito</div>
+<pre class="out">A2: erogato Cracker, credito residuo 4.10 euro</pre>
+    </div>
+    <div>
+      <div class="out-label">Snack esaurito</div>
+<pre class="out">B1: Acqua esaurito</pre>
+    </div>
+  </div>
+  <div class="out-label">Credito insufficiente</div>
+<pre class="out">C1: credito insufficiente per Panino (costa 3.50 euro)</pre>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>Nel <code>main</code> dichiara il distributore, la tessera e l'elenco degli ordini, già caricati con i dati di
+    prova. Copia queste righe così come sono:</p>
+
+<pre class="code">Snack distributore[6] = {
+    {"A1", "Patatine", 1.20, 3},
+    {"A2", "Cracker",  0.90, 8},
+    {"A3", "Wafer",    1.00, 0},
+    {"B1", "Acqua",    0.50, 1},
+    {"B2", "Succo",    1.30, 4},
+    {"C1", "Panino",   3.50, 2}
+};
+int n = 6;
+Tessera t = {"Giulia", 3.00};
+string ordini[6] = {"A2", "B1", "B1", "C3", "A1", "C1"};</pre>
+
+  <p>Poi esegui, in ordine, i passi seguenti:</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Ricarica</td>
+        <td>ricarica la tessera di 2 euro con <code>ricarica</code> e stampa
+          <code>Credito di Giulia: 5.00 euro</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Ordini</td>
+        <td>per ogni codice di <code>ordini</code> chiama <code>cerca</code>. Se il puntatore restituito è
+          <code>nullptr</code> stampa ad esempio <code>C3: codice inesistente</code>; altrimenti chiama
+          <code>acquista</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Inventario</td>
+        <td>chiama <code>inventario</code> e stampa i due risultati, ad esempio <code>Snack esauriti: 2</code> e
+          <code>Valore della merce: 20.90 euro</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 4</td>
+        <td>Rifornimento</td>
+        <td>chiama <code>rifornisci</code> con <code>pezzi</code> uguale a 5, stampa
+          <code>Rifornimento: aggiunti 17 pezzi</code> e ripeti il passo 3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> con i dati di prova il tuo programma deve stampare esattamente l'output
+    seguente.
+  </div>
+
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Passi 1 – 3</div>
+<pre class="out">Credito di Giulia: 5.00 euro
+A2: erogato Cracker, credito residuo 4.10 euro
+B1: erogato Acqua, credito residuo 3.60 euro
+B1: Acqua esaurito
+C3: codice inesistente
+A1: erogato Patatine, credito residuo 2.40 euro
+C1: credito insufficiente per Panino (costa 3.50 euro)
+Snack esauriti: 2
+Valore della merce: 20.90 euro</pre>
+    </div>
+    <div>
+      <div class="out-label"><span class="star">&#9733;</span> Passo 4</div>
+<pre class="out">Rifornimento: aggiunti 17 pezzi
+Snack esauriti: 0
+Valore della merce: 43.80 euro</pre>
+      <div class="out-label" style="margin-top: 12px;">Da notare</div>
+      <ul>
+        <li>gli snack esauriti sono A3, vuoto fin dall'inizio, e B1</li>
+        <li>A2 ha ancora 7 pezzi: <code>rifornisci</code> non lo tocca</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li>Nella chiamata <code>acquista(s, &amp;t)</code> perché davanti a <code>t</code> serve la <code>&amp;</code>
+      e davanti a <code>s</code> no?</li>
+    <li>Il secondo ordine <code>B1</code> trova l'acqua esaurita. Se <code>cerca</code> restituisse una
+      <strong>copia</strong> dello snack (tipo <code>Snack</code> invece di <code>Snack*</code>), cosa cambierebbe
+      nell'output? Perché?</li>
+    <li>Cosa succederebbe se nel <code>main</code> togliessi il controllo su <code>nullptr</code> e arrivasse
+      l'ordine <code>C3</code>?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> dentro le funzioni hai dei puntatori, quindi ai campi si accede con la freccia:
+    <code>t-&gt;credito</code>, non <code>t.credito</code>. In <code>cerca</code>, l'indirizzo dell'elemento
+    <code>i</code> dell'array si scrive <code>&amp;v[i]</code> (oppure <code>v + i</code>).
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> all'inizio di <code>inventario</code> azzera <code>*esauriti</code> e
+    <code>*valore</code>: le variabili del <code>main</code> potrebbero contenere valori casuali. Attenzione:
+    per incrementare il valore puntato si scrive <code>(*esauriti)++</code>, con le parentesi.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per la <span class="star">&#9733;</span> ricorda che <code>p++</code> sposta il
+    puntatore sullo snack successivo e che l'ultimo snack dell'array è all'indirizzo <code>v + n - 1</code>.
+    Per stampare i prezzi con due decimali usa <code>cout &lt;&lt; fixed &lt;&lt; setprecision(2)</code> della
+    libreria <code>&lt;iomanip&gt;</code>.
+  </div>
+
+  <div class="nota">
+    <strong>Prima di scrivere <code>acquista</code></strong> disegna su carta scatole e frecce: la tessera
+    <code>t</code> nel <code>main</code>, l'array <code>distributore</code> e i due puntatori <code>s</code> e
+    <code>t</code> della funzione. Dove arrivano le frecce?
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Codici</td>
+        <td>Scritti esattamente come nei dati di prova: <code>"A1"</code> e <code>"a1"</code> sono stringhe diverse</td>
+      </tr>
+      <tr>
+        <td>Puntatori</td>
+        <td>Ogni puntatore va inizializzato quando lo dichiari; prima di usare <code>*p</code> o <code>p-&gt;</code>
+          controlla che non sia <code>nullptr</code></td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;): per modificare un dato del <code>main</code> si passa il suo
+          indirizzo. Nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le risposte della Parte 5 in fondo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>

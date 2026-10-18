@@ -2186,24 +2186,25 @@ int main() {
   <div class="two-col">
     <div class="stack">
 <pre class="cpp">void stampa(Nodo* testa) {
-    Nodo* p = testa;
-    while (p != nullptr) {
-        cout &lt;&lt; p-&gt;dato &lt;&lt; " -&gt; ";
-        p = p-&gt;next;          // passo al nodo successivo
+    while (testa != nullptr) {
+        cout &lt;&lt; testa-&gt;dato &lt;&lt; " -&gt; ";
+        testa = testa-&gt;next;  // passo al nodo successivo
     }
     cout &lt;&lt; "fine" &lt;&lt; endl;
 }
 
 int conta(Nodo* testa) {
     int n = 0;
-    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+    while (testa != nullptr) {
         n++;
+        testa = testa-&gt;next;
+    }
     return n;
 }</pre>
       <div class="ll bot">
-        <span class="ll-label">testa</span><span class="arrow sm"></span>
+        <span class="ll-label">testa del main</span><span class="arrow sm"></span>
         <span class="node"><span class="d">3</span><span class="n">•</span></span><span class="arrow sm"></span>
-        <span class="node"><span class="d">7</span><span class="n">•</span><span class="p">↑ p</span></span><span class="arrow sm"></span>
+        <span class="node"><span class="d">7</span><span class="n">•</span><span class="p">↑ testa di stampa</span></span><span class="arrow sm"></span>
         <span class="node"><span class="d">1</span><span class="n">•</span></span><span class="arrow sm"></span>
         <span class="ll-null">nullptr</span>
       </div>
@@ -2213,15 +2214,15 @@ int conta(Nodo* testa) {
         <h3 style="color:var(--accent4)">Lo schema di ogni scansione</h3>
         <div class="proto-header">
           <div class="proto-row"><div class="proto-cell hl-gray b"></div><div class="proto-cell hl-yel b w2">Array</div><div class="proto-cell hl-blue b w2">Lista</div></div>
-          <div class="proto-row"><div class="proto-cell b">inizio</div><div class="proto-cell w2">int i = 0</div><div class="proto-cell w2">Nodo* p = testa</div></div>
-          <div class="proto-row"><div class="proto-cell b">condizione</div><div class="proto-cell w2">i &lt; n</div><div class="proto-cell w2">p != nullptr</div></div>
-          <div class="proto-row"><div class="proto-cell b">passo</div><div class="proto-cell w2">i++</div><div class="proto-cell w2">p = p-&gt;next</div></div>
-          <div class="proto-row"><div class="proto-cell b">elemento</div><div class="proto-cell w2">v[i]</div><div class="proto-cell w2">p-&gt;dato</div></div>
+          <div class="proto-row"><div class="proto-cell b">inizio</div><div class="proto-cell w2">int i = 0</div><div class="proto-cell w2">si parte da testa</div></div>
+          <div class="proto-row"><div class="proto-cell b">condizione</div><div class="proto-cell w2">i &lt; n</div><div class="proto-cell w2">testa != nullptr</div></div>
+          <div class="proto-row"><div class="proto-cell b">passo</div><div class="proto-cell w2">i++</div><div class="proto-cell w2">testa = testa-&gt;next</div></div>
+          <div class="proto-row"><div class="proto-cell b">elemento</div><div class="proto-cell w2">v[i]</div><div class="proto-cell w2">testa-&gt;dato</div></div>
         </div>
       </div>
-      <div class="callout callout-yellow">
-        <span class="callout-icon">&#9888;</span>
-        <span>Per scorrere usate una variabile di appoggio <code>p</code>. Nelle funzioni che modificano la lista, spostare <code>testa</code> significherebbe perdere l'inizio della lista.</span>
+      <div class="callout callout-blue">
+        <span class="callout-icon">&#9432;</span>
+        <span>Spostare <code>testa</code> qui non fa danni: il parametro è una <strong>copia</strong> del puntatore del main, che resta sul primo nodo. Se invece dopo il ciclo serve ancora l'inizio della lista, si scorre con un puntatore di appoggio <code>p</code>: lo vediamo nell'inserimento in coda.</span>
       </div>
       <div class="callout callout-green">
         <span class="callout-icon">&#10140;</span>
@@ -2257,8 +2258,9 @@ int conta(Nodo* testa) {
     </div>
     <div class="stack">
       <div class="card">
-        <h3 style="color:var(--accent4)">Due differenze rispetto alla stampa</h3>
+        <h3 style="color:var(--accent4)">Tre differenze rispetto alla stampa</h3>
         <ul>
+          <li>Si scorre con un puntatore di appoggio <code>p</code>, non con <code>testa</code>: alla fine la funzione deve <strong>restituire la testa</strong>, quindi non possiamo spostarla.</li>
           <li>La condizione è <code>p-&gt;next != nullptr</code>: ci fermiamo <strong>sull'ultimo nodo</strong>, non dopo.</li>
           <li>La lista vuota è un <strong>caso speciale</strong>: se testa è <code>nullptr</code>, <code>p-&gt;next</code> farebbe crashare il programma. In quel caso il nuovo nodo diventa la testa.</li>
         </ul>
@@ -2647,6 +2649,7 @@ Durata totale: 8 min 57 s</pre>
       <div class="proto-row"><div class="proto-cell hl-red b w2">Errore</div><div class="proto-cell hl-red b w2">Sintomo</div><div class="proto-cell hl-red b w2">Correzione</div></div>
       <div class="proto-row"><div class="proto-cell w2">inserisciInTesta(testa, x);</div><div class="proto-cell l w2">la lista non cambia</div><div class="proto-cell w2">testa = inserisciInTesta(testa, x);</div></div>
       <div class="proto-row"><div class="proto-cell w2">p-&gt;next con p == nullptr</div><div class="proto-cell l w2">crash con la lista vuota</div><div class="proto-cell l w2">gestire prima il caso testa == nullptr</div></div>
+      <div class="proto-row"><div class="proto-cell w2">scorrere con testa in inserisciInCoda</div><div class="proto-cell l w2">restituisce l'ultimo nodo: l'inizio della lista è perso</div><div class="proto-cell l w2">scorrere con un puntatore p</div></div>
       <div class="proto-row"><div class="proto-cell w2">while (p != nullptr) per trovare l'ultimo</div><div class="proto-cell l w2">alla fine p è nullptr: non c'è niente a cui agganciare</div><div class="proto-cell w2">while (p-&gt;next != nullptr)</div></div>
       <div class="proto-row"><div class="proto-cell w2">delete testa; testa = testa-&gt;next;</div><div class="proto-cell l w2">si legge un nodo già cancellato</div><div class="proto-cell l w2">salvare prima il puntatore</div></div>
       <div class="proto-row"><div class="proto-cell w2">nuovo-&gt;next non inizializzato</div><div class="proto-cell l w2">crash o lista «infinita»</div><div class="proto-cell w2">nuovo-&gt;next = nullptr;</div></div>
@@ -2715,18 +2718,19 @@ Nodo* inserisciInTesta(Nodo* testa, int x) {
 }
 
 void stampa(Nodo* testa) {
-    Nodo* p = testa;
-    while (p != nullptr) {
-        cout &lt;&lt; p-&gt;dato &lt;&lt; " -&gt; ";
-        p = p-&gt;next;
+    while (testa != nullptr) {
+        cout &lt;&lt; testa-&gt;dato &lt;&lt; " -&gt; ";
+        testa = testa-&gt;next;
     }
     cout &lt;&lt; "fine" &lt;&lt; endl;
 }
 
 int conta(Nodo* testa) {
     int n = 0;
-    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
+    while (testa != nullptr) {
         n++;
+        testa = testa-&gt;next;
+    }
     return n;
 }</pre>
     </div>
@@ -2743,8 +2747,10 @@ int conta(Nodo* testa) {
   <div class="two-col">
     <div class="stack">
 <pre class="cpp">bool cerca(Nodo* testa, int x) {
-    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
-        if (p-&gt;dato == x) return true;
+    while (testa != nullptr) {
+        if (testa-&gt;dato == x) return true;
+        testa = testa-&gt;next;
+    }
     return false;
 }
 
@@ -2778,16 +2784,21 @@ Nodo* svuota(Nodo* testa) {
     <div class="stack">
 <pre class="cpp">int somma(Nodo* testa) {
     int s = 0;
-    for (Nodo* p = testa; p != nullptr; p = p-&gt;next)
-        s += p-&gt;dato;
+    while (testa != nullptr) {
+        s += testa-&gt;dato;
+        testa = testa-&gt;next;
+    }
     return s;
 }
 
 // precondizione: lista non vuota
 int massimo(Nodo* testa) {
     int max = testa-&gt;dato;
-    for (Nodo* p = testa-&gt;next; p != nullptr; p = p-&gt;next)
-        if (p-&gt;dato &gt; max) max = p-&gt;dato;
+    testa = testa-&gt;next;          // parto dal secondo nodo
+    while (testa != nullptr) {
+        if (testa-&gt;dato &gt; max) max = testa-&gt;dato;
+        testa = testa-&gt;next;
+    }
     return max;
 }
 
@@ -2860,11 +2871,14 @@ Brano* aggiungiBrano(Brano* testa, string titolo, int durata) {
 void stampaPlaylist(Brano* testa) {
     int totale = 0;
     int n = 1;
-    for (Brano* p = testa; p != nullptr; p = p-&gt;next) {
-        cout &lt;&lt; n &lt;&lt; ". " &lt;&lt; p-&gt;titolo &lt;&lt; " (" &lt;&lt; p-&gt;durata / 60 &lt;&lt; ":"
-             &lt;&lt; (p-&gt;durata % 60 &lt; 10 ? "0" : "") &lt;&lt; p-&gt;durata % 60 &lt;&lt; ")" &lt;&lt; endl;
-        totale += p-&gt;durata;
+    while (testa != nullptr) {
+        cout &lt;&lt; n &lt;&lt; ". " &lt;&lt; testa-&gt;titolo &lt;&lt; " ("
+             &lt;&lt; testa-&gt;durata / 60 &lt;&lt; ":"
+             &lt;&lt; (testa-&gt;durata % 60 &lt; 10 ? "0" : "")
+             &lt;&lt; testa-&gt;durata % 60 &lt;&lt; ")" &lt;&lt; endl;
+        totale += testa-&gt;durata;
         n++;
+        testa = testa-&gt;next;
     }
     cout &lt;&lt; "Durata totale: " &lt;&lt; totale / 60 &lt;&lt; " min "
          &lt;&lt; totale % 60 &lt;&lt; " s" &lt;&lt; endl;
