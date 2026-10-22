@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Il pronto soccorso</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>IL PRONTO SOCCORSO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: lista concatenata ordinata, puntatori a struct,<br>new e delete, spostamento di nodi tra due liste</span>
+      <span class="time">Tempo a disposizione: 2 ore</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Al pronto soccorso i pazienti non vengono chiamati in ordine di arrivo. Al triage ognuno riceve un
+    <strong>codice</strong>: <strong>1</strong> rosso (emergenza), <strong>2</strong> giallo (urgenza),
+    <strong>3</strong> verde (urgenza minore). Il medico visita prima tutti i rossi, poi i gialli, poi i verdi; a
+    parità di codice, chi è arrivato prima.
+  </p>
+  <p class="scenario">
+    Il programma usa due <strong>liste concatenate</strong>: <code>attesa</code>, la sala d'attesa, sempre
+    ordinata, e <code>visitati</code>, il registro dei pazienti già visitati. Ogni paziente è un nodo creato con
+    <code>new</code> <strong>una sola volta</strong>, quando arriva. Quando viene visitato o cambia codice non si
+    ricrea: lo stesso nodo <strong>cambia posto</strong>, e per spostarlo basta cambiare dei <code>next</code>. La
+    memoria si libera con <code>delete</code> solo quando il paziente esce dal programma.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct</h2>
+
+  <h3>1a. Definisci la struct <strong>Paziente</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>il nome del paziente (es. "Giulia")</td></tr>
+      <tr><td><code>codice</code></td><td>il codice di priorità: 1, 2 o 3</td></tr>
+      <tr><td><code>next</code></td><td><strong>puntatore</strong> al paziente successivo, <code>nullptr</code> se è l'ultimo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Su carta, disegna le due liste alla fine del passo 2 della Parte 4.</h3>
+  <p>Un rettangolo per ogni paziente e una freccia per ogni <code>next</code>; segna dove puntano <code>attesa</code>
+    e <code>visitati</code>. Poi, con un altro colore, correggi le frecce che cambiano al passo 3, quando Marco passa al
+    codice 2. Quante sono?</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>nuovoPaziente(string nome, int codice)</code></td>
+        <td>Crea un paziente con <code>new</code>, con <code>next</code> a <code>nullptr</code>, e ne restituisce
+          l'indirizzo. Non lo aggancia a nessuna lista</td>
+      </tr>
+      <tr>
+        <td><code>inserisciInTesta(Paziente* testa, Paziente* p)</code></td>
+        <td>Aggancia il paziente <code>p</code>, che esiste già, all'inizio della lista. Restituisce il primo paziente
+          della lista</td>
+      </tr>
+      <tr>
+        <td><code>inserisci(Paziente* testa, Paziente* p)</code></td>
+        <td>Aggancia il paziente <code>p</code>, che esiste già, nel posto giusto: <strong>dopo tutti i pazienti con
+          codice minore o uguale al suo</strong>. Restituisce il primo paziente della lista</td>
+      </tr>
+      <tr>
+        <td><code>stampa(Paziente* testa)</code></td>
+        <td>Stampa la lista dal primo all'ultimo paziente, nel formato della Parte 3</td>
+      </tr>
+      <tr>
+        <td><code>conta(Paziente* testa, int codice)</code></td>
+        <td>Restituisce quanti pazienti della lista hanno quel codice</td>
+      </tr>
+      <tr>
+        <td><code>cerca(Paziente* testa, string nome)</code></td>
+        <td>Restituisce l'indirizzo del paziente con quel nome, <code>nullptr</code> se nella lista non c'è</td>
+      </tr>
+      <tr>
+        <td><code>scollega(Paziente* testa, Paziente* p)</code></td>
+        <td>Toglie dalla lista il paziente <code>p</code>, che sicuramente ne fa parte, e mette a <code>nullptr</code>
+          il suo <code>next</code>. <strong>Non libera la memoria</strong>: <code>p</code> esiste ancora e potrà
+          finire in un'altra lista. Restituisce il primo paziente della lista</td>
+      </tr>
+      <tr>
+        <td><code>cambiaCodice(Paziente* testa, string nome, int codice)</code></td>
+        <td>Stampa ad esempio <code>Marco passa dal codice 3 al codice 2</code> e sposta il paziente nel posto giusto
+          per il nuovo codice, senza <code>new</code> e senza <code>delete</code>. Se non c'è stampa
+          <code>Nessun paziente di nome Giulia</code>. Restituisce il primo paziente della lista</td>
+      </tr>
+      <tr>
+        <td><code>rimuovi(Paziente* testa, string nome)</code></td>
+        <td>Stampa ad esempio <code>Andato via: Luca(3)</code>, toglie il paziente dalla lista e ne libera la memoria.
+          Se non c'è stampa <code>Nessun paziente di nome Luca</code>. Restituisce il primo paziente della lista</td>
+      </tr>
+      <tr>
+        <td><code>svuota(Paziente* testa)</code></td>
+        <td>Libera la memoria di tutti i pazienti della lista e restituisce la lista vuota</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>unisci(Paziente* testa, Paziente* altri)</code></td>
+        <td>Sposta uno alla volta, dal primo all'ultimo, tutti i pazienti della lista <code>altri</code> nella lista
+          <code>testa</code>, ognuno nel posto giusto, senza <code>new</code> e senza <code>delete</code>. Restituisce
+          il primo paziente della lista <code>testa</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>inverti(Paziente* testa)</code></td>
+        <td>Rovescia la lista cambiando solo i <code>next</code>: il primo paziente diventa l'ultimo e l'ultimo il
+          primo. Restituisce il nuovo primo paziente</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Le funzioni contrassegnate con <span class="star">&#9733;</span> sono <strong>facoltative</strong>: affrontale
+    solo dopo aver completato tutto il resto, danno punteggio aggiuntivo.</p>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> <code>cambiaCodice</code> e <code>rimuovi</code> si scrivono in poche righe se usi
+    <code>cerca</code>, <code>scollega</code> e <code>inserisci</code>. Scrivi e prova prima queste tre.
+  </div>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – La stampa</h2>
+
+  <p>Tutto su una riga, con il numero di pazienti tra parentesi quadre. Se la lista è vuota stampa
+    <code>Nessun paziente</code>. La stessa funzione serve per entrambe le liste.</p>
+<pre class="out">Ivo(1) -> Rita(3) -> fine [totale: 2]</pre>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>All'inizio entrambe le liste sono vuote. Esegui in ordine i passi seguenti: prima di ognuno stampa l'orario e il
+    nome del passo (es. <code style="white-space: nowrap;">--- 08:30 Visite ---</code>), alla fine di ognuno stampa la
+    sala d'attesa preceduta da <code>Attesa: </code> e, quando è richiesto, i visitati preceduti da
+    <code>Visitati: </code>.</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>08:00 Apertura</td>
+        <td>arrivano, in quest'ordine, Luca 3, Sara 2, Marco 3, Giulia 1 e Paolo 2</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>08:30 Visite</td>
+        <td>il medico visita i primi due pazienti in attesa. Stampa anche i visitati</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>09:00 Aggravamento</td>
+        <td>Marco passa al codice 2, poi prova a passare Giulia al codice 1</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>09:15 Arrivi</td>
+        <td>arrivano Anna 1, Davide 3 e Chiara 2</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>09:30 Abbandoni</td>
+        <td>Luca se ne va senza essere visitato, poi prova a far uscire Tommaso. Dopo la sala d'attesa stampa quanti
+          pazienti attendono per ogni codice, usando <code>conta</code></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>10:00 Visite</td>
+        <td>il medico visita un paziente alla volta, finché la sala d'attesa non si svuota o il primo in attesa non ha
+          codice 3. Stampa anche i visitati</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 7</td>
+        <td>10:30 Trasferimento</td>
+        <td>chiude il pronto soccorso vicino e i suoi pazienti arrivano qui. Crea la lista <code>altri</code> con
+          Elena 3, Franco 1 e Irene 2, inserendoli in ordine come in sala d'attesa; stampala preceduta da
+          <code>Altri: </code> e spostali in sala d'attesa con <code>unisci</code></td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 8</td>
+        <td>11:00 Registro</td>
+        <td>inverti i visitati, così sono in ordine di visita, e stampali al posto della sala d'attesa</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>20:00 Chiusura</td>
+        <td>libera la memoria di entrambe le liste. Stampa anche i visitati</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Come si visita un paziente.</strong> Il medico chiama sempre il primo paziente in attesa: stampa ad esempio
+    <code>Visita: Giulia(1)</code>, toglilo dalla sala d'attesa con <code>scollega</code> e aggancialo in testa ai
+    visitati con <code>inserisciInTesta</code>. Non serve una funzione apposita, bastano poche righe nel
+    <code>main</code>. Anzi, una funzione <code>visita</code> non si può scrivere: dovrebbe cambiare due liste, ma
+    senza parametri per riferimento può restituire una sola testa.
+  </div>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve stampare esattamente l'output seguente.
+  </div>
+
+  <div class="out-label">Passi 1 – 6 e 9</div>
+<pre class="out">--- 08:00 Apertura ---
+Attesa: Giulia(1) -> Sara(2) -> Paolo(2) -> Luca(3) -> Marco(3) -> fine [totale: 5]
+--- 08:30 Visite ---
+Visita: Giulia(1)
+Visita: Sara(2)
+Attesa: Paolo(2) -> Luca(3) -> Marco(3) -> fine [totale: 3]
+Visitati: Sara(2) -> Giulia(1) -> fine [totale: 2]
+--- 09:00 Aggravamento ---
+Marco passa dal codice 3 al codice 2
+Nessun paziente di nome Giulia
+Attesa: Paolo(2) -> Marco(2) -> Luca(3) -> fine [totale: 3]
+--- 09:15 Arrivi ---
+Attesa: Anna(1) -> Paolo(2) -> Marco(2) -> Chiara(2) -> Luca(3) -> Davide(3) -> fine [totale: 6]
+--- 09:30 Abbandoni ---
+Andato via: Luca(3)
+Nessun paziente di nome Tommaso
+Attesa: Anna(1) -> Paolo(2) -> Marco(2) -> Chiara(2) -> Davide(3) -> fine [totale: 5]
+Rossi: 1, Gialli: 3, Verdi: 1
+--- 10:00 Visite ---
+Visita: Anna(1)
+Visita: Paolo(2)
+Visita: Marco(2)
+Visita: Chiara(2)
+Attesa: Davide(3) -> fine [totale: 1]
+Visitati: Chiara(2) -> Marco(2) -> Paolo(2) -> Anna(1) -> Sara(2) -> Giulia(1) -> fine [totale: 6]
+--- 20:00 Chiusura ---
+Attesa: Nessun paziente
+Visitati: Nessun paziente</pre>
+
+  <div class="out-label" style="margin-top: 14px;"><span class="star">&#9733;</span> Passi 7 e 8 (tra il passo 6 e la chiusura)</div>
+<pre class="out">--- 10:30 Trasferimento ---
+Altri: Franco(1) -> Irene(2) -> Elena(3) -> fine [totale: 3]
+Attesa: Franco(1) -> Irene(2) -> Davide(3) -> Elena(3) -> fine [totale: 4]
+--- 11:00 Registro ---
+Visitati: Giulia(1) -> Sara(2) -> Anna(1) -> Paolo(2) -> Marco(2) -> Chiara(2) -> fine [totale: 6]</pre>
+
+  <div class="out-label" style="margin-top: 14px;">Da notare</div>
+  <ul>
+    <li>il passo 1 prova già tutti i casi di <code>inserisci</code>: Luca entra nella lista vuota, Sara e Giulia
+      vanno in testa, Marco in fondo, Paolo in mezzo. Se l'ordine è sbagliato, cerca quale caso non funziona</li>
+    <li>al passo 3 Giulia non viene trovata perché è già nei visitati: <code>cambiaCodice</code> cerca solo in sala
+      d'attesa</li>
+    <li><span class="star">&#9733;</span> Elena ha lo stesso codice di Davide ma arriva dopo di lui, quindi gli resta dietro</li>
+    <li><code>Nessun paziente</code> dice che la lista è vuota, non che la memoria è stata liberata: quello devi
+      garantirlo tu</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li><code>scollega</code> e <code>rimuovi</code> tolgono entrambe un paziente dalla lista: in che cosa sono
+      diverse? Perché <code>cambiaCodice</code> deve usare <code>scollega</code>?</li>
+    <li>Durante una visita, che cosa succede alle due liste se chiami <code>inserisciInTesta</code>
+      <strong>prima</strong> di <code>scollega</code>? Aiutati con un disegno.</li>
+    <li>Quante <code>new</code> e quante <code>delete</code> esegue il tuo programma? Quante ne eseguono le visite e
+      l'aggravamento?</li>
+    <li><span class="star">&#9733;</span> Dopo <code>unisci</code>, perché nel <code>main</code> conviene scrivere
+      <code>altri = nullptr;</code>? Che cosa succederebbe alla chiusura chiamando anche <code>svuota(altri)</code>
+      senza averlo fatto?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> prova ogni funzione su tre casi: lista vuota, un solo paziente, più pazienti. Per
+    <code>inserisci</code> e <code>scollega</code> aggiungi la posizione: in testa, in mezzo, in fondo. In quale caso
+    rischi di usare <code>-&gt;</code> su un puntatore che vale <code>nullptr</code>?
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per agganciare o togliere un paziente che non è il primo serve il paziente
+    <strong>precedente</strong>, perché è lui che deve cambiare il proprio <code>next</code>. Fermati un passo prima.
+  </div>
+
+  <div class="nota">
+    <strong>Prima di scrivere <code>inverti</code></strong> disegna una lista di tre pazienti e sposta i nodi uno alla
+    volta in testa a una nuova lista, inizialmente vuota. Ti ricorda qualcosa che hai già scritto?
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Memoria</td>
+        <td><code>new</code> si usa solo in <code>nuovoPaziente</code>, <code>delete</code> solo in
+          <code>rimuovi</code> e <code>svuota</code>. Visite, cambi di codice e trasferimenti spostano nodi che esistono
+          già. A fine programma non deve restare memoria occupata</td>
+      </tr>
+      <tr>
+        <td>Ordine dell'attesa</td>
+        <td>Codice crescente; a parità di codice, chi entra in lista per ultimo (perché arriva o perché cambia codice)
+          sta dietro</td>
+      </tr>
+      <tr>
+        <td>Fine lista</td>
+        <td><code>next</code> vale <code>nullptr</code> per l'ultimo paziente; <code>attesa</code> e
+          <code>visitati</code> valgono <code>nullptr</code> se la lista è vuota</td>
+      </tr>
+      <tr>
+        <td>Conteggi</td>
+        <td>Il totale e il riepilogo dei codici si calcolano scorrendo la lista: non usare contatori nel
+          <code>main</code></td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le risposte della Parte 5 in fondo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
