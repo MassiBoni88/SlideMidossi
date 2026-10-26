@@ -227,6 +227,7 @@
   .tbl .best { color: var(--accent1); font-weight: 700; }
   .tbl .mid  { color: var(--accent3); font-weight: 700; }
   .tbl .bad  { color: var(--accent2); font-weight: 700; }
+  .tbl.vmid td { vertical-align: middle; }
 
   .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .ov-item {
@@ -512,7 +513,7 @@
       <div class="ov-num" style="color:var(--accent4)">07</div>
       <div class="ov-content">
         <h4>Wi-Fi · IEEE 802.11</h4>
-        <p>Standard e bande · Canali · Stazione nascosta · CSMA/CA · Indirizzi del frame</p>
+        <p>Standard e bande · Canali · Stazione nascosta ed esposta · CSMA/CA e backoff · Indirizzi del frame</p>
       </div>
     </div>
     <div class="ov-item" style="--ovc:var(--accent3);" data-goto="lab-pt">
@@ -2036,12 +2037,12 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
     <span class="section-num" data-l="L7"></span>
   </div>
   <div class="card" style="margin-bottom:10px;">
-    <p>Nell'aria le collisioni <strong>non si possono rilevare</strong>: mentre trasmette, una stazione è «assordata» dal proprio segnale, molto più forte di quello degli altri. Il CSMA/CD quindi non funziona e le collisioni vanno <strong>evitate</strong> prima. Ascoltare il canale prima di trasmettere aiuta, ma non basta: lo dimostrano due casi.</p>
+    <p>Nell'aria le collisioni <strong>non si possono rilevare</strong>: mentre trasmette, una stazione è «assordata» dal proprio segnale, molto più forte di quello degli altri; e comunque la collisione avviene nel <strong>ricevitore</strong>, non nel trasmettitore. Il CSMA/CD quindi non funziona e le collisioni vanno <strong>evitate</strong> prima. Ascoltare il canale prima di trasmettere aiuta, ma non basta: lo dimostrano due casi, in cui l'ascolto sbaglia in un senso o nell'altro.</p>
   </div>
   <div class="two-col">
     <div class="card">
       <h3 style="color:var(--accent2);">La stazione nascosta</h3>
-      <svg class="wa-svg" viewBox="0 0 400 230" style="max-height:27vh;" role="img" aria-label="A e C sono fuori portata l'una dall'altra ma entrambe raggiungono B. A trasmette a B; C ascolta, non sente A, trasmette anch'essa a B e in B i due segnali collidono">
+      <svg class="wa-svg" viewBox="0 0 400 230" style="max-height:23vh;" role="img" aria-label="A e C sono fuori portata l'una dall'altra ma entrambe raggiungono B. A trasmette a B; C ascolta, non sente A, trasmette anch'essa a B e in B i due segnali collidono">
         <defs>
           <marker id="hs-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
           <marker id="hs-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a3"/></marker>
@@ -2057,12 +2058,12 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
         <text x="60" y="40" font-size="10" class="f-a4">portata di A</text>
         <text x="340" y="40" text-anchor="end" font-size="10" class="f-a3">portata di C</text>
       </svg>
-      <p style="margin-top:6px;">A trasmette a B. C non sente A (è fuori portata), crede il canale libero e trasmette anche lei a B: in B i segnali si sovrappongono e <strong>entrambe devono ritrasmettere</strong>.</p>
+      <p style="margin-top:6px;">A trasmette a B. C non sente A (è fuori portata), crede il canale libero e trasmette anche lei a B: in B i segnali si sovrappongono e <strong>entrambe devono ritrasmettere</strong>. È l'errore più grave: il canale sembra libero, ma non lo è.</p>
       <p><strong>Rimedio:</strong> lo scambio <strong>RTS/CTS</strong> (prossima slide): C non sente l'RTS di A, ma sente il CTS di B.</p>
     </div>
     <div class="card">
       <h3 style="color:var(--accent3);">La stazione esposta</h3>
-      <svg class="wa-svg" viewBox="0 0 330 230" style="max-height:27vh;" role="img" aria-label="Quattro stazioni in fila A, B, C, D. B trasmette ad A. C vorrebbe trasmettere a D, sente B e rinuncia, anche se D è fuori dalla portata di B e A è fuori dalla portata di C">
+      <svg class="wa-svg" viewBox="0 0 330 230" style="max-height:23vh;" role="img" aria-label="Quattro stazioni in fila A, B, C, D. B trasmette ad A. C vorrebbe trasmettere a D, sente B e rinuncia, anche se D è fuori dalla portata di B e A è fuori dalla portata di C">
         <defs>
           <marker id="es-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a4"/></marker>
           <marker id="es-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="f-a3"/></marker>
@@ -2079,9 +2080,13 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
         <text x="40" y="34" font-size="10" class="f-a4">portata di B</text>
         <text x="300" y="34" text-anchor="end" font-size="10" class="f-a3">portata di C</text>
       </svg>
-      <p style="margin-top:6px;">B trasmette ad A. C vorrebbe trasmettere a D, ma sente B e <strong>rinuncia</strong>. Eppure le due trasmissioni potrebbero avvenire insieme: D non sente B e A non sente C.</p>
-      <p><strong>Rimedio:</strong> si riduce con una buona <strong>progettazione</strong> della rete, posizionando AP e stazioni in modo che si sentano tutte.</p>
+      <p style="margin-top:6px;">B trasmette ad A. C vorrebbe trasmettere a D, ma sente B e <strong>rinuncia</strong>. Eppure le due trasmissioni potrebbero avvenire insieme: D non sente B e A non sente C. Errore opposto: il canale sembra occupato, e si <strong>spreca banda</strong>.</p>
+      <p><strong>Rimedio:</strong> si riduce con una buona <strong>progettazione</strong> della rete, posizionando AP e stazioni in modo che si sentano tutte (RTS/CTS qui non aiuta).</p>
     </div>
+  </div>
+  <div class="callout callout-book" style="margin-top:10px;">
+    <span class="callout-icon">📕</span>
+    <span><span class="bk">Precisazioni sul libro (pp. 51–52)</span>Il libro dà la colpa al mezzo <strong>half-duplex</strong>, ma anche l'Ethernet su coassiale era half-duplex e usava il CSMA/CD: i motivi veri sono quelli scritti sopra. E le stazioni tutte in portata (fig. 22) non sono «assai frequenti»: con l'AP al centro, due portatili ai lati opposti della casa spesso <strong>non si sentono</strong>.</span>
   </div>
 </div>
 
@@ -2093,7 +2098,7 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
     <span class="section-num" data-l="L7"></span>
   </div>
   <div class="card" style="margin-bottom:10px;">
-    <svg class="wa-svg" viewBox="0 0 640 200" style="max-height:28vh;" role="img" aria-label="Diagramma temporale. Il mittente attende DIFS e un backoff casuale, invia RTS; dopo SIFS il destinatario risponde CTS; dopo SIFS il mittente invia i dati; dopo SIFS il destinatario invia ACK. Le altre stazioni impostano il NAV dalla durata letta nell'RTS e nel CTS e restano in silenzio fino alla fine dell'ACK">
+    <svg class="wa-svg" viewBox="0 0 640 200" style="max-height:25vh;" role="img" aria-label="Diagramma temporale. Il mittente attende DIFS e un backoff casuale, invia RTS; dopo SIFS il destinatario risponde CTS; dopo SIFS il mittente invia i dati; dopo SIFS il destinatario invia ACK. Le altre stazioni impostano il NAV dalla durata letta nell'RTS e nel CTS e restano in silenzio fino alla fine dell'ACK">
       <g font-size="11.5" font-weight="700">
         <text x="0" y="54">Mittente</text>
         <text x="0" y="109">Destinatario</text>
@@ -2131,21 +2136,85 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
     <div class="card">
       <h3 style="color:var(--accent4);">I passi</h3>
       <ol>
-        <li>Il mittente ascolta: il canale deve restare libero per un intervallo <strong>DIFS</strong> (con la qualità del servizio si chiama <strong>AIFS</strong> ed è diverso per voce, video, traffico normale e di fondo)</li>
+        <li>Il mittente ascolta: il canale deve restare libero per un intervallo <strong>DIFS</strong> (con la qualità del servizio si chiama <strong>AIFS</strong>, prossima slide)</li>
         <li>Poi aspetta ancora un <strong>backoff</strong>: un numero casuale di intervalli (slot) tra 0 e CW, la <em>contention window</em></li>
         <li>Facoltativo: invia un <strong>RTS</strong> con la durata prevista; il destinatario risponde <strong>CTS</strong>. Chi li sente imposta il <strong>NAV</strong> e tace per quel tempo (<em>carrier sense virtuale</em>)</li>
         <li>Trasmette i dati; il destinatario risponde con un <strong>ACK</strong> dopo un breve intervallo SIFS</li>
-        <li>Niente ACK = collisione presunta: CW <strong>raddoppia</strong> e si riprova. Dopo un invio riuscito CW torna al minimo</li>
+        <li>Niente CTS o niente ACK = collisione presunta: CW <strong>raddoppia</strong> e si riprova con un nuovo backoff (prossima slide)</li>
       </ol>
     </div>
     <div class="col">
-      <div class="callout callout-blue">
-        <span class="callout-icon">🎲</span>
-        <span><strong>Perché raddoppiare CW?</strong> Le collisioni sono indice di affollamento: con un intervallo più ampio da cui pescare il numero casuale è meno probabile che due stazioni scelgano lo stesso slot. Valori tipici: <strong>15 → 31 → 63 → … → 1023</strong> slot per il traffico normale; voce e video usano finestre più piccole per avere la precedenza.</span>
+      <div class="callout callout-green">
+        <span class="callout-icon">⏱️</span>
+        <span><strong>Perché nessuno si intromette?</strong> Tra un frame e l'altro dello scambio si attende solo un <strong>SIFS</strong>, più corto del DIFS: le altre stazioni non fanno in tempo a inserirsi.</span>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">⚠️</span>
+        <span><strong>RTS/CTS non è perfetto:</strong> due RTS possono collidere. Ma un RTS è di 20 byte: si perde un frame cortissimo invece di un frame dati da 1500 byte.</span>
       </div>
       <div class="callout callout-book">
         <span class="callout-icon">📕</span>
-        <span><span class="bk">Precisazioni sul libro</span>Nell'algoritmo del libro manca l'<strong>ACK</strong>: nel Wi-Fi ogni frame dati unicast deve essere confermato, ed è proprio l'ACK mancante a far capire che c'è stata una collisione. RTS/CTS è <strong>facoltativo</strong>: di solito si attiva solo per frame grandi (soglia RTS), perché aggiunge ritardo. La finestra CW da 7 a 255 indicata dal libro non corrisponde ai valori standard (vedi sopra).</span>
+        <span><span class="bk">Precisazioni sul libro (pp. 52–53)</span>Nell'algoritmo del libro manca l'<strong>ACK</strong>, che è ciò che rivela una collisione. RTS/CTS è <strong>facoltativo</strong> (solo per frame sopra la soglia RTS). L'AIFS del libro nel caso base è il <strong>DIFS</strong>, e i 4 AIFS sono per <strong>categoria di traffico</strong>, non per protocollo. Il CTS si attende per un <em>timeout</em> apposito, non «fino allo scadere dell'AIFS».</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ L7 · BACKOFF ESPONENZIALE BINARIO ═══ -->
+<div class="slide" data-section="wifi">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il backoff esponenziale binario</h2>
+    <span class="section-num" data-l="L7"></span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Come funziona</h3>
+        <ol>
+          <li>Il tempo è diviso in <strong>slot</strong>: 9 µs nel Wi-Fi a 5 GHz, 20 µs nell'802.11b</li>
+          <li>La stazione estrae a caso un numero di slot tra 0 e <strong>CW</strong> (<em>contention window</em>, finestra di contesa): è il suo contatore</li>
+          <li>Il contatore scende di 1 per ogni slot in cui il canale è libero. Se un'altra stazione inizia a trasmettere, si <strong>congela</strong> e riparte da lì quando il canale torna libero: chi aspetta da più tempo è avvantaggiato</li>
+          <li>Quando il contatore arriva a 0, la stazione trasmette</li>
+          <li>Se manca il CTS o l'ACK, CW passa a <strong>2·CW + 1</strong> (fino a CWmax) e si estrae un nuovo numero. Dopo troppi tentativi (di solito 7) il frame viene scartato</li>
+          <li>Dopo un invio riuscito CW torna a CWmin</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent2);">Wi-Fi ed Ethernet a confronto</h3>
+        <table class="tbl">
+          <tr><th></th><th>Ethernet · CSMA/CD</th><th>Wi-Fi · CSMA/CA</th></tr>
+          <tr><td><strong>Backoff</strong></td><td>solo <strong>dopo</strong> una collisione</td><td>anche <strong>prima</strong>, se il canale era occupato</td></tr>
+          <tr><td><strong>Collisione scoperta</strong></td><td>ascoltando il cavo mentre si trasmette</td><td>manca il CTS o l'ACK</td></tr>
+          <tr><td><strong>Numero estratto</strong></td><td>0 … 2<sup>n</sup> − 1 (n = collisioni, max 1023)</td><td>0 … CW (15, 31 … 1023)</td></tr>
+          <tr><td><strong>Canale occupato in attesa</strong></td><td>il tempo scorre comunque</td><td>il contatore si congela</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">🎲 Perché raddoppiare CW?</h3>
+        <p>Probabilità che due stazioni estraggano lo <strong>stesso</strong> slot, cioè 1 / (CW + 1):</p>
+        <div class="bar-row"><span>CW = 15 (16 slot)</span><div class="bar"><span style="width:100%;background:var(--accent2);"></span></div><b>6,3 %</b></div>
+        <div class="bar-row"><span>CW = 31 (32 slot)</span><div class="bar"><span style="width:50%;background:var(--accent3);"></span></div><b>3,1 %</b></div>
+        <div class="bar-row"><span>CW = 63 (64 slot)</span><div class="bar"><span style="width:25%;background:var(--accent3);"></span></div><b>1,6 %</b></div>
+        <div class="bar-row"><span>CW = 127 (128 slot)</span><div class="bar"><span style="width:12.5%;background:var(--accent1);"></span></div><b>0,8 %</b></div>
+        <div class="bar-row"><span>CW = 255 (256 slot)</span><div class="bar"><span style="width:6.25%;background:var(--accent1);"></span></div><b>0,4 %</b></div>
+        <p class="note" style="margin-top:4px;">Più collisioni = rete più affollata: allargando la finestra i tentativi si distanziano.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);">Voce e video passano prima (802.11e, WMM)</h3>
+        <table class="tbl vmid">
+          <tr><th>Categoria</th><th>Attesa (AIFS)</th><th>CWmin</th><th>CWmax</th></tr>
+          <tr class="hi"><td>🎙️ Voce</td><td class="m">SIFS + 2 slot</td><td class="m">3</td><td class="m">7</td></tr>
+          <tr class="hi"><td>🎬 Video</td><td class="m">SIFS + 2 slot</td><td class="m">7</td><td class="m">15</td></tr>
+          <tr><td>🌐 Best effort (web, posta)</td><td class="m">SIFS + 3 slot</td><td class="m">15</td><td class="m">1023</td></tr>
+          <tr><td>📦 Background (backup)</td><td class="m">SIFS + 7 slot</td><td class="m">15</td><td class="m">1023</td></tr>
+        </table>
+      </div>
+      <div class="callout callout-book">
+        <span class="callout-icon">📕</span>
+        <span><span class="bk">Precisazione sul libro (p. 53)</span>CW da 7 a 255 non sono valori standard: per il traffico normale si va da <strong>15 a 1023</strong> (31 nell'802.11b); 7 è il minimo del solo video.</span>
       </div>
     </div>
   </div>
@@ -2493,7 +2562,7 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
       </div>
       <div class="card" style="border-left:3px solid var(--accent4);">
         <h3 style="font-size:0.86rem;color:var(--accent4);">Wi-Fi</h3>
-        <p style="font-size:0.78rem;">2,4 · 5 · 6 GHz · canali 1-6-11 · stazione nascosta · RTS/CTS · ACK</p>
+        <p style="font-size:0.78rem;">2,4 · 5 · 6 GHz · canali 1-6-11 · stazione nascosta · RTS/CTS · ACK · backoff</p>
       </div>
       <div class="card" style="border-left:3px solid var(--accent1);">
         <h3 style="font-size:0.86rem;color:var(--accent1);">Strumenti</h3>
@@ -2619,18 +2688,18 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
           <li>Che cosa contengono i campi FCS e Type del frame Ethernet?</li>
           <li>Perché serve il controllo di flusso? Descrivi la sliding window</li>
           <li>Stazione nascosta e stazione esposta: problemi e rimedi</li>
-          <li>Spiega la tecnica CSMA/CA e il ruolo di RTS, CTS e ACK</li>
+          <li>Spiega la tecnica CSMA/CA: RTS, CTS, ACK e backoff esponenziale</li>
         </ul>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (1/2) ═══ -->
+<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (1/3) ═══ -->
 <div class="slide teacher-only" data-section="docente">
   <div class="section-header">
     <div class="section-dot" style="background:var(--ty)"></div>
-    <h2 style="color:var(--ty)">Errata corrige del libro (1/2)</h2>
+    <h2 style="color:var(--ty)">Errata corrige del libro (1/3) · Lezioni 1–3</h2>
     <span class="section-num" data-l="Docente"></span>
   </div>
   <div class="card">
@@ -2644,33 +2713,51 @@ mio_mac = <span class="cmd">get_if_hwaddr</span>(IFACE)
       <tr><td class="m">32</td><td>Multicast nella forma <code>FF-FF-FF-[0:F]X-XX-XX</code></td><td>Multicast = bit I/G a 1, primo byte dispari (01-00-5E-…, 33-33-…)</td></tr>
       <tr><td class="m">33</td><td>Controllo di flusso «gestito dal Physical Layer»</td><td>Data Link (HDLC, LLC tipo 2) e soprattutto Transport (TCP); Ethernet usa i frame PAUSE</td></tr>
       <tr><td class="m">36</td><td>Solo la regola w ≤ 2<sup>n</sup> − 1</td><td>Vale per Go-Back-N; per Selective Repeat w ≤ 2<sup>n−1</sup></td></tr>
-      <tr><td class="m">37</td><td>Tab. 1: 802.3y = Fast Ethernet su doppino; 1000Base-CX «su doppino»</td><td>Fast Ethernet TX e FX = 802.3u; 802.3y = 100BASE-T2 (mai diffuso); CX = twinax</td></tr>
-      <tr><td class="m">37–38</td><td>«Cavi full-duplex» e flussi gestiti «con le sliding windows»; tab. 2: 802.3x = sliding windows, 802.3ac = VLAN</td><td>802.3x = frame PAUSE; VLAN = 802.1Q (802.3ac porta il frame a 1522 byte); 802.3ad → 802.1AX</td></tr>
-      <tr><td class="m">39</td><td>Lo splitter PoE permette di raggiungere più dispositivi; 802.3at «tra le versioni più recenti»</td><td>Lo splitter separa dati e alimentazione per un apparato non PoE; dal 2018 c'è l'802.3bt (60/90 W)</td></tr>
     </table>
   </div>
 </div>
 
-<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (2/2) ═══ -->
+<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (2/3) ═══ -->
 <div class="slide teacher-only" data-section="docente">
   <div class="section-header">
     <div class="section-dot" style="background:var(--ty)"></div>
-    <h2 style="color:var(--ty)">Errata corrige del libro (2/2)</h2>
+    <h2 style="color:var(--ty)">Errata corrige del libro (2/3) · Lezioni 4–6</h2>
     <span class="section-num" data-l="Docente"></span>
   </div>
   <div class="card">
     <table class="tbl">
       <tr><th>Pag.</th><th>Il libro dice</th><th>Correzione o precisazione</th></tr>
+      <tr><td class="m">37</td><td>Tab. 1: 802.3y = Fast Ethernet su doppino; 1000Base-CX «su doppino»</td><td>Fast Ethernet TX e FX = 802.3u; 802.3y = 100BASE-T2 (mai diffuso); CX = twinax</td></tr>
+      <tr><td class="m">37–38</td><td>«Cavi full-duplex» e flussi gestiti «con le sliding windows»; tab. 2: 802.3x = sliding windows, 802.3ac = VLAN</td><td>802.3x = frame PAUSE; VLAN = 802.1Q (802.3ac porta il frame a 1522 byte); 802.3ad → 802.1AX</td></tr>
+      <tr><td class="m">39</td><td>Lo splitter PoE permette di raggiungere più dispositivi; 802.3at «tra le versioni più recenti»</td><td>Lo splitter separa dati e alimentazione per un apparato non PoE; dal 2018 c'è l'802.3bt (60/90 W)</td></tr>
       <tr><td class="m">40</td><td>Preambolo <code>10101010</code>, SFD <code>11010101</code></td><td>Notazioni miste: sul cavo l'SFD è <code>10101011</code>; 11010101 è il byte 0xD5 scritto MSB-first</td></tr>
       <tr><td class="m">41</td><td>Tab. 3: colonna «75 ottetti»</td><td>I valori corrispondono a frame di <strong>750</strong> byte</td></tr>
       <tr><td class="m">42</td><td>Lab 5: cercare la GET HTTP verso <code>https://www.wireshark.org/</code></td><td>Con HTTPS la GET è cifrata e non compare; usare un sito HTTP (<code>http://neverssl.com</code>)</td></tr>
       <tr><td class="m">44</td><td>Lab 6: EtherType 0x9999</td><td>IEEE 802 riserva 0x88B5/0x88B6 agli esperimenti</td></tr>
       <tr><td class="m">47</td><td>Fig. 16–17: <code>iface='Ethernet'</code> nel sender, <code>enp0s3</code> nel receiver; <code>while True</code> attorno a <code>sniff()</code></td><td>Usare lo stesso nome di interfaccia; il ciclo è superfluo; togliere il padding dai messaggi brevi</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ SOLO DOCENTE · ERRATA CORRIGE (3/3) ═══ -->
+<div class="slide teacher-only" data-section="docente">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--ty)"></div>
+    <h2 style="color:var(--ty)">Errata corrige del libro (3/3) · Lezioni 7–9 ed esercizi</h2>
+    <span class="section-num" data-l="Docente"></span>
+  </div>
+  <div class="card">
+    <table class="tbl">
+      <tr><th>Pag.</th><th>Il libro dice</th><th>Correzione o precisazione</th></tr>
       <tr><td class="m">49</td><td>«Wi-Fi (Wireless Fidelity)»</td><td>Wi-Fi è un marchio, non un acronimo</td></tr>
       <tr><td class="m">49</td><td>A 2,4 GHz distanza 4 volte superiore; «la maggioranza degli standard usa i 2,4 GHz»</td><td>Valore indicativo (in campo libero circa il doppio); oggi gli standard puntano su 5 e 6 GHz</td></tr>
       <tr><td class="m">50</td><td>Tab. 4: 300/450 Mb/s, 1,3 Gb/s, 10 Gb/s, 30 Gb/s; 6 GHz nel Wi-Fi 6</td><td>Massimi teorici: 600 Mb/s, 6,9 Gb/s, 9,6 Gb/s, ≈ 46 Gb/s; 6 GHz solo dal Wi-Fi 6E</td></tr>
       <tr><td class="m">50</td><td>Gli AP «agiscono da gateway»</td><td>L'AP è un bridge di livello 2; il gateway è il router</td></tr>
-      <tr><td class="m">52–53</td><td>CSMA/CA senza ACK; RTS/CTS sempre; CW da 7 a 255</td><td>Ogni frame unicast ha un ACK; RTS/CTS facoltativo (soglia); CW tipica 15…1023</td></tr>
+      <tr><td class="m">51</td><td>CSMA/CD inapplicabile perché il mezzo radio è half-duplex</td><td>Anche l'Ethernet su coassiale era half-duplex: la radio non sente le collisioni mentre trasmette, e la collisione avviene nel ricevitore</td></tr>
+      <tr><td class="m">52</td><td>Fig. 22: stazioni tutte in portata, «situazione assai frequente»</td><td>Con l'AP al centro le stazioni nascoste sono comuni (client ai lati opposti dell'AP)</td></tr>
+      <tr><td class="m">52</td><td>AIFS; «4 intervalli AIFS» per i vari protocolli</td><td>Nel funzionamento base è il DIFS; gli AIFS (802.11e/WMM) sono 4, uno per categoria di traffico: voce, video, best effort, background</td></tr>
+      <tr><td class="m">52–53</td><td>CSMA/CA senza ACK; RTS/CTS sempre; CTS atteso «allo scadere dell'AIFS»</td><td>Ogni frame unicast ha un ACK; RTS/CTS facoltativo (soglia RTS); per il CTS c'è un timeout apposito</td></tr>
+      <tr><td class="m">53</td><td>CW da 7 a 255</td><td>Standard: da 15 (31 in 802.11b) a 1023; 7 è il minimo del solo traffico video</td></tr>
       <tr><td class="m">54, 56</td><td>Lab 8: crittografia WEP</td><td>WEP è violato: usare WPA2-PSK (o WPA3)</td></tr>
       <tr><td class="m">60</td><td>Script cerca <code>"segnale"</code>, <code>encoding="utf-8"</code></td><td>Su Windows in inglese è <code>Signal</code>; netsh usa la code page OEM</td></tr>
       <tr><td class="m">64</td><td>V/F 26: «lo splitter PoE consente di raggiungere più dispositivi PoE»</td><td>Da considerare falsa (vedi p. 39)</td></tr>
@@ -2716,7 +2803,7 @@ ack = <span class="cmd">Ether</span>(dst=pkt[Ether].src, src=mio_mac, type=ETH_T
       </div>
       <div class="callout callout-yellow">
         <span class="callout-icon">🔒</span>
-        <span>Queste tre slide compaiono solo aprendo il deck con <code>?docente</code> (o <code>#docente</code>) in fondo all'indirizzo.</span>
+        <span>Le slide «Solo docente» (errata corrige e soluzioni) compaiono solo aprendo il deck con <code>?docente</code> (o <code>#docente</code>) in fondo all'indirizzo.</span>
       </div>
     </div>
   </div>
