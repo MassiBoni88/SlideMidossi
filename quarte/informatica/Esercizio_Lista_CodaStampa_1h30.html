@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – La coda di stampa</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>LA CODA DI STAMPA</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: puntatori, passaggio per indirizzo, puntatori a struct,<br>lista concatenata, new e delete</span>
+      <span class="time">Tempo a disposizione: 1 ora e 30 minuti</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Nel laboratorio di informatica c'è una sola stampante e tutti mandano in stampa nello stesso momento. I documenti
+    aspettano il loro turno in una <strong>coda di stampa</strong>: chi arriva prima viene stampato prima, a meno che il
+    prof non mandi un documento <strong>urgente</strong>, che passa davanti a tutti. Nessuno sa in anticipo quanti
+    documenti arriveranno: per questo la coda è una <strong>lista concatenata</strong>. Ogni documento è un nodo creato
+    con <code>new</code>; quando viene stampato o annullato esce dalla coda e va eliminato con <code>delete</code>.
+    La stampante, invece, è una sola struct del <code>main</code>: le funzioni che devono cambiarla (caricare la carta,
+    stampare pagine) la ricevono attraverso un <strong>puntatore</strong>.
+  </p>
+
+  <div class="nota">
+    <strong>Attenzione alle parole.</strong>
+    <ul>
+      <li>In questo esercizio <strong>stampare</strong> vuol dire mandare un documento alla stampante; per scrivere
+        sullo schermo con <code>cout</code> diciamo <strong>mostrare</strong>.</li>
+      <li>Il puntatore <code>coda</code> del <code>main</code> rappresenta tutta la coda di stampa ma, come in ogni
+        lista, indica il <strong>primo</strong> documento (la <strong>testa</strong>), cioè il prossimo che verrà
+        stampato. Il documento <strong>in fondo alla coda</strong> è invece l'ultimo arrivato.</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – Riscaldamento: i puntatori</h2>
+
+  <h3>Su carta, senza usare il computer, scrivi che cosa mostrano i due frammenti di codice.</h3>
+  <p>Per il frammento A disegna le variabili come rettangoli e ogni puntatore come una freccia, aggiornando il disegno
+    riga per riga. Per il frammento B spiega anche perché una delle due funzioni non cambia <code>vassoio</code>.
+    Solo alla fine controlla le risposte in Code::Blocks.</p>
+
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Frammento A</div>
+<pre class="code">int fogli = 10;
+int pagine = 4;
+int* p = &amp;fogli;
+int* q = &amp;pagine;
+*p = *p - *q;
+*q = 7;
+q = p;
+*q = *q + 20;
+cout &lt;&lt; fogli &lt;&lt; " " &lt;&lt; pagine &lt;&lt; " "
+     &lt;&lt; *p &lt;&lt; " " &lt;&lt; *q &lt;&lt; endl;</pre>
+    </div>
+    <div>
+      <div class="out-label">Frammento B</div>
+<pre class="code">void carica(int fogli, int aggiunti) {
+    fogli = fogli + aggiunti;
+}
+
+void caricaBene(int* fogli, int aggiunti) {
+    *fogli = *fogli + aggiunti;
+}
+
+// nel main
+int vassoio = 5;
+carica(vassoio, 10);
+caricaBene(&amp;vassoio, 20);
+cout &lt;&lt; vassoio &lt;&lt; endl;</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Le struct</h2>
+
+  <h3>2a. Definisci la struct <strong>Documento</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>il nome del file (es. "relazione.pdf")</td></tr>
+      <tr><td><code>pagine</code></td><td>il numero di pagine: ogni pagina stampata consuma un foglio</td></tr>
+      <tr><td><code>next</code></td><td><strong>puntatore</strong> al documento successivo, <code>nullptr</code> se è l'ultimo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2b. Definisci la struct <strong>Stampante</strong>:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>fogli</code></td><td>i fogli di carta presenti nel vassoio</td></tr>
+      <tr><td><code>pagineStampate</code></td><td>le pagine stampate dall'inizio della giornata</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2c. Su carta, disegna la coda dopo i passi 1, 2 e 3 della Parte 5.</h3>
+  <p>Un rettangolo per ogni documento e una freccia per ogni <code>next</code>. Segna anche dove punta
+    <code>coda</code>. Al passo 3 cambia qualche freccia?</p>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>caricaCarta(Stampante* s, int fogli)</code></td>
+        <td>Aggiunge <code>fogli</code> fogli nel vassoio della stampante puntata da <code>s</code> e mostra ad
+          esempio <code>Caricati 20 fogli: nel vassoio ce ne sono 25</code></td>
+      </tr>
+      <tr>
+        <td><code>accoda(Documento* testa, string nome, int pagine)</code></td>
+        <td>Crea un documento e lo mette in fondo alla coda. Restituisce il primo documento della coda</td>
+      </tr>
+      <tr>
+        <td><code>accodaUrgente(Documento* testa, string nome, int pagine)</code></td>
+        <td>Crea un documento e lo mette davanti a tutti, al primo posto. Restituisce il primo documento della coda</td>
+      </tr>
+      <tr>
+        <td><code>riepilogo(Documento* testa, int* documenti, int* pagine)</code></td>
+        <td><strong>Non mostra nulla</strong>: scrive in <code>*documenti</code> quanti documenti ci sono in coda e in
+          <code>*pagine</code> la somma delle loro pagine (0 e 0 se la coda è vuota)</td>
+      </tr>
+      <tr>
+        <td><code>mostra(Documento* testa)</code></td>
+        <td>Mostra la coda dal primo all'ultimo documento, nel formato della Parte 4. I totali li calcola chiamando
+          <code>riepilogo</code></td>
+      </tr>
+      <tr>
+        <td><code>cerca(Documento* testa, string nome)</code></td>
+        <td>Restituisce l'indirizzo del documento con quel nome, oppure <code>nullptr</code> se in coda non c'è</td>
+      </tr>
+      <tr>
+        <td><code>stampaPrimo(Documento* testa, Stampante* s)</code></td>
+        <td>Prova a stampare il primo documento seguendo le regole della Parte 4. Restituisce il primo documento della
+          coda, che cambia solo se la stampa riesce</td>
+      </tr>
+      <tr>
+        <td><code>svuota(Documento* testa)</code></td>
+        <td>Annulla tutti i documenti, uno alla volta: per ognuno mostra ad esempio <code>Annullato: mappa.png(1)</code>
+          e ne libera la memoria. Restituisce la coda vuota</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>annulla(Documento* testa, string nome)</code></td>
+        <td>Toglie dalla coda il documento con quel nome, ovunque si trovi, mostra <code>Annullato: mappa.png(1)</code>
+          e ne libera la memoria. Se non c'è mostra <code>Nessun documento tesina.pdf in coda</code>. Restituisce il
+          primo documento della coda</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La funzione contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo
+    dopo aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Che cosa mostrano le funzioni</h2>
+
+  <h3>4a. La coda</h3>
+  <p>Tutto su una riga, con il numero di documenti e il totale delle pagine tra parentesi quadre. Se non ci sono
+    documenti mostra <code>Coda vuota</code>.</p>
+<pre class="out">appunti.pdf(3) -&gt; foto.png(1) -&gt; fine [documenti: 2, pagine: 4]</pre>
+
+  <h3>4b. Le regole della stampa</h3>
+  <p><code>stampaPrimo</code> controlla le condizioni <strong>in questo ordine</strong>:</p>
+  <ol>
+    <li>se la coda è <strong>vuota</strong> mostra che non c'è niente da stampare e non cambia nulla;</li>
+    <li>altrimenti, se nel vassoio ci sono <strong>meno fogli</strong> delle pagine del primo documento, mostra che la
+      carta non basta e non cambia nulla: il documento resta al primo posto;</li>
+    <li>altrimenti toglie le pagine del documento dai <strong>fogli</strong> del vassoio, le aggiunge alle
+      <strong>pagine stampate</strong>, mostra il messaggio, toglie il documento dalla coda e ne libera la memoria.</li>
+  </ol>
+  <p>Osserva gli esempi: i tuoi messaggi devono essere <strong>identici</strong>.</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Stampa riuscita</div>
+<pre class="out">Stampato: appunti.pdf(3), restano 7 fogli</pre>
+    </div>
+    <div>
+      <div class="out-label">Coda vuota</div>
+<pre class="out">Niente da stampare</pre>
+    </div>
+  </div>
+  <div class="out-label">Carta insufficiente</div>
+<pre class="out">Carta insufficiente: poster.pdf ha 12 pagine, nel vassoio ci sono 7 fogli</pre>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Funzione main()</h2>
+
+  <p>Nel <code>main</code> dichiara la coda, vuota, e la stampante del laboratorio, che all'inizio ha 10 fogli e
+    nessuna pagina stampata. Copia queste righe così come sono:</p>
+<pre class="code">Documento* coda = nullptr;
+Stampante lab = {10, 0};</pre>
+
+  <p>Poi esegui in ordine i passi seguenti: prima di ognuno mostra l'orario e il nome del passo
+    (es. <code style="white-space: nowrap;">--- 08:15 Stampa ---</code>) e alla fine di ognuno mostra la coda.</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>08:00 Prima ora</td>
+        <td>arrivano, in quest'ordine, relazione.pdf di 4 pagine, orario.pdf di 1 e quiz.pdf di 8</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>08:05 Urgente</td>
+        <td>il prof manda avviso.pdf, di 2 pagine, come documento urgente</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>08:10 Ripensamento</td>
+        <td>chi ha mandato relazione.pdf ne vuole solo 2 pagine: trova il documento con <code>cerca</code>, mostra
+          <code>relazione.pdf: da 4 a 2 pagine</code> e cambia le pagine <strong>attraverso il puntatore</strong>
+          restituito. Poi prova a fare lo stesso con tesina.pdf, che in coda non c'è, e mostra
+          <code>Nessun documento tesina.pdf in coda</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>08:15 Stampa</td>
+        <td>prova a stampare il primo documento, per 4 volte di seguito</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>08:20 Carta</td>
+        <td>carica 20 fogli, poi prova a stampare il primo documento</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>10:00 Ricreazione</td>
+        <td>arrivano, in quest'ordine, ricerca.pdf di 6 pagine, mappa.png di 1 e grafico.png di 2</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 7</td>
+        <td>11:00 Annullamenti</td>
+        <td>annulla mappa.png, poi prova ad annullare tesina.pdf</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>13:00 Fine lezioni</td>
+        <td>prova a stampare il primo documento, annulla tutti gli altri con <code>svuota</code> e prova a stampare
+          ancora una volta. Infine mostra le pagine stampate in tutta la giornata, leggendole dalla stampante
+          (es. <code>Pagine stampate oggi: 7</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve mostrare esattamente l'output seguente.
+  </div>
+
+  <div class="out-label">Passi 1 – 6 e 8</div>
+<pre class="out" style="font-size: 12px;">--- 08:00 Prima ora ---
+relazione.pdf(4) -&gt; orario.pdf(1) -&gt; quiz.pdf(8) -&gt; fine [documenti: 3, pagine: 13]
+--- 08:05 Urgente ---
+avviso.pdf(2) -&gt; relazione.pdf(4) -&gt; orario.pdf(1) -&gt; quiz.pdf(8) -&gt; fine [documenti: 4, pagine: 15]
+--- 08:10 Ripensamento ---
+relazione.pdf: da 4 a 2 pagine
+Nessun documento tesina.pdf in coda
+avviso.pdf(2) -&gt; relazione.pdf(2) -&gt; orario.pdf(1) -&gt; quiz.pdf(8) -&gt; fine [documenti: 4, pagine: 13]
+--- 08:15 Stampa ---
+Stampato: avviso.pdf(2), restano 8 fogli
+Stampato: relazione.pdf(2), restano 6 fogli
+Stampato: orario.pdf(1), restano 5 fogli
+Carta insufficiente: quiz.pdf ha 8 pagine, nel vassoio ci sono 5 fogli
+quiz.pdf(8) -&gt; fine [documenti: 1, pagine: 8]
+--- 08:20 Carta ---
+Caricati 20 fogli: nel vassoio ce ne sono 25
+Stampato: quiz.pdf(8), restano 17 fogli
+Coda vuota
+--- 10:00 Ricreazione ---
+ricerca.pdf(6) -&gt; mappa.png(1) -&gt; grafico.png(2) -&gt; fine [documenti: 3, pagine: 9]
+--- 13:00 Fine lezioni ---
+Stampato: ricerca.pdf(6), restano 11 fogli
+Annullato: mappa.png(1)
+Annullato: grafico.png(2)
+Niente da stampare
+Pagine stampate oggi: 19
+Coda vuota</pre>
+
+  <div class="out-grid">
+    <div>
+      <div class="out-label"><span class="star">&#9733;</span> Passo 7 (tra Ricreazione e Fine lezioni)</div>
+<pre class="out">--- 11:00 Annullamenti ---
+Annullato: mappa.png(1)
+Nessun documento tesina.pdf in coda
+ricerca.pdf(6) -&gt; grafico.png(2) -&gt; fine [documenti: 2, pagine: 8]</pre>
+    </div>
+    <div>
+      <div class="out-label">Da notare</div>
+      <ul>
+        <li>al passo 4 quiz.pdf non viene stampato ma resta al primo posto: la coda ripartirà solo dopo aver
+          caricato la carta</li>
+        <li>con il passo 7, a fine lezioni si annulla solo grafico.png</li>
+        <li>le pagine stampate sono 19 in entrambi i casi: i documenti annullati non consumano carta</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 6 ══════════════ -->
+  <h2>Parte 6 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li><code>caricaCarta</code> e <code>stampaPrimo</code> ricevono la stampante come <code>Stampante* s</code>. Se il
+      parametro fosse <code>Stampante s</code>, senza asterisco, che cosa succederebbe ai fogli di <code>lab</code>?
+      Perché?</li>
+    <li>Nel <code>main</code> scrivi <code>stampaPrimo(coda, &amp;lab);</code> senza usare il valore restituito. Il
+      documento viene stampato: dove punta adesso <code>coda</code>? Che cosa rischi alla <code>mostra(coda)</code>
+      successiva?</li>
+    <li>Quante <code>new</code> e quante <code>delete</code> esegue il tuo programma? Perché devono essere lo
+      stesso numero?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> prova ogni funzione su tre casi: coda vuota, un solo documento, più documenti. In
+    quale caso rischi di usare <code>-&gt;</code> su un puntatore che vale <code>nullptr</code>?
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> dentro <code>mostra</code> dichiara due variabili <code>int</code> e passa a
+    <code>riepilogo</code> i loro indirizzi: <code>riepilogo(testa, &amp;documenti, &amp;pagine);</code>. Dentro
+    <code>riepilogo</code>, invece, <code>documenti</code> e <code>pagine</code> sono già puntatori: per scriverci
+    serve l'asterisco.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> dopo <code>delete</code> un documento non si può più leggere. Decidi con attenzione
+    l'ordine delle istruzioni in <code>stampaPrimo</code> e in <code>svuota</code>.
+  </div>
+
+  <div class="nota">
+    <strong>Prima di scrivere <code>annulla</code></strong> disegna la coda: quale documento deve cambiare il proprio
+    <code>next</code> perché mappa.png esca dalla lista? E se il documento da annullare fosse il primo?
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Memoria</td>
+        <td>Ogni documento si crea con <code>new</code> e, quando viene stampato o annullato, si libera con
+          <code>delete</code>. A fine programma non deve restare memoria occupata</td>
+      </tr>
+      <tr>
+        <td>Fine coda</td>
+        <td><code>next</code> vale <code>nullptr</code> per l'ultimo documento; <code>coda</code> vale
+          <code>nullptr</code> se non ci sono documenti</td>
+      </tr>
+      <tr>
+        <td>Totali</td>
+        <td>Documenti e pagine in coda si calcolano scorrendo la lista con <code>riepilogo</code>: non usare contatori
+          nel <code>main</code>. Le pagine stampate si leggono dal campo <code>pagineStampate</code> della stampante</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (<code>&amp;</code> nel prototipo), nessuna variabile globale: la stampante
+          si passa con un puntatore, la coda si aggiorna con il valore restituito</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le risposte della Parte 6 in fondo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
