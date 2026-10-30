@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione — VLAN, VLSM e routing statico</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f2f7fc; color: #1a202c; padding: 30px 20px; }
+    .page { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 28px 32px; margin-bottom: 28px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 6px; }
+    header p  { font-size: 0.95rem; opacity: 0.88; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 0.8rem; margin-top: 10px; margin-right: 4px;
+    }
+
+    .card {
+      background: white; border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 24px 28px; margin-bottom: 22px;
+    }
+    .card h2 {
+      font-size: 1.1rem; color: #2b6cb0;
+      border-left: 4px solid #2b6cb0;
+      padding-left: 10px; margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.95rem; color: #4a5568;
+      margin: 18px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { line-height: 1.7; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 4px; }
+    th { background: #2b6cb0; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    tr:hover td { background: #ebf8ff; }
+    td.key { font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d; }
+    td.esempio { font-family: 'Courier New', monospace; font-weight: bold; color: #2b6cb0; font-style: italic; }
+    td.fill, tr:nth-child(even) td.fill {
+      background: #fffff0; border: 1px dashed #cbd5e0;
+      min-width: 110px; height: 34px;
+      font-family: 'Courier New', monospace; font-weight: bold; color: #1a365d;
+    }
+
+    .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .warn-box { background: #fffff0; border-left: 4px solid #d69e2e; border-radius: 4px;
+                padding: 12px 16px; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.6; }
+    .checkpoint { background: #f0fff4; border-left: 4px solid #38a169; border-radius: 4px;
+                  padding: 12px 16px; font-size: 0.88rem; margin-top: 16px; line-height: 1.6; }
+    .checkpoint strong:first-child { color: #22543d; }
+
+    .q-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+             padding: 12px 16px; margin: 14px 0; }
+    .q-box .q { font-size: 0.89rem; line-height: 1.6; }
+    .q-num { display: inline-block; background: #2b6cb0; color: white; border-radius: 4px;
+             padding: 0 7px; margin-right: 6px; font-size: 0.78rem; font-weight: bold; }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 7px; font-size: 0.75rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    td > .tag:first-child { margin-left: 0; }
+    .tag-v10  { background: #e9d8fd; color: #553c9a; }
+    .tag-v20  { background: #c6f6d5; color: #22543d; }
+    .tag-srv  { background: #feebc8; color: #7b341e; }
+    .tag-link { background: #e2e8f0; color: #2d3748; }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+
+    .points { float: right; background: #edf2f7; border-radius: 12px;
+              padding: 2px 10px; font-size: 0.78rem; color: #718096; }
+    code { background: #edf2f7; padding: 1px 6px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.85em; color: #2d3748; }
+
+    ol.steps { margin: 6px 0 0 20px; }
+    ol.steps li { margin-bottom: 6px; line-height: 1.6; font-size: 0.89rem; }
+    ul.check { margin: 6px 0 0 20px; }
+    ul.check li { font-size: 0.88rem; line-height: 1.6; margin-bottom: 4px; }
+
+    .topo { margin: 6px 0 4px; }
+    .topo svg { width: 100%; height: auto; display: block; }
+
+    footer { text-align: center; font-size: 0.8rem; color: #a0aec0;
+             margin-top: 30px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px 16px; }
+      .points { float: none; display: inline-block; margin-left: 6px; }
+    }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 13px; }
+      header { padding: 18px 24px; margin-bottom: 16px; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 16px 20px; margin-bottom: 14px; }
+      .card h2, .card h3, .card h2 + p { break-after: avoid; page-break-after: avoid; }
+      td, th { padding: 6px 9px; }
+      td.fill, tr:nth-child(even) td.fill { min-width: 70px; height: 30px; }
+      table, .q-box, .topo, .info-box, .warn-box, .checkpoint { page-break-inside: avoid; }
+      header, th, .tag, .q-num, td.fill {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      header { background: #1a365d !important; }
+      footer { margin-top: 6px; padding-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Esercitazione di laboratorio — VLAN, VLSM e routing statico</h1>
+    <p>VLAN su due switch con trunk, piano di indirizzamento VLSM e rotte statiche tra due router Cisco, configurati dall'interfaccia grafica di Packet Tracer</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT Informatica — Sistemi e Reti</span>
+    <span class="badge">Durata: 60 min</span>
+    <span class="badge">Punteggio: 30</span>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Scenario</h2>
+    <p>
+      Lo <strong>Studio Tecnico Rinaldi</strong> occupa due piani. Al piano terra c'è il rack con il router <strong>R1</strong>
+      e lo switch <strong>SW1</strong>; al primo piano c'è lo switch <strong>SW2</strong>. Il personale di
+      <strong>AMMINISTRAZIONE</strong> lavora su entrambi i piani, i <strong>PROGETTISTI</strong> solo al primo piano: le due
+      aree devono stare in <strong>VLAN separate</strong> e comunicare solo passando da R1.
+    </p>
+    <p>
+      Il gestionale gira su un <strong>SERVER</strong> nel CED dell'edificio, collegato al router <strong>R2</strong>. Tra R1 e R2
+      c'è un collegamento punto-punto. Lo studio ha a disposizione il blocco <code>192.168.50.0/24</code>, da dividere con
+      <strong>VLSM</strong> sprecando meno indirizzi possibile. I router non usano protocolli di routing: le rotte si scrivono
+      a mano (<strong>rotte statiche</strong>).
+    </p>
+
+    <h3>Reti da realizzare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>Host necessari</th><th>Dove</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-v10">VLAN 10 — AMMINISTRAZIONE</span></td><td class="key">50</td><td>PC su SW1 e su SW2 · gateway R1 Gig0/0</td></tr>
+        <tr><td><span class="tag tag-v20">VLAN 20 — PROGETTAZIONE</span></td><td class="key">25</td><td>PC su SW2 · gateway R1 Gig0/1</td></tr>
+        <tr><td><span class="tag tag-srv">LAN SERVER</span></td><td class="key">10</td><td>CED · gateway R2 Gig0/1</td></tr>
+        <tr><td><span class="tag tag-link">Collegamento R1–R2</span></td><td class="key">2</td><td>R1 Gig0/2 – R2 Gig0/0</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Topologia</h3>
+    <div class="topo">
+      <svg viewBox="0 0 960 410" role="img" aria-label="Topologia: nello studio il router R1 è collegato allo switch SW1 con due cavi, Gig0/0 verso Fa0/1 nella VLAN 10 e Gig0/1 verso Fa0/2 nella VLAN 20. SW1 e SW2 sono collegati da un trunk tra le porte Gig0/1. Su SW1 c'è PC-AMM1 (VLAN 10), su SW2 ci sono PC-AMM2 (VLAN 10) e PC-TEC1 (VLAN 20). R1 è collegato con Gig0/2 alla porta Gig0/0 del router R2, che si trova nel CED e collega con Gig0/1 il SERVER.">
+        <defs>
+          <symbol id="ico-pc" viewBox="0 0 40 36">
+            <rect x="1" y="1" width="38" height="25" rx="3" fill="#718096"/>
+            <rect x="5" y="5" width="30" height="17" rx="1" fill="#ebf8ff"/>
+            <rect x="17" y="26" width="6" height="5" fill="#718096"/>
+            <rect x="10" y="31" width="20" height="4" rx="2" fill="#718096"/>
+          </symbol>
+          <symbol id="ico-srv" viewBox="0 0 32 44">
+            <rect x="1" y="1" width="30" height="42" rx="3" fill="#718096"/>
+            <rect x="5" y="6" width="22" height="4" rx="1" fill="#ebf8ff"/>
+            <rect x="5" y="13" width="22" height="4" rx="1" fill="#ebf8ff"/>
+            <rect x="5" y="20" width="22" height="4" rx="1" fill="#ebf8ff"/>
+            <circle cx="24" cy="36" r="2.5" fill="#68d391"/>
+          </symbol>
+        </defs>
+
+        <!-- zone -->
+        <rect x="20" y="10" width="600" height="390" rx="12" fill="#f7fafc" stroke="#a0aec0" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="36" y="36" font-size="14" font-weight="700" fill="#4a5568">STUDIO RINALDI</text>
+        <text x="36" y="54" font-size="12" fill="#4a5568">piano terra e primo piano</text>
+        <rect x="650" y="10" width="290" height="390" rx="12" fill="#fffaf0" stroke="#dd6b20" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="666" y="36" font-size="14" font-weight="700" fill="#7b341e">CED</text>
+        <text x="666" y="54" font-size="12" fill="#7b341e">sala server</text>
+
+        <!-- R1 – SW1: una porta per VLAN -->
+        <line x1="228" y1="101" x2="228" y2="205" stroke="#805ad5" stroke-width="3"/>
+        <line x1="252" y1="101" x2="252" y2="205" stroke="#38a169" stroke-width="3"/>
+
+        <!-- R1 – R2 e R2 – SERVER -->
+        <g stroke="#4a5568" stroke-width="2" fill="none">
+          <line x1="264" y1="80" x2="766" y2="80"/>
+          <line x1="790" y1="104" x2="790" y2="196"/>
+        </g>
+
+        <!-- PC -->
+        <line x1="240" y1="235" x2="240" y2="296" stroke="#805ad5" stroke-width="2.5"/>
+        <line x1="480" y1="235" x2="410" y2="296" stroke="#805ad5" stroke-width="2.5"/>
+        <line x1="480" y1="235" x2="550" y2="296" stroke="#38a169" stroke-width="2.5"/>
+
+        <!-- trunk -->
+        <line x1="285" y1="220" x2="435" y2="220" stroke="#2b6cb0" stroke-width="5"/>
+        <rect x="320" y="230" width="80" height="22" rx="11" fill="white" stroke="#2b6cb0" stroke-width="1.5"/>
+        <text x="360" y="245" font-size="12" font-weight="700" fill="#2b6cb0" text-anchor="middle">trunk</text>
+
+        <!-- legenda -->
+        <line x1="320" y1="136" x2="356" y2="136" stroke="#2b6cb0" stroke-width="5"/>
+        <text x="366" y="140" font-size="12" fill="#2d3748">trunk (più VLAN, tag 802.1Q)</text>
+        <line x1="320" y1="158" x2="356" y2="158" stroke="#805ad5" stroke-width="3"/>
+        <text x="366" y="162" font-size="12" fill="#2d3748">access VLAN 10</text>
+        <line x1="320" y1="180" x2="356" y2="180" stroke="#38a169" stroke-width="3"/>
+        <text x="366" y="184" font-size="12" fill="#2d3748">access VLAN 20</text>
+
+        <!-- collegamento punto-punto -->
+        <rect x="420" y="90" width="190" height="24" rx="12" fill="white" stroke="#4a5568" stroke-width="1.5"/>
+        <text x="515" y="106" font-size="12" font-weight="700" fill="#2d3748" text-anchor="middle">collegamento punto-punto</text>
+
+        <!-- porte -->
+        <g font-size="11" fill="#2d3748" font-family="'Courier New', monospace" font-weight="700">
+          <text x="222" y="124" text-anchor="end">Gig0/0</text>
+          <text x="222" y="199" text-anchor="end">Fa0/1</text>
+          <text x="258" y="124">Gig0/1</text>
+          <text x="258" y="199">Fa0/2</text>
+          <text x="272" y="72">Gig0/2</text>
+          <text x="760" y="72" text-anchor="end">Gig0/0</text>
+          <text x="798" y="124">Gig0/1</text>
+          <text x="798" y="190">Fa0</text>
+          <text x="293" y="213">Gig0/1</text>
+          <text x="429" y="213" text-anchor="end">Gig0/1</text>
+        </g>
+
+        <!-- router -->
+        <g font-size="11" fill="#718096" text-anchor="middle">
+          <text x="240" y="44">Cisco 2911</text>
+          <text x="790" y="44">Cisco 2911</text>
+        </g>
+        <circle cx="240" cy="80" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+        <text x="240" y="85" font-size="14" font-weight="700" fill="white" text-anchor="middle">R1</text>
+        <circle cx="790" cy="80" r="24" fill="#2b6cb0" stroke="#1a365d" stroke-width="2"/>
+        <text x="790" y="85" font-size="14" font-weight="700" fill="white" text-anchor="middle">R2</text>
+
+        <!-- switch -->
+        <g font-size="13" font-weight="700" fill="white" text-anchor="middle">
+          <rect x="195" y="205" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="240" y="225">SW1</text>
+          <rect x="435" y="205" width="90" height="30" rx="5" fill="#2c7a7b"/><text x="480" y="225">SW2</text>
+        </g>
+        <g font-size="11" fill="#718096">
+          <text x="187" y="224" text-anchor="end">piano terra</text>
+          <text x="533" y="224">primo piano</text>
+        </g>
+
+        <!-- server -->
+        <use href="#ico-srv" x="774" y="196" width="32" height="44"/>
+        <text x="790" y="258" font-size="13" font-weight="700" fill="#1a202c" text-anchor="middle">SERVER</text>
+        <rect x="740" y="268" width="100" height="22" rx="11" fill="white" stroke="#dd6b20" stroke-width="1.5"/>
+        <text x="790" y="283" font-size="11" font-weight="700" fill="#7b341e" text-anchor="middle">LAN SERVER</text>
+
+        <!-- PC -->
+        <use href="#ico-pc" x="220" y="296" width="40" height="36"/>
+        <use href="#ico-pc" x="390" y="296" width="40" height="36"/>
+        <use href="#ico-pc" x="530" y="296" width="40" height="36"/>
+        <g font-size="13" font-weight="700" fill="#1a202c" text-anchor="middle">
+          <text x="240" y="352">PC-AMM1</text>
+          <text x="410" y="352">PC-AMM2</text>
+          <text x="550" y="352">PC-TEC1</text>
+        </g>
+        <g font-size="11" font-weight="700" text-anchor="middle">
+          <rect x="205" y="362" width="70" height="22" rx="11" fill="#faf5ff" stroke="#805ad5" stroke-width="1.5"/>
+          <text x="240" y="377" fill="#553c9a">VLAN 10</text>
+          <rect x="375" y="362" width="70" height="22" rx="11" fill="#faf5ff" stroke="#805ad5" stroke-width="1.5"/>
+          <text x="410" y="377" fill="#553c9a">VLAN 10</text>
+          <rect x="515" y="362" width="70" height="22" rx="11" fill="#f0fff4" stroke="#38a169" stroke-width="1.5"/>
+          <text x="550" y="377" fill="#22543d">VLAN 20</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2>Parte 1 — Piano di indirizzamento VLSM <span class="points">10 min · 6 punti</span></h2>
+
+    <h3>Tabella delle sottoreti</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rete</th><th>Host</th><th>Prefisso</th><th>ID di rete</th><th>Maschera</th><th>Primo utile</th><th>Ultimo utile</th><th>Broadcast</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-v10">VLAN 10</span></td><td class="key">50</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-v20">VLAN 20</span></td><td class="key">25</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-srv">LAN SERVER</span></td><td class="key">10</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-link">R1–R2</span></td><td class="key">2</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Indirizzi degli host</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dispositivo</th><th>Indirizzo IP</th><th>Maschera</th><th>Gateway predefinito</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-v10">PC-AMM1</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-v10">PC-AMM2</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-v20">PC-TEC1</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td><span class="tag tag-srv">SERVER</span></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D1</span>Con FLSM il blocco /24 si dividerebbe in quattro sottoreti uguali /26, da 62 host ciascuna.
+        Quanti indirizzi utili resterebbero inutilizzati sul collegamento R1–R2? Perché nel VLSM si assegnano le reti partendo
+        dalla più grande?</p>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2>Parte 2 — Topologia <span class="tag tag-gui">GUI</span> <span class="points">8 min · 4 punti</span></h2>
+
+    <h3>Dispositivi da posizionare</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Quantità</th><th>Tipo</th><th>Modello</th><th>Nomi da assegnare</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td>Router</td><td><strong>2911</strong></td><td>R1, R2</td></tr>
+        <tr><td>2</td><td>Switch</td><td><strong>2960-24TT</strong></td><td>SW1, SW2</td></tr>
+        <tr><td>3</td><td>PC</td><td>PC-PT</td><td>PC-AMM1, PC-AMM2, PC-TEC1</td></tr>
+        <tr><td>1</td><td>Server</td><td>Server-PT</td><td>SERVER</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Cavi da collegare (8 collegamenti)</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Da</th><th>Porta</th><th>A</th><th>Porta</th><th>Cavo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>R1</td><td>Gig0/0</td><td>SW1</td><td>Fa0/1</td><td>dritto</td></tr>
+        <tr><td>2</td><td>R1</td><td>Gig0/1</td><td>SW1</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>3</td><td>PC-AMM1</td><td>Fa0</td><td>SW1</td><td>Fa0/3</td><td>dritto</td></tr>
+        <tr><td>4</td><td>SW1</td><td>Gig0/1</td><td>SW2</td><td>Gig0/1</td><td><strong>cross-over</strong></td></tr>
+        <tr><td>5</td><td>PC-AMM2</td><td>Fa0</td><td>SW2</td><td>Fa0/1</td><td>dritto</td></tr>
+        <tr><td>6</td><td>PC-TEC1</td><td>Fa0</td><td>SW2</td><td>Fa0/2</td><td>dritto</td></tr>
+        <tr><td>7</td><td>R1</td><td>Gig0/2</td><td>R2</td><td>Gig0/0</td><td><strong>cross-over</strong></td></tr>
+        <tr><td>8</td><td>R2</td><td>Gig0/1</td><td>SERVER</td><td>Fa0</td><td><strong>cross-over</strong></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="info-box" style="margin-top:12px;">
+      I pallini dei cavi che partono dai router restano <strong>rossi</strong> finché non accendi le interfacce nella Parte 4:
+      è normale. Quelli tra gli switch diventano verdi dopo circa 30 secondi.
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>I nomi visualizzati corrispondono alla tabella e gli 8 cavi usano esattamente le porte indicate
+            (passa col mouse sopra un cavo per vederle).</li>
+        <li>I cavi tratteggiati (cross-over) sono tre: SW1–SW2, R1–R2, R2–SERVER.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2>Parte 3 — VLAN e trunk sugli switch <span class="tag tag-gui">GUI</span> <span class="points">14 min · 8 punti</span></h2>
+
+    <h3>Passo 1 — Crea le VLAN su SW1 e su SW2</h3>
+    <ol class="steps">
+      <li>Clic sullo switch → scheda <em>Config</em> → <em>GLOBAL → Settings</em>: nel campo <em>Hostname</em> scrivi
+          <code>SW1</code> (o <code>SW2</code>).</li>
+      <li><em>SWITCHING → VLAN Database</em>: scrivi <em>VLAN Number</em> e <em>VLAN Name</em> e premi <em>Add</em>.
+          Crea su <strong>entrambi</strong> gli switch la VLAN <code>10</code> <code>AMMINISTRAZIONE</code> e la VLAN
+          <code>20</code> <code>PROGETTAZIONE</code>.</li>
+    </ol>
+
+    <h3>Passo 2 — Configura le porte</h3>
+    <ol class="steps">
+      <li>Sempre nella scheda <em>Config</em>, sotto <em>INTERFACE</em> scegli la porta.</li>
+      <li>Nel menu a tendina scegli <strong>Access</strong> o <strong>Trunk</strong>.</li>
+    </ol>
+    <div class="table-wrap" style="margin-top:8px;">
+    <table>
+      <thead><tr><th>Switch</th><th>Porta</th><th>Collegata a</th><th>Modalità</th><th>VLAN</th></tr></thead>
+      <tbody>
+        <tr><td>SW1</td><td><code>Fa0/1</code></td><td>R1 Gig0/0</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW1</td><td><code>Fa0/2</code></td><td>R1 Gig0/1</td><td>Access</td><td><span class="tag tag-v20">VLAN 20</span></td></tr>
+        <tr><td>SW1</td><td><code>Fa0/3</code></td><td>PC-AMM1</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW1</td><td><code>Gig0/1</code></td><td>SW2</td><td>Trunk</td><td>—</td></tr>
+        <tr><td>SW2</td><td><code>Fa0/1</code></td><td>PC-AMM2</td><td>Access</td><td><span class="tag tag-v10">VLAN 10</span></td></tr>
+        <tr><td>SW2</td><td><code>Fa0/2</code></td><td>PC-TEC1</td><td>Access</td><td><span class="tag tag-v20">VLAN 20</span></td></tr>
+        <tr><td>SW2</td><td><code>Gig0/1</code></td><td>SW1</td><td>Trunk</td><td>—</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Passo 3 — Configura i tre PC</h3>
+    <ol class="steps">
+      <li>Clic sul PC → <em>Desktop → IP Configuration</em> → <strong>Static</strong>.</li>
+      <li>Scrivi <em>IPv4 Address</em>, <em>Subnet Mask</em> e <em>Default Gateway</em> dalla tabella della Parte 1.</li>
+    </ol>
+
+    <h3>Passo 4 — Verifica</h3>
+    <p style="font-size:0.89rem; margin-bottom:6px;">
+      Aspetta che il cavo SW1–SW2 sia verde, poi completa la tabella. I comandi <code>show</code> si scrivono nella scheda
+      <em>CLI</em> dello switch. Per i ping scrivi <strong>OK</strong> o <strong>KO</strong>; se il primo tentativo perde un
+      pacchetto, ripetilo.
+    </p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prova</th><th>Risultato</th></tr></thead>
+      <tbody>
+        <tr><td><code>show vlan brief</code> su SW2: porte nella VLAN 10 e nella VLAN 20</td><td class="fill"></td></tr>
+        <tr><td><code>show interfaces trunk</code> su SW1: porta in trunk</td><td class="fill"></td></tr>
+        <tr><td><code>ping</code> da <span class="tag tag-v10">PC-AMM1</span> a <span class="tag tag-v10">PC-AMM2</span></td><td class="fill"></td></tr>
+        <tr><td><code>ping</code> da <span class="tag tag-v10">PC-AMM2</span> a <span class="tag tag-v20">PC-TEC1</span></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D2</span>PC-AMM1 e PC-AMM2 sono su switch diversi e si raggiungono; PC-AMM2 e PC-TEC1 sono sullo stesso
+        switch e non si raggiungono. Spiega perché. Come fa SW2 a sapere a quale VLAN appartiene una trama che arriva dal trunk?</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Su SW1 <code>Fa0/1</code> e <code>Fa0/3</code> sono nella VLAN 10, <code>Fa0/2</code> nella VLAN 20.</li>
+        <li>Su SW2 <code>Fa0/1</code> è nella VLAN 10 e <code>Fa0/2</code> nella VLAN 20.</li>
+        <li><code>show interfaces trunk</code> elenca <code>Gig0/1</code> su entrambi gli switch.</li>
+        <li>Il ping PC-AMM1 → PC-AMM2 funziona.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2>Parte 4 — Indirizzi sui router <span class="tag tag-gui">GUI</span> <span class="points">10 min · 6 punti</span></h2>
+
+    <div class="info-box">
+      R1 fa da gateway per le due VLAN usando <strong>una porta fisica per ciascuna</strong>: Gig0/0 arriva su una porta di SW1
+      assegnata alla VLAN 10, Gig0/1 su una porta assegnata alla VLAN 20. Per R1 sono due LAN qualsiasi: non sa nemmeno che
+      esistono le VLAN.
+    </div>
+
+    <h3>Passo 1 — Configura R1 e R2</h3>
+    <ol class="steps">
+      <li>Clic sul router → scheda <em>Config</em> → <em>GLOBAL → Settings</em>: nel campo <em>Hostname</em> scrivi
+          <code>R1</code> (o <code>R2</code>).</li>
+      <li>Sotto <em>INTERFACE</em> scegli l'interfaccia, spunta <em>Port Status</em> <strong>On</strong> e scrivi
+          <em>IPv4 Address</em> e <em>Subnet Mask</em>.</li>
+      <li>Completa la tabella con gli indirizzi che hai scelto: quelli di R1 nelle VLAN devono coincidere con i gateway dei PC
+          della Parte 1.</li>
+    </ol>
+    <div class="table-wrap" style="margin-top:8px;">
+    <table>
+      <thead><tr><th>Router</th><th>Interfaccia</th><th>Collegata a</th><th>Indirizzo IP</th><th>Maschera</th></tr></thead>
+      <tbody>
+        <tr><td>R1</td><td><code>Gig0/0</code></td><td><span class="tag tag-v10">VLAN 10</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td><code>Gig0/1</code></td><td><span class="tag tag-v20">VLAN 20</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R1</td><td><code>Gig0/2</code></td><td><span class="tag tag-link">R2</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td><code>Gig0/0</code></td><td><span class="tag tag-link">R1</span></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td>R2</td><td><code>Gig0/1</code></td><td><span class="tag tag-srv">LAN SERVER</span></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Passo 2 — Configura il SERVER e prova</h3>
+    <ol class="steps">
+      <li>Clic sul SERVER → <em>Desktop → IP Configuration</em> → <strong>Static</strong>, con i valori della Parte 1.</li>
+      <li>Esegui le prove della tabella; <code>show ip route</code> si scrive nella scheda <em>CLI</em> di R1.</li>
+    </ol>
+    <div class="table-wrap" style="margin-top:8px;">
+    <table>
+      <thead><tr><th>Prova</th><th>Risultato</th></tr></thead>
+      <tbody>
+        <tr><td><code>ping</code> da <span class="tag tag-v10">PC-AMM2</span> a <span class="tag tag-v20">PC-TEC1</span></td><td class="fill"></td></tr>
+        <tr><td><code>ping</code> da <span class="tag tag-v20">PC-TEC1</span> al <span class="tag tag-srv">SERVER</span></td><td class="fill"></td></tr>
+        <tr><td><code>show ip route</code> su R1: reti con la lettera <code>C</code> e loro prefisso</td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D3</span>Ora PC-AMM2 raggiunge PC-TEC1, ma nessun PC raggiunge il SERVER. Esegui <code>show ip route</code>
+        anche su R2: quali reti conosce ciascun router e quali gli mancano? Perché servono rotte su <strong>entrambi</strong> i
+        router perché il ping funzioni?</p>
+    </div>
+
+    <h3>Se qualcosa non va</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Che cosa vedi</th><th>Causa probabile</th><th>Che cosa fare</th></tr></thead>
+      <tbody>
+        <tr><td>Pallino rosso su un cavo di un router</td><td><em>Port Status</em> non su On, oppure cavo dritto dove serve il cross-over</td><td>controlla l'interfaccia in <em>Config → INTERFACE</em>; rifai il cavo se necessario</td></tr>
+        <tr><td>Pallino arancione tra SW1 e SW2</td><td>lo switch sta ancora attivando la porta (spanning tree)</td><td>aspetta 30 secondi</td></tr>
+        <tr><td>Un PC non raggiunge il proprio gateway</td><td>porta dello switch nella VLAN sbagliata, trunk non attivo, maschera lasciata a <code>255.255.255.0</code>, gateway diverso dall'indirizzo di R1</td><td><code>show vlan brief</code> e <code>show interfaces trunk</code> sugli switch; <code>ipconfig</code> sul PC</td></tr>
+        <tr><td>Dopo la Parte 5 il SERVER non risponde</td><td>rotta mancante, oppure con rete, maschera o next hop sbagliati</td><td><code>show ip route</code> su R1 e R2: controlla le righe <code>S</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li>Tutti i pallini della topologia sono verdi.</li>
+        <li><code>show ip route</code> su R1 mostra tre reti <code>C</code>, con prefissi diversi tra loro.</li>
+        <li>Il ping PC-AMM2 → PC-TEC1 funziona.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2>Parte 5 — Rotte statiche <span class="tag tag-gui">GUI</span> <span class="points">8 min · 6 punti</span></h2>
+
+    <ol class="steps">
+      <li>Parti dalla risposta a D3: decidi quali rotte servono su ciascun router e completa la tabella. Non è detto che
+          servano tutte le righe.</li>
+      <li>Su ogni router: scheda <em>Config</em> → <em>ROUTING → Static</em>, scrivi <em>Network</em>, <em>Mask</em> e
+          <em>Next Hop</em> e premi <em>Add</em>.</li>
+    </ol>
+    <div class="table-wrap" style="margin-top:8px;">
+    <table>
+      <thead><tr><th>Router</th><th>Rete di destinazione</th><th>Maschera</th><th>Next hop</th></tr></thead>
+      <tbody>
+        <tr><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+        <tr><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Prova finale</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prova</th><th>Risultato</th></tr></thead>
+      <tbody>
+        <tr><td><code>ping</code> da <span class="tag tag-v10">PC-AMM1</span> al <span class="tag tag-srv">SERVER</span></td><td class="fill"></td></tr>
+        <tr><td><code>ping</code> da <span class="tag tag-v20">PC-TEC1</span> al <span class="tag tag-srv">SERVER</span></td><td class="fill"></td></tr>
+        <tr><td><code>tracert</code> da <span class="tag tag-v20">PC-TEC1</span> al <span class="tag tag-srv">SERVER</span>: indirizzi dei salti</td><td class="fill"></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="q-box">
+      <p class="q"><span class="q-num">D4</span>R1 usa una porta fisica per ogni VLAN, e il 2911 ha tre porte Gigabit, qui già tutte occupate.
+        Che cosa servirebbe se lo studio volesse aggiungere una VLAN OSPITI? Indica almeno un limite di questa soluzione.</p>
+    </div>
+
+    <div class="checkpoint">
+      <strong>Punto di controllo:</strong>
+      <ul class="check">
+        <li><code>show ip route</code> su R1 e su R2 mostra le rotte che hai inserito, con la lettera <code>S</code>.</li>
+        <li>Tutti i PC raggiungono il SERVER.</li>
+        <li><code>tracert</code> da PC-TEC1 al SERVER mostra tre salti: R1, R2 e il SERVER.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Consegna</h2>
+    <ol class="steps">
+      <li>Salva il file Packet Tracer come <code>Cognome_Nome_vlan.pkt</code> e consegnalo secondo le indicazioni del docente.</li>
+      <li>Consegna un <strong>documento Google</strong> <code>Cognome_Nome_vlan</code> con le tabelle delle Parti 1, 3, 4 e 5
+          e le risposte alle domande D1–D4.</li>
+      <li>Se qualche punto di controllo non è riuscito, descrivi nel documento che cosa hai controllato e dove pensi che sia l'errore.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — VLAN, VLSM e routing statico con Cisco Packet Tracer — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
