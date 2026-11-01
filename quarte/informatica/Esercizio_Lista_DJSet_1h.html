@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Il DJ set dei 18 anni</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>IL DJ SET DEI 18 ANNI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: lista concatenata, inserimento in testa, in coda<br>e in mezzo con una condizione, stampa con filtro, new e delete</span>
+      <span class="time">Tempo a disposizione: 1 ora</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Sabato sera Sofia festeggia i <strong>18 anni</strong> e alla consolle ci sei tu. La regola è una sola: la pista
+    non si deve svuotare mai, almeno fino a <strong>mezzanotte</strong>, quando Sofia diventa maggiorenne e arriva la
+    torta.
+  </p>
+  <p class="scenario">
+    La scaletta è una <strong>lista concatenata</strong>: ogni traccia è un nodo creato con <code>new</code> e il
+    puntatore <code>scaletta</code> del <code>main</code> indica la prima traccia (la <strong>testa</strong>), cioè
+    quella che si suona per prima. Nessuno sa in anticipo quante richieste arriveranno, per questo un array non va
+    bene. Durante la serata la scaletta cresce in tre modi:
+  </p>
+  <ul>
+    <li><strong>in coda</strong>, mentre prepari il set al soundcheck;</li>
+    <li><strong>in testa</strong>, quando Sofia pretende che la serata si apra con la sua canzone;</li>
+    <li><strong>in mezzo</strong>, quando arrivano le richieste degli amici.</li>
+  </ul>
+  <p class="scenario">
+    <strong>Il trucco del DJ.</strong> Ogni traccia ha un ritmo, misurato in <strong>BPM</strong> (battiti al minuto).
+    Due tracce si mixano senza che la pista se ne accorga solo se i loro BPM sono vicini: <strong>al massimo 5 di
+    differenza</strong>. Per questo una richiesta non si mette a caso, ma subito dopo la prima traccia della scaletta
+    con cui si mixa bene.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct</h2>
+
+  <h3>1a. Definisci la struct <strong>Traccia</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>titolo</code></td><td>il titolo della traccia (es. "Campanella")</td></tr>
+      <tr><td><code>bpm</code></td><td>il ritmo, in battiti al minuto (es. 126)</td></tr>
+      <tr><td><code>next</code></td><td><strong>puntatore</strong> alla traccia successiva, <code>nullptr</code> se è l'ultima</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Su carta, disegna la scaletta alla fine del passo 1 della Parte 4.</h3>
+  <p>Un rettangolo per ogni traccia, con titolo e BPM, e una freccia per ogni <code>next</code>; segna dove punta
+    <code>scaletta</code>. Poi, con un altro colore, aggiungi Diciotto in testa (passo 2) e Assemblea dopo Campanella
+    (passo 3). Ogni volta: quali frecce aggiungi e quali cancelli?</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>nuovaTraccia(string titolo, int bpm)</code></td>
+        <td>Crea una traccia con <code>new</code>, con <code>next</code> a <code>nullptr</code>, e ne restituisce
+          l'indirizzo. Non la aggancia alla scaletta</td>
+      </tr>
+      <tr>
+        <td><code>inserisciInTesta(Traccia* testa, Traccia* p)</code></td>
+        <td>Aggancia la traccia <code>p</code>, che esiste già, all'inizio della scaletta. Restituisce la prima
+          traccia della scaletta</td>
+      </tr>
+      <tr>
+        <td><code>inserisciInCoda(Traccia* testa, Traccia* p)</code></td>
+        <td>Aggancia la traccia <code>p</code>, che esiste già, in fondo alla scaletta. Restituisce la prima traccia
+          della scaletta</td>
+      </tr>
+      <tr>
+        <td><code>compatibili(int bpm1, int bpm2)</code></td>
+        <td>Dice se due tracce si mixano bene, cioè se i loro BPM differiscono al massimo di 5, in un senso o
+          nell'altro</td>
+      </tr>
+      <tr>
+        <td><code>inserisciRichiesta(Traccia* testa, Traccia* p)</code></td>
+        <td>Cerca, partendo dalla testa, la <strong>prima</strong> traccia compatibile con <code>p</code> e aggancia
+          <code>p</code> <strong>subito dopo</strong>. Se nessuna traccia è compatibile, aggancia <code>p</code> in
+          fondo. In entrambi i casi stampa dove l'ha messa, nel formato della Parte 3. Restituisce la prima traccia
+          della scaletta</td>
+      </tr>
+      <tr>
+        <td><code>stampa(Traccia* testa)</code></td>
+        <td>Stampa tutta la scaletta, una traccia per riga</td>
+      </tr>
+      <tr>
+        <td><code>stampaFiltro(Traccia* testa, int bpmMin, int bpmMax)</code></td>
+        <td>Stampa solo le tracce con BPM da <code>bpmMin</code> a <code>bpmMax</code>, estremi compresi</td>
+      </tr>
+      <tr>
+        <td><code>svuota(Traccia* testa)</code></td>
+        <td>Libera la memoria di tutte le tracce e restituisce la scaletta vuota</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> <code>rimuovi(Traccia* testa, string titolo)</code></td>
+        <td>Stampa ad esempio <code>Tolta: Sciopero (174 BPM)</code>, toglie la traccia dalla scaletta, ovunque si
+          trovi, e ne libera la memoria. Se non c'è stampa <code>Nessuna traccia Verifica in scaletta</code>.
+          Restituisce la prima traccia della scaletta</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>La funzione contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: affrontala solo
+    dopo aver completato tutto il resto, dà punteggio aggiuntivo.</p>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> <code>inserisciRichiesta</code> si scrive in poche righe se usi
+    <code>compatibili</code> e <code>inserisciInCoda</code>: scrivi e prova prima queste due.
+  </div>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Che cosa stampano le funzioni</h2>
+
+  <p>Gli esempi usano una scaletta scritta a mano solo per l'occasione, diversa da quella della Parte 4: Lampo
+    (128 BPM), Ritorno (90 BPM) e Onda (122 BPM). I tuoi messaggi devono essere identici.</p>
+
+  <h3>3a. La scaletta</h3>
+  <p>Una traccia per riga, con i suoi BPM. <code>stampaFiltro</code> usa lo stesso formato ma stampa solo le tracce
+    dell'intervallo. Se non c'è niente da stampare, entrambe stampano <code>Nessuna traccia</code>.</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">stampa(scaletta)</div>
+<pre class="out">Lampo (128 BPM)
+Ritorno (90 BPM)
+Onda (122 BPM)</pre>
+    </div>
+    <div>
+      <div class="out-label">stampaFiltro(scaletta, 120, 130)</div>
+<pre class="out">Lampo (128 BPM)
+Onda (122 BPM)</pre>
+    </div>
+  </div>
+
+  <h3>3b. Le richieste</h3>
+  <p><code>inserisciRichiesta</code> stampa dove finisce la traccia richiesta. Con la scaletta degli esempi:</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Eco, 125 BPM: si mixa con Lampo</div>
+<pre class="out">Richiesta Eco: dopo Lampo</pre>
+    </div>
+    <div>
+      <div class="out-label">Tuono, 160 BPM: non si mixa con nessuna</div>
+<pre class="out">Richiesta Tuono: in fondo</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>All'inizio la scaletta è vuota: <code>Traccia* scaletta = nullptr;</code>. Esegui in ordine i passi seguenti:
+    prima di ognuno stampa l'orario e il nome del passo (es.
+    <code style="white-space: nowrap;">--- 21:00 Arriva Sofia ---</code>); alla fine dei passi 1, 2, 3, 5 e 6 stampa
+    tutta la scaletta con <code>stampa</code>.</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>20:00 Soundcheck</td>
+        <td>inserisci in coda, in quest'ordine, Bidello 120 BPM, Campanella 126 BPM, Sciopero 174 BPM e Diario
+          100 BPM</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>21:00 Arriva Sofia</td>
+        <td>vuole che la serata si apra con la sua canzone: inserisci in testa Diciotto, 116 BPM</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>21:30 Richieste</td>
+        <td>gli amici chiedono, in quest'ordine, Assemblea 129 BPM, Promosso 118 BPM, Gita 95 BPM e Pendolare
+          150 BPM: inseriscile con <code>inserisciRichiesta</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>22:30 Pista</td>
+        <td>con <code>stampaFiltro</code> stampa i pezzi da pogo, da 125 a 135 BPM, poi i lenti, da 60 a 100, poi il
+          reggaeton, da 85 a 94. Prima di ogni elenco stampa il nome e l'intervallo (es.
+          <code style="white-space: nowrap;">Pogo (125-135 BPM)</code>)</td>
+      </tr>
+      <tr>
+        <td><span class="star">&#9733;</span> 5</td>
+        <td>00:30 Tagli</td>
+        <td>dopo la torta Sofia fa togliere Sciopero, che con i suoi 174 BPM svuota la pista, poi prova a togliere
+          Verifica</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>03:00 Fine festa</td>
+        <td>libera la memoria di tutta la scaletta</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve stampare esattamente l'output seguente.
+  </div>
+
+  <div class="out-label">Passi 1 – 4 e 6</div>
+<pre class="out">--- 20:00 Soundcheck ---
+Bidello (120 BPM)
+Campanella (126 BPM)
+Sciopero (174 BPM)
+Diario (100 BPM)
+--- 21:00 Arriva Sofia ---
+Diciotto (116 BPM)
+Bidello (120 BPM)
+Campanella (126 BPM)
+Sciopero (174 BPM)
+Diario (100 BPM)
+--- 21:30 Richieste ---
+Richiesta Assemblea: dopo Campanella
+Richiesta Promosso: dopo Diciotto
+Richiesta Gita: dopo Diario
+Richiesta Pendolare: in fondo
+Diciotto (116 BPM)
+Promosso (118 BPM)
+Bidello (120 BPM)
+Campanella (126 BPM)
+Assemblea (129 BPM)
+Sciopero (174 BPM)
+Diario (100 BPM)
+Gita (95 BPM)
+Pendolare (150 BPM)
+--- 22:30 Pista ---
+Pogo (125-135 BPM)
+Campanella (126 BPM)
+Assemblea (129 BPM)
+Lenti (60-100 BPM)
+Diario (100 BPM)
+Gita (95 BPM)
+Reggaeton (85-94 BPM)
+Nessuna traccia
+--- 03:00 Fine festa ---
+Nessuna traccia</pre>
+
+  <div class="out-label" style="margin-top: 14px;"><span class="star">&#9733;</span> Passo 5 (tra il passo 4 e la fine della festa)</div>
+<pre class="out">--- 00:30 Tagli ---
+Tolta: Sciopero (174 BPM)
+Nessuna traccia Verifica in scaletta
+Diciotto (116 BPM)
+Promosso (118 BPM)
+Bidello (120 BPM)
+Campanella (126 BPM)
+Assemblea (129 BPM)
+Diario (100 BPM)
+Gita (95 BPM)
+Pendolare (150 BPM)</pre>
+
+  <div class="out-label" style="margin-top: 14px;">Da notare</div>
+  <ul>
+    <li>il passo 3 prova tutti i casi di <code>inserisciRichiesta</code>: Assemblea finisce in mezzo, Promosso
+      subito dopo la prima traccia, Gita dopo l'ultima e Pendolare, che non si mixa con nessuna, in fondo. Se l'ordine
+      è sbagliato, cerca quale caso non funziona</li>
+    <li>Promosso (118) si mixerebbe anche con Bidello (120), ma conta solo la <strong>prima</strong> traccia
+      compatibile che trovi partendo dalla testa</li>
+    <li>Gita (95) e Diario (100) differiscono esattamente di 5, quindi sono compatibili: se il tuo programma stampa
+      <code style="white-space: nowrap;">Richiesta Gita: in fondo</code>, controlla <code>compatibili</code></li>
+    <li>tra i lenti c'è Diario, che ha 100 BPM esatti: gli estremi dell'intervallo sono compresi</li>
+    <li><code>Nessuna traccia</code> dice che la scaletta è vuota, non che la memoria è stata liberata: quello devi
+      garantirlo tu</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li>Per agganciare Assemblea dopo Campanella cambi due <code>next</code>: quello di Assemblea e quello di
+      Campanella. Che cosa succede alla scaletta se li cambi nell'ordine sbagliato? Aiutati con un disegno.</li>
+    <li>In quali casi <code>inserisciInCoda</code> restituisce una testa diversa da quella che ha ricevuto? E
+      <code>inserisciRichiesta</code>? Perché nel <code>main</code> scrivi comunque <code>scaletta = ...</code>?</li>
+    <li>Quante <code>new</code> e quante <code>delete</code> esegue il tuo programma? Quante ne eseguono i passi 2 e
+      3?</li>
+    <li><span class="star">&#9733;</span> Per togliere Sciopero con <code>rimuovi</code> ti serve la traccia che sta
+      prima di lui; per aggiungere Assemblea con <code>inserisciRichiesta</code> no. Perché?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> prova ogni funzione su tre casi: scaletta vuota, una sola traccia, più tracce. Per
+    <code>inserisciRichiesta</code> aggiungi i quattro casi del passo 3: dopo la prima traccia, in mezzo, dopo l'ultima,
+    nessuna compatibile. In quale caso rischi di usare <code>-&gt;</code> su un puntatore che vale
+    <code>nullptr</code>?
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per agganciare una traccia dopo un'altra basta un puntatore alla traccia che resta
+    <strong>prima</strong>: è lei che deve cambiare il proprio <code>next</code>. Disegna le due frecce prima di
+    scrivere il codice: l'ordine in cui le cambi conta.
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Memoria</td>
+        <td><code>new</code> si usa solo in <code>nuovaTraccia</code>, <code>delete</code> solo in
+          <code>svuota</code> e <span class="star">&#9733;</span> <code>rimuovi</code>. A fine programma non deve
+          restare memoria occupata</td>
+      </tr>
+      <tr>
+        <td>Richieste</td>
+        <td>Una richiesta va subito dopo la prima traccia compatibile, cercando dalla testa; se nessuna è compatibile
+          va in fondo</td>
+      </tr>
+      <tr>
+        <td>Compatibilità</td>
+        <td>Due tracce sono compatibili se i BPM differiscono al massimo di 5, in un senso o nell'altro: 100 e 95 sì,
+          120 e 126 no</td>
+      </tr>
+      <tr>
+        <td>Fine lista</td>
+        <td><code>next</code> vale <code>nullptr</code> per l'ultima traccia; <code>scaletta</code> vale
+          <code>nullptr</code> se la scaletta è vuota</td>
+      </tr>
+      <tr>
+        <td>Funzioni</td>
+        <td>Nessun parametro per riferimento (&amp;), nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le tue funzioni, il <code>main</code> e in fondo le risposte della
+          Parte 5</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
