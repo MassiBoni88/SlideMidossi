@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione di laboratorio — Wireshark guidato</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+      background: #f0f4f8; color: #1a202c;
+      padding: 30px 20px; font-size: 17px; line-height: 1.75;
+    }
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 30px 34px; margin-bottom: 30px;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 8px; line-height: 1.3; }
+    header p  { font-size: 1rem; opacity: 0.9; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 0.85rem; margin-top: 12px; margin-right: 5px;
+    }
+
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 26px 30px; margin-bottom: 26px;
+    }
+    .card h2 {
+      font-size: 1.3rem; color: #2b6cb0;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 12px; margin-bottom: 18px; line-height: 1.35;
+    }
+    .card h3 {
+      font-size: 1.02rem; color: #2d3748;
+      margin: 22px 0 10px; font-weight: 700;
+    }
+    .card p { margin: 8px 0; }
+
+    /* numero grande della parte */
+    .part-num {
+      display: inline-block; background: #2b6cb0; color: white;
+      width: 38px; height: 38px; border-radius: 50%;
+      text-align: center; line-height: 38px; font-size: 1.1rem;
+      font-weight: 700; margin-right: 10px; vertical-align: middle;
+    }
+    .part-extra .part-num { background: #805ad5; }
+    .part-extra h2 { color: #805ad5; border-left-color: #805ad5; }
+
+    .topology {
+      background: #0d1117; border-radius: 8px;
+      padding: 22px; font-family: 'Courier New', monospace;
+      font-size: 0.85rem; color: #58a6ff;
+      line-height: 1.8; overflow-x: auto; white-space: pre; margin: 12px 0;
+    }
+    .topology .label  { color: #ffa657; font-weight: bold; }
+    .topology .device { color: #7ee787; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+    .topology .srv    { color: #ff7b72; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 8px; }
+    th { background: #2b6cb0; color: white; padding: 11px 13px; text-align: left; font-weight: 600; }
+    td { padding: 11px 13px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+
+    .fill { background: #fffbeb !important; min-width: 150px; }
+    td.esempio { background: #e6fffa !important; font-family: 'Courier New', monospace;
+                 color: #234e52; font-weight: bold; }
+
+    .info-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .warn-box { background: #fffff0; border-left: 5px solid #d69e2e; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .tip-box  { background: #f0fff4; border-left: 5px solid #38a169; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+
+    /* passi operativi: uno per riga, ben spaziati */
+    ol.steps { list-style: none; counter-reset: st; margin: 10px 0 0 0; }
+    ol.steps li {
+      counter-increment: st; position: relative;
+      padding: 10px 0 10px 44px; border-bottom: 1px solid #edf2f7;
+    }
+    ol.steps li:last-child { border-bottom: none; }
+    ol.steps li::before {
+      content: counter(st); position: absolute; left: 0; top: 10px;
+      background: #bee3f8; color: #2a4365; font-weight: 700;
+      width: 30px; height: 30px; border-radius: 50%;
+      text-align: center; line-height: 30px; font-size: 0.9rem;
+    }
+
+    /* punto di controllo a fine parte */
+    .check {
+      background: #f0fff4; border: 2px solid #38a169; border-radius: 8px;
+      padding: 16px 20px; margin-top: 20px;
+    }
+    .check .title { font-weight: 700; color: #22543d; margin-bottom: 8px; font-size: 1.02rem; }
+    .check ul { list-style: none; margin: 0; }
+    .check li { padding: 6px 0 6px 34px; position: relative; }
+    .check li::before {
+      content: '☐'; position: absolute; left: 0; top: 4px;
+      font-size: 1.3rem; color: #38a169; line-height: 1;
+    }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 9px; font-size: 0.82rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-gui  { background: #fefcbf; color: #744210; }
+    .tag-cli  { background: #c3dafe; color: #2a4365; }
+    .tag-core { background: #c6f6d5; color: #22543d; }
+    .tag-plus { background: #e9d8fd; color: #553c9a; }
+
+    code { background: #edf2f7; padding: 2px 7px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.92em; color: #2d3748; }
+    pre.cli {
+      background: #1a202c; color: #e2e8f0; border-radius: 6px;
+      padding: 18px 20px; font-family: 'Courier New', monospace;
+      font-size: 0.92rem; line-height: 2; overflow-x: auto; margin: 12px 0;
+    }
+    pre.cli .cmt { color: #a0aec0; font-style: italic; }
+    pre.cli .kw  { color: #f6ad55; }
+    pre.cli .gap { background: #4a5568; color: #fbd38d; padding: 1px 14px;
+                   border-radius: 3px; border-bottom: 2px dashed #fbd38d; }
+
+    .roadmap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .rm-item {
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px 16px;
+      background: #f7fafc;
+    }
+    .rm-item .n {
+      background: #2b6cb0; color: white; width: 32px; height: 32px;
+      border-radius: 50%; text-align: center; line-height: 32px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .rm-item.extra .n { background: #805ad5; }
+    .rm-item .txt { flex: 1; }
+    .rm-item .txt b { display: block; font-size: 1rem; }
+    .rm-item .txt span { font-size: 0.88rem; color: #718096; }
+
+    /* domanda con riquadro per la risposta */
+    .q { font-weight: 600; margin-top: 16px; }
+    .answer { border: 2px dashed #cbd5e0; border-radius: 8px; height: 76px;
+              margin: 6px 0 14px; background: #fffbeb; }
+
+    /* pulsante per scaricare la cattura */
+    .dl { display: inline-block; background: #2b6cb0; color: white; text-decoration: none;
+          font-weight: 700; border-radius: 6px; padding: 9px 18px; margin: 6px 0;
+          max-width: 100%; overflow-wrap: anywhere; }
+
+    /* finta finestra di Wireshark */
+    .ws { border: 1px solid #a0aec0; border-radius: 8px; overflow: hidden; margin: 14px 0;
+          background: white; font-size: 0.8rem; line-height: 1.45;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.14); }
+    .ws-title { background: #e2e8f0; padding: 5px 12px; color: #4a5568; font-weight: 600; }
+    .ws-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+              padding: 6px 10px; background: #f7fafc; border-bottom: 1px solid #cbd5e0; }
+    .ws-bar .cap { font-size: 0.72rem; color: #4a5568; margin-right: 6px; }
+    .ws-ico { width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
+    .ws-filter { padding: 5px 10px; background: #f7fafc; border-bottom: 1px solid #a0aec0; }
+    .ws-filter span { display: block; background: white; border: 1px solid #a0aec0; border-radius: 3px;
+                      padding: 2px 8px; font-family: 'Courier New', monospace; color: #718096;
+                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ws-h { background: #2d3748; color: white; font-size: 0.76rem; font-weight: 700; padding: 3px 10px; }
+    .ws-h b { display: inline-block; background: #ed8936; color: white; border-radius: 50%;
+              width: 18px; height: 18px; line-height: 18px; text-align: center; margin-right: 6px; }
+    .ws-scroll { overflow-x: auto; }
+    table.ws-list { margin: 0; font-family: 'Courier New', monospace; font-size: 0.76rem; white-space: nowrap; }
+    table.ws-list th { background: #e2e8f0; color: #1a202c; padding: 3px 8px; font-weight: 700;
+                       border-right: 1px solid #cbd5e0; }
+    table.ws-list td { padding: 2px 8px; border-bottom: none; color: #12272e; }
+    table.ws-list td:last-child { white-space: normal; min-width: 330px; }
+    table.ws-list tr.c-dns  td { background: #daeeff; }
+    table.ws-list tr.c-arp  td { background: #faf0d7; }
+    table.ws-list tr.c-icmp td { background: #fce0ff; }
+    table.ws-list tr.c-syn  td { background: #a0a0a0; }
+    table.ws-list tr.c-tcp  td { background: #e7e6ff; }
+    table.ws-list tr.c-http td { background: #e4ffc7; }
+    table.ws-list tr.sel    td { background: #2a6fc9; color: white; }
+    .ws-det { font-family: 'Courier New', monospace; font-size: 0.78rem; padding: 6px 10px;
+              white-space: nowrap; overflow-x: auto; }
+    .ws-det div.i1 { padding-left: 20px; }
+    .ws-det div.i2 { padding-left: 40px; }
+    .ws-det div.i3 { padding-left: 60px; }
+    .ws-det div.i4 { padding-left: 80px; }
+    .ws-det div.i5 { padding-left: 100px; }
+    .ws-det .hl { background: #2a6fc9; color: white; display: inline-block; padding: 0 6px; border-radius: 2px; }
+    .ws-det .nota { color: #c05621; font-weight: 700; font-family: 'Segoe UI', Verdana, Arial, sans-serif; }
+    pre.ws-hex { font-family: 'Courier New', monospace; font-size: 0.78rem; padding: 6px 10px;
+                 overflow-x: auto; line-height: 1.5; }
+    pre.ws-hex .hl { background: #2a6fc9; color: white; }
+    .ws-status { background: #e2e8f0; padding: 3px 10px; font-size: 0.74rem; color: #2d3748;
+                 border-top: 1px solid #a0aec0; }
+    .ws-follow { font-family: 'Courier New', monospace; font-size: 0.8rem; white-space: pre;
+                 overflow-x: auto; line-height: 1.5; }
+    .ws-follow .cl { display: block; background: #fbeded; color: #7f0000; padding: 6px 10px; }
+    .ws-follow .sv { display: block; background: #ededfb; color: #00007f; padding: 6px 10px; }
+
+    .chip { display: inline-block; border: 1px solid #a0aec0; border-radius: 4px; padding: 0 8px;
+            font-size: 0.82rem; font-family: 'Courier New', monospace; color: #12272e; margin: 2px 3px 2px 0; }
+
+    /* griglie per i cifrari: una lettera per casella */
+    table.griglia { width: auto; font-family: 'Courier New', monospace; font-size: 0.92rem; }
+    table.griglia th { background: #edf2f7; color: #2d3748; padding: 4px 8px; font-size: 0.8rem;
+                       font-family: 'Segoe UI', Verdana, Arial, sans-serif; border: 1px solid #cbd5e0; }
+    table.griglia td { border: 1px solid #cbd5e0; padding: 0; width: 34px; min-width: 30px; height: 32px;
+                       text-align: center; font-weight: 700; }
+    table.griglia td.vuota { background: #fffbeb; }
+    table.griglia td.dato { background: #e6fffa; color: #234e52; }
+    table.griglia tr td.piccola { font-size: 0.72rem; font-weight: 400; color: #4a5568; height: 22px; background: white; }
+
+    .s-ecdhe { background: #fbd38d; color: #7b341e; }
+    .s-rsa   { background: #fed7d7; color: #9b2c2c; }
+    .s-aes   { background: #c6f6d5; color: #22543d; }
+    .s-sha   { background: #e9d8fd; color: #553c9a; }
+    .suite { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1rem; background: #edf2f7;
+             border-radius: 6px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; white-space: nowrap; }
+    .suite span { padding: 2px 4px; border-radius: 3px; }
+
+    footer { text-align: center; font-size: 0.85rem; color: #a0aec0;
+             margin-top: 34px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      body { padding: 16px; font-size: 16px; }
+      header { padding: 22px 20px; }
+      header h1 { font-size: 1.45rem; }
+      .card { padding: 20px 16px; }
+    }
+    @media print {
+      @page { margin: 1.2cm; }
+      body { background: white; padding: 0; font-size: 10pt; line-height: 1.4; }
+      .page { max-width: none; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 12px 16px; margin-bottom: 12px; }
+      .card h2 { margin-bottom: 8px; }
+      .card h3 { margin: 12px 0 5px; }
+      header { background: #1a365d !important; padding: 14px 20px; margin-bottom: 12px; }
+      th, td { padding: 5px 8px; }
+      ol.steps li { padding: 5px 0 5px 34px; }
+      ol.steps li::before { top: 4px; width: 22px; height: 22px; line-height: 22px; }
+      pre.cli { padding: 6px 12px; line-height: 1.4; margin: 5px 0; }
+      .info-box, .warn-box, .tip-box { padding: 7px 12px; margin: 7px 0; }
+      .check { padding: 8px 12px; margin-top: 10px; }
+      .check li { padding: 2px 0 2px 26px; }
+      .check li::before { top: 1px; font-size: 1.1rem; }
+      .rm-item { padding: 5px 10px; }
+      .topology { padding: 10px 14px; line-height: 1.4; }
+      .answer { height: 58px; margin: 3px 0 8px; }
+      .q { margin-top: 8px; }
+      table.griglia td { height: 24px; }
+      header, .ws, .ws *, .topology, pre.cli, .suite, .chip, table.griglia td, th, td {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .ws, .check, .answer, table, .topology { page-break-inside: avoid; }
+      h2, h3 { page-break-after: avoid; }
+      .dl { background: none; color: #1a202c; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- icone usate nella finta finestra -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="pinna" viewBox="0 0 24 24"><path d="M2 21 C8 19 11 10 12 3 C18 8 21 15 22 21 Z"/></symbol>
+  </svg>
+
+  <header>
+    <h1>Esercitazione di laboratorio — Wireshark guidato</h1>
+    <p>Guardare i pacchetti che passano davvero in rete: dal ping alla crittografia di HTTPS</p>
+    <span class="badge">Wireshark</span>
+    <span class="badge">5ª ITT — Sistemi e Reti</span>
+    <span class="badge">Crittografia simmetrica e asimmetrica</span>
+  </header>
+
+  <!-- COME LAVORARE -->
+  <div class="card">
+    <h2>Come lavorare</h2>
+    <ol class="steps">
+      <li><strong>Tieni affiancate due finestre:</strong> Wireshark <span class="tag tag-gui">Wireshark</span>
+          e il Prompt dei comandi <span class="tag tag-cli">Prompt</span> (Start → scrivi <code>cmd</code> → Invio).
+          Usa il Prompt e non PowerShell: lì <code>curl</code> si comporta in modo diverso.</li>
+      <li><strong>Chiudi il browser e i programmi che usano la rete.</strong> Meno traffico c'è,
+          più è facile trovare i pacchetti che ti interessano.</li>
+      <li><strong>Segui le parti in ordine</strong>, dalla 1 alla 5. Ogni parte si chiude con un
+          <em>punto di controllo</em>: se le caselle sono tutte spuntate, puoi andare avanti.
+          La parte 6 è un'estensione: falla solo se hai finito le altre.</li>
+      <li><strong>Nelle tabelle</strong> la colonna verde è un esempio di come appare il dato; nella
+          colonna gialla scrivi quello che trovi tu. I tuoi valori saranno quasi sempre diversi: è normale.</li>
+      <li><strong>Non c'è fretta.</strong> I tempi indicati sono solo orientativi. Se non finisci in una
+          lezione, si continua nella successiva.</li>
+    </ol>
+
+    <div class="warn-box">
+      <strong>La regola del laboratorio.</strong> Catturi solo il traffico del tuo PC, qui e per questa
+      esercitazione. Intercettare le comunicazioni di altre persone è reato (art. 617-quater del Codice penale).
+      Durante la cattura non inserire password e non aprire i tuoi account: Wireshark registra tutto ciò che passa.
+    </div>
+    <p>I nomi dei menu sono scritti in inglese. Se il tuo Wireshark è in italiano, cerca la voce equivalente.</p>
+  </div>
+
+  <!-- MAPPA -->
+  <div class="card">
+    <h2>Le parti del lavoro</h2>
+    <div class="roadmap">
+      <div class="rm-item">
+        <div class="n">1</div>
+        <div class="txt"><b>Conosci Wireshark <span class="tag tag-core">da fare</span></b>
+        <span>La finestra, i filtri, la prima cattura · ~20 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">2</div>
+        <div class="txt"><b>Ping e ARP <span class="tag tag-core">da fare</span></b>
+        <span>Come si trova un PC in rete locale e come si esce verso Internet · ~20 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">3</div>
+        <div class="txt"><b>DNS e HTTP: tutto in chiaro <span class="tag tag-core">da fare</span></b>
+        <span>Nomi, handshake TCP e pagine web leggibili da chiunque · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">4</div>
+        <div class="txt"><b>La comunicazione intercettata <span class="tag tag-core">da fare</span></b>
+        <span>Decifra una chat con Cesare e Vigenère partendo dalla cattura · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">5</div>
+        <div class="txt"><b>HTTPS: la crittografia in azione <span class="tag tag-core">da fare</span></b>
+        <span>Trova RSA, AES e il certificato dentro i pacchetti · ~30 min</span></div>
+      </div>
+      <div class="rm-item extra">
+        <div class="n">6</div>
+        <div class="txt"><b>Posso vedere il traffico del PC vicino? <span class="tag tag-plus">se resta tempo</span></b>
+        <span>Che cosa fa davvero lo switch · ~10 min</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LA RETE -->
+  <div class="card">
+    <h2>La rete su cui lavori</h2>
+    <p>Stavolta non c'è una rete simulata: è quella vera del laboratorio. Gli indirizzi non te li dà nessuno,
+       li trovi tu.</p>
+<div class="topology"><span class="label">RETE DEL LABORATORIO</span>
+
+ <span class="device">[ TUO PC ]</span><span class="link">────┐</span>
+               <span class="link">├──</span><span class="device">[ SWITCH ]</span><span class="link">──</span><span class="srv">[ GATEWAY ]</span><span class="link">── ··· Internet ··· ──</span> <span class="net">8.8.8.8</span>
+ <span class="device">[ PC VICINO ]</span><span class="link">─┘</span>                                                <span class="net">example.com</span>
+                                                                <span class="net">www.istruzione.it</span></div>
+    <p>Nel Prompt scrivi <code>ipconfig /all</code> <span class="tag tag-cli">Prompt</span> e cerca la scheda con cui sei in rete
+       (quella che ha un gateway; ignora le schede virtuali). Fai lo stesso sul PC accanto al tuo, o chiedi l'IP a chi ci lavora.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Dato</th><th>Dove lo leggi in <code style="background:none;color:white">ipconfig /all</code></th><th>Esempio</th><th>Il tuo PC</th></tr>
+      <tr><td>Indirizzo IP</td><td>Indirizzo IPv4</td><td class="esempio">192.168.1.25</td><td class="fill"></td></tr>
+      <tr><td>Indirizzo MAC</td><td>Indirizzo fisico</td><td class="esempio">D4-BE-D9-12-34-56</td><td class="fill"></td></tr>
+      <tr><td>Maschera</td><td>Subnet mask</td><td class="esempio">255.255.255.0</td><td class="fill"></td></tr>
+      <tr><td>Gateway</td><td>Gateway predefinito</td><td class="esempio">192.168.1.1</td><td class="fill"></td></tr>
+      <tr><td>Server DNS</td><td>Server DNS</td><td class="esempio">192.168.1.1</td><td class="fill"></td></tr>
+      <tr><td>IP del PC vicino</td><td>Indirizzo IPv4 sull'altro PC</td><td class="esempio">192.168.1.26</td><td class="fill"></td></tr>
+    </table></div>
+    <p style="font-size:0.9rem;color:#4a5568;">Con Windows in inglese le voci sono <em>Physical Address</em>, <em>IPv4 Address</em>,
+       <em>Default Gateway</em> e <em>DNS Servers</em>.</p>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2><span class="part-num">1</span>Conosci Wireshark <span class="tag tag-gui">Wireshark</span></h2>
+
+    <div class="info-box">
+      <strong>Che cos'è.</strong> Wireshark è un <em>analizzatore di pacchetti</em>: registra una copia di ciò che
+      entra ed esce dalla scheda di rete e te lo mostra campo per campo. In Packet Tracer hai già visto i pacchetti
+      nella modalità Simulation: l'idea è la stessa, ma qui la rete è vera. Wireshark osserva soltanto, non blocca
+      e non modifica il traffico.
+    </div>
+
+    <h3>Avvia la cattura</h3>
+    <ol class="steps">
+      <li>Apri Wireshark dal menu Start. La schermata iniziale elenca le interfacce di rete, ognuna con una piccola
+          linea: se la linea si muove, lì sta passando traffico.</li>
+      <li>Fai <strong>doppio clic sull'interfaccia con cui sei in rete</strong> (di solito <em>Ethernet</em>).
+          Non scegliere <em>Adapter for loopback traffic capture</em>: è il traffico interno del PC.</li>
+      <li>La cattura parte subito e le righe cominciano a scorrere. Se l'elenco delle interfacce è vuoto,
+          chiama l'insegnante: probabilmente manca il driver Npcap.</li>
+    </ol>
+
+    <h3>La finestra: cosa stai guardando</h3>
+    <div class="ws" role="img" aria-label="Riproduzione della finestra di Wireshark con barra dei pulsanti, barra dei filtri e tre pannelli">
+      <div class="ws-title">Wireshark — Ethernet</div>
+      <div class="ws-bar">
+        <svg class="ws-ico" style="fill:#2b6cb0"><use href="#pinna"/></svg><span class="cap">Start</span>
+        <svg class="ws-ico" viewBox="0 0 24 24" style="fill:#e53e3e"><rect x="4" y="4" width="16" height="16" rx="2"/></svg><span class="cap">Stop</span>
+        <svg class="ws-ico" style="fill:#38a169"><use href="#pinna"/></svg><span class="cap">Restart</span>
+      </div>
+      <div class="ws-filter"><span>Apply a display filter … &lt;Ctrl-/&gt;</span></div>
+
+      <div class="ws-h"><b>1</b>Packet List</div>
+      <div class="ws-scroll"><table class="ws-list">
+        <tr><th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr>
+        <tr class="c-dns"><td>1</td><td>0.000000</td><td>192.168.1.25</td><td>192.168.1.1</td><td>DNS</td><td>77</td><td>Standard query 0x1a2b A www.wikipedia.org</td></tr>
+        <tr class="c-dns"><td>2</td><td>0.011842</td><td>192.168.1.1</td><td>192.168.1.25</td><td>DNS</td><td>122</td><td>Standard query response 0x1a2b A www.wikipedia.org CNAME dyna.wikimedia.org A 185.15.58.224</td></tr>
+        <tr class="c-arp"><td>3</td><td>1.204113</td><td>Dell_12:34:56</td><td>Broadcast</td><td>ARP</td><td>42</td><td>Who has 192.168.1.26? Tell 192.168.1.25</td></tr>
+        <tr class="c-arp"><td>4</td><td>1.204790</td><td>Dell_77:88:99</td><td>Dell_12:34:56</td><td>ARP</td><td>60</td><td>192.168.1.26 is at d4:be:d9:77:88:99</td></tr>
+        <tr class="sel"><td>5</td><td>2.530211</td><td>192.168.1.25</td><td>8.8.8.8</td><td>ICMP</td><td>74</td><td>Echo (ping) request id=0x0001, seq=5/1280, ttl=128 (reply in 6)</td></tr>
+        <tr class="c-icmp"><td>6</td><td>2.548907</td><td>8.8.8.8</td><td>192.168.1.25</td><td>ICMP</td><td>74</td><td>Echo (ping) reply id=0x0001, seq=5/1280, ttl=115 (request in 5)</td></tr>
+        <tr class="c-syn"><td>7</td><td>4.102338</td><td>192.168.1.25</td><td>104.18.26.120</td><td>TCP</td><td>66</td><td>49812 → 80 [SYN] Seq=0 Win=64240 Len=0 MSS=1460</td></tr>
+        <tr class="c-syn"><td>8</td><td>4.117506</td><td>104.18.26.120</td><td>192.168.1.25</td><td>TCP</td><td>66</td><td>80 → 49812 [SYN, ACK] Seq=0 Ack=1 Win=65535 Len=0 MSS=1460</td></tr>
+        <tr class="c-tcp"><td>9</td><td>4.117691</td><td>192.168.1.25</td><td>104.18.26.120</td><td>TCP</td><td>54</td><td>49812 → 80 [ACK] Seq=1 Ack=1 Win=64240 Len=0</td></tr>
+        <tr class="c-http"><td>10</td><td>4.117984</td><td>192.168.1.25</td><td>104.18.26.120</td><td>HTTP</td><td>129</td><td>GET / HTTP/1.1</td></tr>
+      </table></div>
+
+      <div class="ws-h"><b>2</b>Packet Details</div>
+      <div class="ws-det">
+        <div>▶ Frame 5: Packet, 74 bytes on wire (592 bits), 74 bytes captured (592 bits)</div>
+        <div>▶ Ethernet II, Src: Dell_12:34:56 (d4:be:d9:12:34:56), Dst: Cisco_aa:bb:01 (00:1b:54:aa:bb:01)</div>
+        <div>▼ Internet Protocol Version 4, Src: 192.168.1.25, Dst: 8.8.8.8</div>
+        <div class="i1">Total Length: 60</div>
+        <div class="i1"><span class="hl">Time to Live: 128</span></div>
+        <div class="i1">Protocol: ICMP (1)</div>
+        <div>▼ Internet Control Message Protocol</div>
+        <div class="i1">Type: Echo (ping) request (8)</div>
+        <div class="i1">Code: 0</div>
+        <div class="i1">▶ Data (32 bytes)</div>
+      </div>
+
+      <div class="ws-h"><b>3</b>Packet Bytes</div>
+<pre class="ws-hex">0000  00 1b 54 aa bb 01 d4 be d9 12 34 56 08 00 45 00   ..T.......4V..E.
+0010  00 3c 1a 2b 00 00 <span class="hl">80</span> 01 4e c5 c0 a8 01 19 08 08   .&lt;.+..<span class="hl">.</span>.N.......
+0020  08 08 08 00 4d 56 00 01 00 05 61 62 63 64 65 66   ....MV....abcdef
+0030  67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76   ghijklmnopqrstuv
+0040  77 61 62 63 64 65 66 67 68 69                     wabcdefghi</pre>
+      <div class="ws-status">Packets: 10 · Displayed: 10 (100.0%)</div>
+    </div>
+    <p style="font-size:0.9rem;color:#4a5568;">Il disegno mostra solo i campi principali. A seconda della versione, i pannelli 2 e 3
+       possono stare uno accanto all'altro.</p>
+
+    <div class="table-wrap"><table>
+      <tr><th>Elemento</th><th>A cosa serve</th></tr>
+      <tr><td><strong>Pinna blu, quadrato rosso, pinna verde</strong></td><td>Avviano, fermano e riavviano la cattura.</td></tr>
+      <tr><td><strong>Barra dei filtri</strong></td><td>Mostra solo i pacchetti che ti interessano.</td></tr>
+      <tr><td><strong>1 · Packet List</strong></td><td>Una riga per ogni pacchetto. <em>Time</em> indica i secondi dall'inizio della cattura, <em>Info</em> riassume il contenuto.</td></tr>
+      <tr><td><strong>2 · Packet Details</strong></td><td>Il pacchetto selezionato, livello per livello. Clicca le freccette per aprire le sezioni.</td></tr>
+      <tr><td><strong>3 · Packet Bytes</strong></td><td>Gli stessi dati come byte reali. Se clicchi un campo nel pannello 2, qui si evidenziano i suoi byte: nel disegno, il TTL 128 è il byte <code>80</code> esadecimale.</td></tr>
+    </table></div>
+
+    <p style="margin-top:14px;"><strong>I colori della Packet List</strong> dipendono dal protocollo:
+      <span class="chip" style="background:#daeeff">DNS / UDP</span>
+      <span class="chip" style="background:#faf0d7">ARP</span>
+      <span class="chip" style="background:#fce0ff">ICMP</span>
+      <span class="chip" style="background:#a0a0a0">TCP SYN / FIN</span>
+      <span class="chip" style="background:#e7e6ff">TCP</span>
+      <span class="chip" style="background:#e4ffc7">HTTP</span>
+      <span class="chip" style="background:#12272e;color:#f78787">anomalie TCP</span>
+    </p>
+
+    <h3>Ogni riga dei dettagli è un livello della pila TCP/IP</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Riga nel pannello 2</th><th>Livello</th><th>Che cosa ci trovi</th></tr>
+      <tr><td><code>Frame</code></td><td>Non viaggia in rete</td><td>Dimensione e orario, aggiunti da Wireshark</td></tr>
+      <tr><td><code>Ethernet II</code></td><td>Accesso alla rete</td><td>MAC sorgente e destinazione</td></tr>
+      <tr><td><code>Internet Protocol Version 4</code></td><td>Internet</td><td>IP sorgente e destinazione, TTL</td></tr>
+      <tr><td><code>Internet Control Message Protocol</code></td><td>Internet</td><td>Messaggi di servizio come il ping, trasportati dentro IP</td></tr>
+      <tr><td><code>Transmission Control Protocol</code>, <code>User Datagram Protocol</code></td><td>Trasporto</td><td>Porte; per TCP anche i numeri di sequenza</td></tr>
+      <tr><td><code>Domain Name System</code>, <code>Hypertext Transfer Protocol</code>, <code>Transport Layer Security</code></td><td>Applicazione</td><td>Il contenuto della comunicazione</td></tr>
+    </table></div>
+
+    <h3>I filtri</h3>
+    <p>Scrivi il filtro nella barra e premi Invio. La barra diventa <span class="chip" style="background:#afffaf">verde</span> se il filtro è valido,
+       <span class="chip" style="background:#ffafaf">rossa</span> se è scritto male. Il filtro <strong>nasconde</strong> le righe,
+       non le cancella: quando lo togli con la X a destra della barra, tornano tutte.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Filtro</th><th>Mostra</th></tr>
+      <tr><td><code>arp</code></td><td>Solo i pacchetti ARP</td></tr>
+      <tr><td><code>icmp</code></td><td>Solo i ping</td></tr>
+      <tr><td><code>dns</code></td><td>Solo le richieste e le risposte DNS</td></tr>
+      <tr><td><code>http</code></td><td>Solo il traffico web in chiaro</td></tr>
+      <tr><td><code>tls</code></td><td>Solo il traffico web cifrato</td></tr>
+      <tr><td><code>tcp.port == 80</code></td><td>Tutto il TCP sulla porta 80, handshake compreso</td></tr>
+      <tr><td><code>ip.addr == 8.8.8.8</code></td><td>Tutto ciò che va verso quell'indirizzo o ne arriva</td></tr>
+      <tr><td><code>arp or icmp</code></td><td>Due protocolli insieme</td></tr>
+    </table></div>
+
+    <h3>La tua prima cattura</h3>
+    <ol class="steps">
+      <li>Clicca il quadrato rosso per fermare la cattura.</li>
+      <li>Clicca la pinna verde per ricominciare. Alla domanda se vuoi salvare, rispondi <strong>Continue without Saving</strong>.</li>
+      <li>Lascia scorrere per <strong>30 secondi senza toccare nulla</strong>, poi ferma la cattura.</li>
+      <li>Prova i filtri della tabella e guarda come cambia il numero di righe. Packets e Displayed sono nella barra in basso.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Domanda</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td>Pacchetti catturati (<em>Packets</em>)</td><td class="esempio">64</td><td class="fill"></td></tr>
+      <tr><td>Righe con il filtro <code>arp</code> (<em>Displayed</em>)</td><td class="esempio">7</td><td class="fill"></td></tr>
+      <tr><td>Protocolli visti nella colonna <em>Protocol</em></td><td class="esempio">ARP, DNS, TCP, TLS</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Non hai fatto nulla, eppure c'è traffico. Secondo te da dove viene?</p>
+    <div class="answer"></div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 1</div>
+      <ul>
+        <li>So avviare, fermare e riavviare una cattura</li>
+        <li>So dire a cosa serve ciascuno dei tre pannelli</li>
+        <li>So applicare un filtro e toglierlo</li>
+        <li>So aprire le sezioni del pannello 2 e vedere i byte corrispondenti nel pannello 3</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2><span class="part-num">2</span>Ping e ARP <span class="tag tag-gui">Wireshark</span> <span class="tag tag-cli">Prompt</span></h2>
+
+    <h3>A. Trovare un PC nella rete locale: ARP</h3>
+    <p>Per spedire un frame serve il MAC di destinazione, ma tu conosci solo l'IP. ARP serve a chiederlo.</p>
+    <ol class="steps">
+      <li>Riavvia la cattura con la pinna verde e scrivi il filtro <code>arp or icmp</code>.</li>
+      <li>Nel Prompt controlla che cosa conosce già il tuo PC:
+<pre class="cli"><span class="kw">arp -a</span></pre>
+          Se l'IP del PC vicino è già nell'elenco, il tuo PC ne conosce il MAC e non farà nessuna richiesta:
+          scegli un altro PC del laboratorio il cui IP non compare.</li>
+      <li>Fai un ping verso quell'IP:
+<pre class="cli"><span class="kw">ping</span> <span class="gap">IP del PC vicino</span></pre>
+          Se ottieni «Richiesta scaduta», il firewall dell'altro PC blocca il ping. Per questa parte non è un problema:
+          l'ARP si vede comunque.</li>
+      <li>Nella Packet List cerca la riga ARP con il tuo IP dopo <em>Tell</em> e la risposta subito dopo. Apri la sezione
+          <code>Address Resolution Protocol</code> nel pannello 2.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Campo</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td>Richiesta: colonna <em>Info</em></td><td class="esempio">Who has 192.168.1.26? Tell 192.168.1.25</td><td class="fill"></td></tr>
+      <tr><td>Richiesta: <code>Destination</code> nella riga Ethernet</td><td class="esempio">Broadcast (ff:ff:ff:ff:ff:ff)</td><td class="fill"></td></tr>
+      <tr><td>Richiesta: <code>Opcode</code></td><td class="esempio">request (1)</td><td class="fill"></td></tr>
+      <tr><td>Richiesta: <code>Target MAC address</code></td><td class="esempio">00:00:00:00:00:00</td><td class="fill"></td></tr>
+      <tr><td>Risposta: <code>Opcode</code></td><td class="esempio">reply (2)</td><td class="fill"></td></tr>
+      <tr><td>Risposta: <code>Sender MAC address</code></td><td class="esempio">d4:be:d9:77:88:99</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Perché la richiesta va in broadcast e il Target MAC è tutto a zero?</p>
+    <div class="answer"></div>
+    <p class="q">Nel pannello 2 di un pacchetto ARP c'è la riga <code>Internet Protocol</code>? Perché?</p>
+    <div class="answer"></div>
+
+    <h3>B. Uscire verso Internet: ICMP</h3>
+    <ol class="steps">
+      <li>Riavvia la cattura e scrivi il filtro <code>icmp</code>.</li>
+      <li>Nel Prompt:
+<pre class="cli"><span class="kw">ping</span> 8.8.8.8</pre>
+          Windows invia 4 richieste, quindi vedrai 8 righe: 4 <em>request</em> e 4 <em>reply</em>.</li>
+      <li>Clicca una <em>request</em> e la sua <em>reply</em>, aprendo nel pannello 2 le sezioni <code>Internet Protocol Version 4</code>
+          e <code>Internet Control Message Protocol</code>.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Campo</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td>Request: <code>Type</code></td><td class="esempio">Echo (ping) request (8)</td><td class="fill"></td></tr>
+      <tr><td>Reply: <code>Type</code></td><td class="esempio">Echo (ping) reply (0)</td><td class="fill"></td></tr>
+      <tr><td>Request: <code>Time to Live</code></td><td class="esempio">128</td><td class="fill"></td></tr>
+      <tr><td>Reply: <code>Time to Live</code></td><td class="esempio">115</td><td class="fill"></td></tr>
+      <tr><td>Reply: <code>[Response time]</code></td><td class="esempio">18.696 ms</td><td class="fill"></td></tr>
+      <tr><td>Dati del ping: <code>Data</code></td><td class="esempio">32 bytes</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Ogni router toglie 1 al TTL. Perché il TTL che leggi nella reply è più basso di quello della request?</p>
+    <div class="answer"></div>
+
+    <h3>C. La scoperta: a chi è davvero indirizzato il pacchetto?</h3>
+    <p>Clicca di nuovo una <em>request</em> verso 8.8.8.8 e confronta le destinazioni nelle righe Ethernet e IP.
+       Poi riesegui <code>arp -a</code>, che mostra i MAC con i trattini al posto dei due punti, e cerca a chi appartiene quel MAC.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Destinazione</th><th>Esempio</th><th>Nella tua cattura</th><th>A chi appartiene?</th></tr>
+      <tr><td><strong>MAC</strong> di destinazione</td><td class="esempio">00:1b:54:aa:bb:01</td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td><strong>IP</strong> di destinazione</td><td class="esempio">8.8.8.8</td><td class="fill"></td><td class="fill"></td></tr>
+    </table></div>
+<div class="topology"> <span class="device">TUO PC</span> <span class="link">──▶</span> <span class="srv">GATEWAY</span> <span class="link">──▶</span> router <span class="link">──▶</span> router <span class="link">──▶</span> <span class="net">8.8.8.8</span>
+
+ <span class="label">IP  destinazione:</span>  <span class="net">8.8.8.8</span>   resta lo stesso per tutto il viaggio
+ <span class="label">MAC destinazione:</span>  <span class="srv">GATEWAY</span>   vale solo fino al salto successivo, poi cambia</div>
+    <div class="tip-box">
+      <strong>Ecco perché esistono due indirizzi.</strong> Il tuo PC sa che 8.8.8.8 è fuori dalla sua rete, quindi consegna
+      il frame al gateway. L'IP dice dove deve arrivare il pacchetto, il MAC a chi consegnarlo adesso.
+    </div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 2</div>
+      <ul>
+        <li>Ho visto una richiesta ARP in broadcast e la sua risposta</li>
+        <li>Ho letto Type 8 e Type 0 in un ping, e il TTL di entrambi</li>
+        <li>Ho verificato che il MAC di destinazione verso Internet è quello del gateway</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2><span class="part-num">3</span>DNS e HTTP: tutto in chiaro <span class="tag tag-gui">Wireshark</span> <span class="tag tag-cli">Prompt</span></h2>
+
+    <h3>A. Dal nome all'indirizzo: DNS</h3>
+    <ol class="steps">
+      <li>Riavvia la cattura e scrivi il filtro <code>dns</code>.</li>
+      <li>Nel Prompt:
+<pre class="cli"><span class="kw">nslookup</span> www.wikipedia.org</pre></li>
+      <li>Vedrai più domande: una di tipo <em>PTR</em> (<code>nslookup</code> chiede il nome del server DNS), una di tipo <em>A</em> (IPv4)
+          e una di tipo <em>AAAA</em> (IPv6). Clicca quella di tipo <strong>A</strong> e poi la sua risposta, aprendo
+          <code>Domain Name System</code>.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Campo</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td>Protocollo di trasporto e porta di destinazione</td><td class="esempio">UDP, 53</td><td class="fill"></td></tr>
+      <tr><td><code>Transaction ID</code> della domanda</td><td class="esempio">0x0003</td><td class="fill"></td></tr>
+      <tr><td><code>Transaction ID</code> della risposta</td><td class="esempio">0x0003</td><td class="fill"></td></tr>
+      <tr><td>Domanda: <code>Name</code></td><td class="esempio">www.wikipedia.org</td><td class="fill"></td></tr>
+      <tr><td>Risposta: indirizzo nella riga di tipo <code>A</code></td><td class="esempio">185.15.58.224</td><td class="fill"></td></tr>
+      <tr><td>Risposta: <code>Time to live</code></td><td class="esempio">600</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">A cosa serve il Transaction ID? E il Time to live di una risposta DNS è lo stesso TTL del ping?</p>
+    <div class="answer"></div>
+
+    <h3>B. Una pagina web in chiaro: TCP e HTTP</h3>
+    <ol class="steps">
+      <li>Riavvia la cattura e scrivi il filtro <code>tcp.port == 80</code>.</li>
+      <li>Nel Prompt:
+<pre class="cli"><span class="kw">curl</span> http://example.com</pre>
+          <code>curl</code> scarica la pagina e la scrive nel Prompt, senza browser.</li>
+      <li>Ferma la cattura. Le prime tre righe sono il <strong>three-way handshake</strong>. Compila la tabella: per il GET i numeri
+          non sono nella colonna Info, li trovi sulla riga <code>Transmission Control Protocol</code> del pannello 2.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Pacchetto</th><th>Inviato da</th><th>Esempio: Seq / Ack / Len</th><th>Nella tua cattura</th></tr>
+      <tr><td><code>[SYN]</code></td><td>Client</td><td class="esempio">0 / — / 0</td><td class="fill"></td></tr>
+      <tr><td><code>[SYN, ACK]</code></td><td>Server</td><td class="esempio">0 / 1 / 0</td><td class="fill"></td></tr>
+      <tr><td><code>[ACK]</code></td><td>Client</td><td class="esempio">1 / 1 / 0</td><td class="fill"></td></tr>
+      <tr><td><code>GET / HTTP/1.1</code></td><td>Client</td><td class="esempio">1 / 1 / 75</td><td class="fill"></td></tr>
+      <tr><td><code>[ACK]</code> subito dopo il GET</td><td>Server</td><td class="esempio">1 / 76 / 0</td><td class="fill"></td></tr>
+    </table></div>
+    <div class="info-box">
+      <strong>La regola:</strong> <code>Ack = Seq ricevuto + Len</code>, cioè «ho ricevuto tutto fino a qui, mandami il byte successivo».
+      SYN e FIN contano 1 anche se non portano dati. Wireshark mostra i numeri di sequenza <em>relativi</em>, che partono da 0 per comodità.
+    </div>
+    <div class="warn-box">
+      Se vedi righe nere come <code>[TCP Retransmission]</code> o <code>[TCP Dup ACK]</code>, non hai sbagliato nulla: la rete ha
+      ritrasmesso qualche pacchetto.
+    </div>
+
+    <h3>C. Leggi la conversazione</h3>
+    <ol class="steps">
+      <li>Clicca la riga <code>GET / HTTP/1.1</code> e apri <code>Hypertext Transfer Protocol</code>: trovi <em>Request Method</em>,
+          <em>Request URI</em>, <em>Host</em> e <em>User-Agent</em>.</li>
+      <li>Tasto destro sulla stessa riga → <strong>Follow → TCP Stream</strong>. Si apre una finestra con tutta la conversazione:
+          in rosso ciò che ha inviato il client, in blu ciò che ha inviato il server.</li>
+    </ol>
+    <div class="ws" role="img" aria-label="Esempio della finestra Follow TCP Stream, con la richiesta in rosso e la risposta in blu">
+      <div class="ws-title">Follow TCP Stream</div>
+      <div class="ws-follow"><span class="cl">GET / HTTP/1.1
+Host: example.com
+User-Agent: curl/8.x
+Accept: */*</span><span class="sv">HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Server: cloudflare
+
+&lt;!doctype html&gt;&lt;html&gt; ... tutta la pagina, leggibile ...</span></div>
+    </div>
+    <ol class="steps" start="3" style="counter-reset: st 2;">
+      <li>Chiudi la finestra. Wireshark ha cambiato il filtro in <code>tcp.stream eq …</code>: toglilo.</li>
+      <li>Salva la cattura: menu <strong>File → Save As</strong>, con il nome <code>Cognome_Nome_http.pcapng</code>.</li>
+    </ol>
+    <p class="q">Se invece di <code>example.com</code> questo fosse stato un login, che cosa avresti letto nella finestra di Follow?</p>
+    <div class="answer"></div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 3</div>
+      <ul>
+        <li>Ho abbinato una domanda DNS alla sua risposta tramite il Transaction ID</li>
+        <li>Ho riconosciuto il three-way handshake e verificato la regola dell'Ack</li>
+        <li>Ho letto la conversazione HTTP con Follow TCP Stream</li>
+        <li>Ho salvato il file <code>Cognome_Nome_http.pcapng</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2><span class="part-num">4</span>La comunicazione intercettata <span class="tag tag-gui">Wireshark</span></h2>
+
+    <div class="info-box">
+      <strong>Lo scenario.</strong> Fai parte del team di sicurezza di GammaTech. Anna e Bruno, due dipendenti, usano una chat interna
+      che viaggia su HTTP. Sanno che non è protetta, quindi cifrano i messaggi a mano, con i cifrari classici visti a lezione.
+      È una buona idea? Il team ha registrato il loro traffico: verifica che cosa si riesce a leggere.
+    </div>
+
+    <h3>A. Trova i messaggi</h3>
+    <ol class="steps">
+      <li>Scarica la cattura e aprila con un doppio clic, oppure da <strong>File → Open</strong>. È un file già pronto: stavolta non devi catturare nulla.<br>
+          <a class="dl" href="intercettazione_gammatech.pcapng" download>Scarica intercettazione_gammatech.pcapng</a></li>
+      <li>La cattura contiene 34 pacchetti. Scrivi il filtro <code>http</code>: restano 4 righe, due <code>POST /chat</code> e due <code>200 OK</code>.</li>
+      <li>Tasto destro sul primo <code>POST</code> (pacchetto 12) → <strong>Follow → TCP Stream</strong>. Copia in tabella il cifrario e il testo.</li>
+      <li>Chiudi la finestra, rimetti il filtro <code>http</code> e fai lo stesso con il secondo <code>POST</code> (pacchetto 24).</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>Cifrario dichiarato</th><th>Testo cifrato</th></tr>
+      <tr><td><strong>Messaggio 1</strong></td><td class="fill"></td><td class="fill" style="height:62px"></td></tr>
+      <tr><td><strong>Messaggio 2</strong></td><td class="fill"></td><td class="fill" style="height:62px"></td></tr>
+    </table></div>
+
+    <h3>B. Primo messaggio: attacco a Cesare</h3>
+    <p>Non hai la chiave, ma nel cifrario di Cesare le chiavi possibili sono solo 26: puoi provarle una per una. Ti serve la striscia dell'alfabeto.</p>
+    <div class="table-wrap"><table class="griglia">
+      <tr><td class="dato">A</td><td class="dato">B</td><td class="dato">C</td><td class="dato">D</td><td class="dato">E</td><td class="dato">F</td><td class="dato">G</td><td class="dato">H</td><td class="dato">I</td><td class="dato">J</td><td class="dato">K</td><td class="dato">L</td><td class="dato">M</td><td class="dato">N</td><td class="dato">O</td><td class="dato">P</td><td class="dato">Q</td><td class="dato">R</td><td class="dato">S</td><td class="dato">T</td><td class="dato">U</td><td class="dato">V</td><td class="dato">W</td><td class="dato">X</td><td class="dato">Y</td><td class="dato">Z</td></tr>
+      <tr><td class="piccola">0</td><td class="piccola">1</td><td class="piccola">2</td><td class="piccola">3</td><td class="piccola">4</td><td class="piccola">5</td><td class="piccola">6</td><td class="piccola">7</td><td class="piccola">8</td><td class="piccola">9</td><td class="piccola">10</td><td class="piccola">11</td><td class="piccola">12</td><td class="piccola">13</td><td class="piccola">14</td><td class="piccola">15</td><td class="piccola">16</td><td class="piccola">17</td><td class="piccola">18</td><td class="piccola">19</td><td class="piccola">20</td><td class="piccola">21</td><td class="piccola">22</td><td class="piccola">23</td><td class="piccola">24</td><td class="piccola">25</td></tr>
+    </table></div>
+    <div class="info-box">
+      <strong>Ripasso dalle slide.</strong> Con chiave 5, <code>PASSWORD</code> diventa <code>UFXXBTWI</code>: ogni lettera avanza di 5 posizioni.
+      Per decifrare si torna <strong>indietro</strong>: U − 5 = P. Se scendi sotto la A, ricominci dalla Z (cioè aggiungi 26).
+    </div>
+    <ol class="steps">
+      <li>Lavora sulla <strong>seconda parola</strong> del messaggio 1, quella di 6 lettere. Una parola di due lettere può sembrare giusta con molte chiavi,
+          una di sei con una sola.</li>
+      <li>Prova le chiavi in ordine, finché non compare una parola italiana. Le prime tre sono già fatte, così puoi controllare di aver preso la parola giusta.</li>
+      <li>Trovata la chiave, decifra tutto il messaggio. Gli spazi restano spazi, e la E può stare per «è»: nell'alfabeto del cifrario non ci sono accenti.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>k</th><th>Parola</th><th>k</th><th>Parola</th><th>k</th><th>Parola</th></tr>
+      <tr><td>1</td><td class="esempio">INOGBK</td><td>2</td><td class="esempio">HMNFAJ</td><td>3</td><td class="esempio">GLMEZI</td></tr>
+      <tr><td>4</td><td class="fill" style="min-width:90px"></td><td>5</td><td class="fill" style="min-width:90px"></td><td>6</td><td class="fill" style="min-width:90px"></td></tr>
+      <tr><td>…</td><td class="fill"></td><td>…</td><td class="fill"></td><td>…</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Chiave trovata e messaggio 1 in chiaro:</p>
+    <div class="answer"></div>
+
+    <h3>C. Secondo messaggio: Vigenère</h3>
+    <p>Nel Vigenère ogni lettera ha il suo spostamento: la chiave è una sequenza di numeri, che ricomincia da capo quando finisce.
+       Così la stessa lettera in chiaro può diventare lettere diverse, e l'attacco per tentativi di prima non funziona più.
+       Ma il messaggio 1 ti ha appena regalato ciò che ti serve.</p>
+    <p><strong>Esempio dalle slide, al contrario.</strong> <code>RIVUWQW</code> con chiave <code>3 15 2 6 21 8 3</code> torna <code>OTTOBIT</code>:</p>
+    <div class="table-wrap"><table class="griglia">
+      <tr><th>Cifrato</th><td class="dato">R</td><td class="dato">I</td><td class="dato">V</td><td class="dato">U</td><td class="dato">W</td><td class="dato">Q</td><td class="dato">W</td></tr>
+      <tr><th>− Chiave</th><td class="dato">3</td><td class="dato">15</td><td class="dato">2</td><td class="dato">6</td><td class="dato">21</td><td class="dato">8</td><td class="dato">3</td></tr>
+      <tr><th>= Chiaro</th><td class="dato">O</td><td class="dato">T</td><td class="dato">T</td><td class="dato">O</td><td class="dato">B</td><td class="dato">I</td><td class="dato">T</td></tr>
+    </table></div>
+    <p style="font-size:0.92rem;color:#4a5568;margin-top:10px;">Per esempio I − 15: I vale 8, 8 − 15 = −7, −7 + 26 = 19, che è la T.</p>
+    <p>Decifra il messaggio 2 con la griglia qui sotto. Scrivi <strong>solo le lettere</strong>: gli spazi non consumano numeri della chiave.
+       Le lettere sono 28, gli spazi li rimetti alla fine confrontando il testo cifrato.</p>
+    <div class="table-wrap"><table class="griglia">
+      <tr><th>Cifrato</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+      <tr><th>− Chiave</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+      <tr><th>= Chiaro</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+    </table></div>
+    <div class="table-wrap"><table class="griglia" style="margin-top:12px;">
+      <tr><th>Cifrato</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+      <tr><th>− Chiave</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+      <tr><th>= Chiaro</th><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td><td class="vuota"></td></tr>
+    </table></div>
+    <p class="q">Messaggio 2 in chiaro:</p>
+    <div class="answer"></div>
+
+    <h3>D. Che cosa hai imparato</h3>
+    <p class="q">Il Vigenère è più robusto del Cesare, eppure è caduto subito. Qual è stato il vero errore di Anna?</p>
+    <div class="answer"></div>
+    <p class="q">Se Anna avesse usato il DES, ma avesse spedito la chiave nello stesso modo, sarebbe cambiato qualcosa? Perché?</p>
+    <div class="answer"></div>
+    <p>Anche senza decifrare nulla, la cattura racconta già molto. Per rispondere basta la Packet List:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Domanda</th><th>Dove guardare</th><th>Risposta</th></tr>
+      <tr><td>IP di chi ha inviato i messaggi</td><td>Colonna <em>Source</em> dei POST</td><td class="fill"></td></tr>
+      <tr><td>IP del server della chat</td><td>Colonna <em>Destination</em> dei POST</td><td class="fill"></td></tr>
+      <tr><td>Nome del server della chat</td><td>Filtro <code>dns</code></td><td class="fill"></td></tr>
+      <tr><td>Secondi tra i due messaggi</td><td>Colonna <em>Time</em> dei POST</td><td class="fill"></td></tr>
+    </table></div>
+    <div class="tip-box">
+      <strong>Il problema della distribuzione delle chiavi.</strong> Con la crittografia simmetrica la chiave è una sola e serve a entrambe le parti.
+      Ma come fa ad arrivare all'altra parte, se il canale non è sicuro? Questo vale per Cesare e Vigenère, e allo stesso modo per DES e AES:
+      un algoritmo forte non salva una chiave spedita male. È il problema che la crittografia asimmetrica risolve, e nella prossima parte lo vedi all'opera.
+    </div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 4</div>
+      <ul>
+        <li>Ho aperto una cattura da file e ho trovato i messaggi con il filtro <code>http</code></li>
+        <li>Ho trovato la chiave del Cesare per tentativi e ho decifrato il messaggio 1</li>
+        <li>Ho decifrato il messaggio 2 con il Vigenère</li>
+        <li>So spiegare perché il vero problema era il modo di scambiare la chiave</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2><span class="part-num">5</span>HTTPS: la crittografia in azione <span class="tag tag-gui">Wireshark</span> <span class="tag tag-cli">Prompt</span></h2>
+
+    <div class="info-box">
+      <strong>Dalle slide:</strong> RSA è sicuro ma lento, DES e AES sono veloci ma hanno bisogno di una chiave condivisa. La <em>soluzione ibrida</em>
+      li unisce: l'asimmetrica serve a mettere al sicuro lo scambio, la simmetrica cifra i dati. HTTPS funziona così, e ora lo vedi nei pacchetti.
+    </div>
+
+    <h3>A. Cattura una connessione HTTPS</h3>
+    <ol class="steps">
+      <li>Chiudi il file di Anna e Bruno con <strong>File → Close</strong>, poi fai doppio clic sulla tua interfaccia, come nella Parte 1. Scrivi il filtro <code>tls</code>.</li>
+      <li>Nel Prompt:
+<pre class="cli"><span class="kw">curl</span> --tls-max 1.2 https://www.istruzione.it</pre>
+          L'opzione <code>--tls-max 1.2</code> chiede di usare TLS 1.2. Oggi i siti preferiscono TLS 1.3, che cifra anche il certificato:
+          con la versione precedente lo puoi vedere. Sullo schermo compare poco o nulla, ma non importa: a noi interessano i pacchetti.</li>
+      <li>Ferma la cattura. Le righe dovrebbero essere simili a queste:</li>
+    </ol>
+    <div class="ws" role="img" aria-label="Esempio della Packet List durante una connessione TLS 1.2">
+      <div class="ws-h"><b>1</b>Packet List — filtro tls</div>
+      <div class="ws-scroll"><table class="ws-list">
+        <tr><th>Protocol</th><th>Info</th></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Client Hello (SNI=www.istruzione.it)</td></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Server Hello</td></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Certificate, Server Key Exchange, Server Hello Done</td></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Client Key Exchange, Change Cipher Spec, Encrypted Handshake Message</td></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Change Cipher Spec, Encrypted Handshake Message</td></tr>
+        <tr class="c-tcp"><td>TLSv1.2</td><td>Application Data</td></tr>
+      </table></div>
+    </div>
+    <div class="warn-box">
+      Se <code>curl</code> dà un errore sulla revoca del certificato (<code>CRYPT_E_NO_REVOCATION_CHECK</code>), aggiungi l'opzione
+      <code>--ssl-no-revoke</code> e riprova. Se non compare nessuna riga TLS, chiama l'insegnante.
+    </div>
+
+    <h3>B. Client Hello: quali algoritmi conosce il tuo PC?</h3>
+    <p>Filtro <code>tls.handshake.type == 1</code>. Clicca la riga e nel pannello 2 apri
+       <code>Transport Layer Security → … → Handshake Protocol: Client Hello → Cipher Suites</code>.
+       Ogni voce è una <strong>cipher suite</strong>: una combinazione di algoritmi, uno per ogni compito.</p>
+    <div class="suite">TLS_<span class="s-ecdhe">ECDHE</span>_<span class="s-rsa">RSA</span>_WITH_<span class="s-aes">AES_256_GCM</span>_<span class="s-sha">SHA384</span></div>
+    <div class="table-wrap"><table>
+      <tr><th>Pezzo</th><th>Compito</th><th>Collegamento con la teoria</th></tr>
+      <tr><td><span class="chip s-ecdhe">ECDHE</span></td><td>Concordare la chiave di sessione</td><td>Stesso scopo dello scambio con RSA, ma con un altro metodo matematico</td></tr>
+      <tr><td><span class="chip s-rsa">RSA</span></td><td>Dimostrare l'identità del server</td><td>Crittografia <strong>asimmetrica</strong> e firma digitale</td></tr>
+      <tr><td><span class="chip s-aes">AES_256_GCM</span></td><td>Cifrare i dati</td><td>Crittografia <strong>simmetrica</strong>: l'erede del DES, con chiave da 256 bit</td></tr>
+      <tr><td><span class="chip s-sha">SHA384</span></td><td>Controllare che i dati non siano alterati</td><td>Funzione di hash, come nella firma digitale</td></tr>
+    </table></div>
+    <p style="margin-top:10px;">Nelle suite che iniziano con <code>TLS_RSA_WITH_</code>, come <code>TLS_RSA_WITH_AES_256_GCM_SHA384</code>, RSA fa entrambi i lavori:
+       è proprio lo schema delle slide, in cui il client sceglie la chiave simmetrica e la spedisce cifrata con la chiave pubblica del server.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Cerca nell'elenco</th><th>Esempio</th><th>Che cosa trovi tu</th></tr>
+      <tr><td>Quante suite propone il tuo PC?</td><td class="esempio">Cipher Suites (46 suites)</td><td class="fill"></td></tr>
+      <tr><td>Una suite con AES e chiave da 256 bit</td><td class="esempio">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</td><td class="fill"></td></tr>
+      <tr><td>Una suite con DES singolo (<code>DES_CBC</code>)</td><td class="esempio">nessuna</td><td class="fill"></td></tr>
+      <tr><td>Una suite con 3DES (<code>3DES_EDE</code>)</td><td class="esempio">dipende dalla versione di Windows</td><td class="fill"></td></tr>
+      <tr><td>Il nome del sito: apri <code>Extension: server_name</code> e leggi <code>Server Name</code></td><td class="esempio">www.istruzione.it</td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Dalle slide: quanto è lunga la chiave del DES, e che cosa è successo nel 1998? Perché secondo te oggi non compare più?</p>
+    <div class="answer"></div>
+
+    <h3>C. Server Hello: chi decide?</h3>
+    <p>Filtro <code>tls.handshake.type == 2</code>. Il client propone tante suite, il server ne sceglie una sola. La trovi nella riga <code>Cipher Suite</code>
+       di <code>Handshake Protocol: Server Hello</code>.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Campo</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td><code>Cipher Suite</code> scelta</td><td class="esempio">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</td><td class="fill"></td></tr>
+      <tr><td>Algoritmo simmetrico che cifrerà i dati</td><td class="esempio">AES a 256 bit</td><td class="fill"></td></tr>
+    </table></div>
+    <p style="font-size:0.92rem;color:#4a5568;margin-top:10px;">Se trovi <code>CHACHA20</code> al posto di AES, è un altro cifrario simmetrico moderno. Il ruolo è lo stesso.</p>
+
+    <h3>D. Il certificato: ecco la chiave pubblica RSA</h3>
+    <p>Filtro <code>tls.handshake.type == 11</code>. Nel pannello 2, tasto destro su <code>Transport Layer Security</code> → <strong>Expand Subtrees</strong> per aprire tutto.
+       L'elenco è lungo perché c'è una catena di certificati: <strong>il primo è quello del sito</strong>. Cerca queste righe:</p>
+    <div class="ws" role="img" aria-label="Percorso dei campi del certificato nel pannello dei dettagli">
+      <div class="ws-h"><b>2</b>Packet Details — certificato</div>
+      <div class="ws-det">
+        <div>▼ TLSv1.2 Record Layer: Handshake Protocol: Certificate</div>
+        <div class="i1">▼ Handshake Protocol: Certificate</div>
+        <div class="i2">▼ Certificates (4079 bytes)</div>
+        <div class="i3">▼ Certificate: … <span class="nota">← il primo è quello del sito</span></div>
+        <div class="i4">▼ signedCertificate</div>
+        <div class="i5">▶ issuer: rdnSequence (0) <span class="nota">← l'ente certificatore</span></div>
+        <div class="i5">▶ validity <span class="nota">← notBefore e notAfter: da quando a quando vale</span></div>
+        <div class="i5">▶ subject: rdnSequence (0) <span class="nota">← il sito</span></div>
+        <div class="i5">▼ subjectPublicKeyInfo</div>
+        <div class="i5" style="padding-left:120px">algorithm (rsaEncryption) <span class="nota">← l'algoritmo è RSA</span></div>
+        <div class="i5" style="padding-left:120px">▼ subjectPublicKey: 3082010a02820101…</div>
+        <div class="i5" style="padding-left:140px"><span class="hl">modulus: 0x00a9381009a461e2a4…</span> <span class="nota">← N</span></div>
+        <div class="i5" style="padding-left:140px"><span class="hl">publicExponent: 65537</span> <span class="nota">← N_PUB</span></div>
+        <div class="i4">▶ algorithmIdentifier (sha256WithRSAEncryption) <span class="nota">← come firma la CA</span></div>
+        <div class="i4">&nbsp;&nbsp;encrypted: b7c9e0e05ba849d6… <span class="nota">← la firma della CA</span></div>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Nelle slide</th><th>In Wireshark</th><th>Esempio</th><th>Nella tua cattura</th></tr>
+      <tr><td>Ente certificatore (CA)</td><td><code>issuer</code></td><td class="esempio">Let's Encrypt</td><td class="fill"></td></tr>
+      <tr><td>Titolare del certificato</td><td><code>subject</code></td><td class="esempio">www.istruzione.it</td><td class="fill"></td></tr>
+      <tr><td>Scadenza</td><td><code>notAfter</code></td><td class="esempio">2026-12-29</td><td class="fill"></td></tr>
+      <tr><td>N = p × q</td><td><code>modulus</code></td><td class="esempio">0x00a93810…</td><td class="fill"></td></tr>
+      <tr><td>N_PUB</td><td><code>publicExponent</code></td><td class="esempio">65537</td><td class="fill"></td></tr>
+      <tr><td>N_PRI</td><td>Cercalo!</td><td class="esempio">non c'è</td><td class="fill"></td></tr>
+    </table></div>
+    <div class="info-box">
+      <strong>Quanto è grande N?</strong> Clicca la riga <code>modulus</code>: la barra in basso indica la sua lunghezza, 257 byte. Il primo è uno <code>00</code> di servizio,
+      quindi N occupa 256 byte, cioè 256 × 8 = <strong>2048 bit</strong>: una delle dimensioni viste a lezione. Nell'esempio delle slide N valeva 33. Qui è un numero di oltre 600 cifre decimali,
+      e per ricavare la chiave privata bisognerebbe scomporlo in p × q.
+    </div>
+    <p class="q">Nella Parte 4 intercettare la chiave è stato fatale. Qui hai appena intercettato la chiave pubblica del server, eppure non è un problema. Perché?</p>
+    <div class="answer"></div>
+
+    <h3>E. I dati: illeggibili</h3>
+    <ol class="steps">
+      <li>Filtro <code>tls</code>. Tasto destro su una riga <code>Application Data</code> → <strong>Follow → TCP Stream</strong>.</li>
+      <li>Confronta con ciò che hai letto nella Parte 3: niente più GET, niente pagina, solo byte senza senso. Chiudi la finestra e togli il filtro.</li>
+      <li>Salva la cattura come <code>Cognome_Nome_https.pcapng</code>.</li>
+    </ol>
+    <p style="margin-top:14px;"><strong>Metti insieme i pezzi.</strong> Le fasi sono quelle della slide «Dietro il lucchetto». Scrivi il numero di pacchetto (colonna <em>No.</em>) in cui le trovi:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Fase nelle slide</th><th>Riga in Wireshark</th><th>Come viaggia</th><th>N. pacchetto</th></tr>
+      <tr><td><strong>1 · Hello</strong></td><td><code>Client Hello</code>, <code>Server Hello</code></td><td>In chiaro</td><td class="fill"></td></tr>
+      <tr><td><strong>2 · Certificato</strong></td><td><code>Certificate</code></td><td>In chiaro: la chiave è pubblica</td><td class="fill"></td></tr>
+      <tr><td><strong>3 · Verifica</strong></td><td>Nessuna: il tuo PC controlla la firma della CA</td><td>—</td><td>—</td></tr>
+      <tr><td><strong>4 · Scambio chiave</strong></td><td><code>Server Key Exchange</code>, <code>Client Key Exchange</code></td><td>Visibile, ma non basta a ricavare la chiave</td><td class="fill"></td></tr>
+      <tr><td><strong>5 · Tunnel attivo</strong></td><td><code>Application Data</code></td><td>Cifrato con la chiave simmetrica</td><td class="fill"></td></tr>
+    </table></div>
+
+    <h3>F. Che cosa vede chi intercetta?</h3>
+    <p>Rispondi con i dati che hai trovato. La prima riga è già compilata.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Informazione</th><th>Su HTTP</th><th>Su HTTPS</th></tr>
+      <tr><td>IP di client e server</td><td class="esempio">Sì</td><td class="esempio">Sì</td></tr>
+      <tr><td>Porta del server</td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>Nome del sito</td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>Pagina richiesta (<em>Request URI</em>)</td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td>Contenuto, password comprese</td><td class="fill"></td><td class="fill"></td></tr>
+    </table></div>
+    <div class="tip-box">
+      <strong>Il lucchetto protegge il contenuto, non il fatto che tu stia comunicando.</strong> Chi intercetta non legge i tuoi dati,
+      ma può sapere con quale sito stai parlando, quando e per quanto tempo.
+    </div>
+
+    <h3>Dove hai incontrato gli algoritmi studiati</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Algoritmo</th><th>Tipo</th><th>Dove l'hai visto</th><th>Conclusione</th></tr>
+      <tr><td><strong>Cesare</strong></td><td>Simmetrico</td><td>Parte 4</td><td>26 chiavi: cade in pochi minuti, anche a mano</td></tr>
+      <tr><td><strong>Vigenère</strong></td><td>Simmetrico</td><td>Parte 4</td><td>Più robusto, ma inutile se la chiave viene spedita male</td></tr>
+      <tr><td><strong>DES</strong></td><td>Simmetrico</td><td>Assente dall'elenco delle suite</td><td>56 bit sono troppo pochi: forzato nel 1998</td></tr>
+      <tr><td><strong>AES</strong></td><td>Simmetrico</td><td>Suite scelta, <code>Application Data</code></td><td>Cifra i dati in modo veloce e sicuro</td></tr>
+      <tr><td><strong>RSA</strong></td><td>Asimmetrico</td><td>Certificato: <code>modulus</code> e <code>publicExponent</code></td><td>Risolve il problema dello scambio e dell'identità</td></tr>
+    </table></div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 5</div>
+      <ul>
+        <li>So leggere il nome di una cipher suite e dire a cosa serve ogni pezzo</li>
+        <li>Ho trovato la suite scelta dal server nel Server Hello</li>
+        <li>Ho trovato N e N_PUB nel certificato e ho verificato che N è da 2048 bit</li>
+        <li>Ho visto che con Follow TCP Stream i dati sono illeggibili</li>
+        <li>So spiegare perché la chiave pubblica può viaggiare in chiaro</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 6 -->
+  <div class="card part-extra">
+    <h2><span class="part-num">6</span>Posso vedere il traffico del PC vicino? <span class="tag tag-plus">se resta tempo</span></h2>
+    <p>Da fare in coppia, d'accordo con la persona accanto a te. Decidete chi cattura e chi fa il ping, poi scambiatevi i ruoli.</p>
+    <ol class="steps">
+      <li>Chi cattura riavvia Wireshark e scrive il filtro <code>icmp</code>.</li>
+      <li>Sull'altro PC, nel Prompt:
+<pre class="cli"><span class="kw">ping</span> -n 10 8.8.8.8</pre></li>
+      <li>Chi cattura guarda la Packet List. Poi cambia il filtro in <code>eth.dst == ff:ff:ff:ff:ff:ff</code>.</li>
+    </ol>
+    <div class="table-wrap"><table>
+      <tr><th>Filtro</th><th>Si vedono pacchetti dell'altro PC?</th></tr>
+      <tr><td><code>icmp</code></td><td class="fill"></td></tr>
+      <tr><td><code>eth.dst == ff:ff:ff:ff:ff:ff</code></td><td class="fill"></td></tr>
+    </table></div>
+    <p class="q">Quale dispositivo decide che cosa arriva alla tua scheda di rete, e con quale criterio?</p>
+    <div class="answer"></div>
+    <div class="info-box">
+      Se su una rete cablata lo switch non inoltra quei pacchetti alla tua porta, non significa che siano al sicuro: chi si trova
+      lungo il percorso, come un gateway, un provider o il gestore di una Wi-Fi pubblica, li vede tutti. Per questo la protezione giusta è la cifratura, non la speranza che nessuno ascolti.
+    </div>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Quando hai finito</h2>
+    <ol class="steps">
+      <li>Controlla di avere salvato <code>Cognome_Nome_http.pcapng</code> e <code>Cognome_Nome_https.pcapng</code>.</li>
+      <li>Consegna i due file e questo foglio con le tabelle compilate.</li>
+      <li>Se qualche punto di controllo è rimasto senza spunta, scrivi qui sotto quale e che cosa non tornava:
+          serve a capire insieme dove intervenire, e conta come parte del lavoro.</li>
+    </ol>
+    <div style="border:2px dashed #cbd5e0; border-radius:8px; height:110px; margin-top:14px;
+                background:#fffbeb;"></div>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — Wireshark guidato — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
