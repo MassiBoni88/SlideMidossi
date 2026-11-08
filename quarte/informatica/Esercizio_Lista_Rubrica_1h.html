@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – La rubrica del nonno</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── TABELLA CONTATTI ── */
+    .contatti-table tbody td code { white-space: nowrap; }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>LA RUBRICA DEL NONNO</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: lista concatenata, inserimento ordinato,<br>ricerca che restituisce un puntatore, new e delete</span>
+      <span class="time">Tempo a disposizione: 1 ora</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Nonno Franco ha un telefono nuovo e un'<strong>agendina di carta</strong> piena di numeri, scritti nell'ordine in
+    cui ha conosciuto le persone, non certo in ordine alfabetico. Il nonno ha due regole: la rubrica deve essere
+    <strong>sempre in ordine alfabetico</strong>, e ai <strong>numeri sconosciuti</strong> lui non risponde. Il
+    programma della rubrica lo scrivi tu.
+  </p>
+  <p class="scenario">
+    La rubrica è una <strong>lista concatenata</strong>: ogni contatto è un nodo creato con <code>new</code> e il
+    puntatore <code>rubrica</code> del <code>main</code> indica il primo contatto (la <strong>testa</strong>). Nessuno sa
+    quanti numeri il nonno salverà, per questo un array non va bene.
+  </p>
+  <p class="scenario">
+    <strong>La regola dell'ordine.</strong> I contatti sono ordinati per <strong>cognome</strong> e, a parità di
+    cognome, per <strong>nome</strong>. La rubrica non si riordina mai: ogni nuovo contatto entra subito al suo posto,
+    che può essere in testa, in mezzo o in coda.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct</h2>
+
+  <h3>1a. Definisci la struct <strong>Contatto</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>il nome (es. "Mario")</td></tr>
+      <tr><td><code>cognome</code></td><td>il cognome (es. "Rossi")</td></tr>
+      <tr><td><code>numero</code></td><td>il numero di telefono, come <strong>string</strong> (es. "0761 334455")</td></tr>
+      <tr><td><code>email</code></td><td>l'indirizzo email (es. "mario.rossi@email.it")</td></tr>
+      <tr><td><code>next</code></td><td><strong>puntatore</strong> al contatto successivo, <code>nullptr</code> se è l'ultimo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1b. Su carta, disegna la rubrica dopo i primi tre contatti del passo 1 della Parte 4.</h3>
+  <p>Un rettangolo per ogni contatto, con cognome e nome, e una freccia per ogni <code>next</code>; segna dove punta
+    <code>rubrica</code>. Poi, con un altro colore, aggiungi Neri Paolo e Rossi Anna. Ogni volta: quali frecce aggiungi
+    e quali cancelli?</p>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti quattro funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla
+    descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>aggiungi(Contatto* testa, string nome, string cognome, string numero, string email)</code></td>
+        <td>Crea un contatto con <code>new</code> e lo aggancia alla rubrica <strong>al posto giusto</strong>, in ordine
+          per cognome e, a parità di cognome, per nome. Restituisce il primo contatto della rubrica</td>
+      </tr>
+      <tr>
+        <td><code>stampa(Contatto* testa)</code></td>
+        <td>Stampa tutta la rubrica, un contatto per riga, nel formato della Parte 3. Se la rubrica è vuota stampa
+          <code>Rubrica vuota</code></td>
+      </tr>
+      <tr>
+        <td><code>cerca(Contatto* testa, string numero)</code></td>
+        <td>Cerca, partendo dalla testa, il contatto con quel numero e stampa chi sta chiamando, nel formato della
+          Parte 3. Restituisce l'<strong>indirizzo</strong> del contatto trovato, oppure <code>nullptr</code> se il
+          numero non è in rubrica</td>
+      </tr>
+      <tr>
+        <td><code>svuota(Contatto* testa)</code></td>
+        <td>Libera la memoria di tutti i contatti, stampa quanti ne ha cancellati e restituisce la rubrica vuota</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> le <code>string</code> si confrontano con <code>&lt;</code> e <code>==</code>, come
+    i numeri: <code>"Bianchi" &lt; "Rossi"</code> vale <code>true</code>. Dentro <code>aggiungi</code> ti farai più
+    volte la stessa domanda: «il nuovo contatto va prima di questo?». La risposta è sì se il suo cognome è minore,
+    oppure se il cognome è uguale e il nome è minore.
+  </div>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Che cosa stampano le funzioni</h2>
+
+  <p>Gli esempi usano una rubrica scritta solo per l'occasione, diversa da quella della Parte 4: Moretti Dario
+    (349 3334444) e Costa Sara (340 1112222), aggiunti in quest'ordine. I tuoi messaggi devono essere identici.</p>
+
+  <h3>3a. La rubrica</h3>
+  <p>Un contatto per riga: cognome, nome, numero ed email, separati da un trattino. Costa viene prima anche se è stata
+    aggiunta per seconda.</p>
+  <div class="out-label">stampa(rubrica)</div>
+<pre class="out">Costa Sara - 340 1112222 - sara.costa@email.it
+Moretti Dario - 349 3334444 - dario.moretti@email.it</pre>
+
+  <h3>3b. Le chiamate e la fine</h3>
+  <p><code>cerca</code> stampa chi sta chiamando; <code>svuota</code> stampa quanti contatti ha cancellato. Con la
+    rubrica degli esempi:</p>
+  <div class="out-grid">
+    <div>
+      <div class="out-label">cerca(rubrica, "349 3334444")</div>
+<pre class="out">Squilla 349 3334444: Moretti Dario</pre>
+    </div>
+    <div>
+      <div class="out-label">cerca(rubrica, "333 0000000")</div>
+<pre class="out">Squilla 333 0000000: numero sconosciuto</pre>
+    </div>
+    <div>
+      <div class="out-label">svuota(rubrica)</div>
+<pre class="out">Contatti cancellati: 2</pre>
+    </div>
+    <div>
+      <div class="out-label">stampa(rubrica), dopo svuota</div>
+<pre class="out">Rubrica vuota</pre>
+    </div>
+  </div>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Funzione main()</h2>
+
+  <p>All'inizio la rubrica è vuota: <code>Contatto* rubrica = nullptr;</code>. Esegui in ordine i passi seguenti:
+    prima di ognuno stampa il nome del passo (es. <code style="white-space: nowrap;">--- L'agendina ---</code>); alla
+    fine dei passi 1, 4 e 5 stampa tutta la rubrica con <code>stampa</code>.</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>L'agendina</td>
+        <td>aggiungi i cinque contatti della tabella qui sotto, nell'ordine in cui compaiono</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Squilla il telefono</td>
+        <td>chiamano prima il 347 5551234, poi il 328 4445566: per ognuno usa <code>cerca</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>La dottoressa</td>
+        <td>il numero sconosciuto era la nuova dottoressa del nonno, Elena Ferri (328 4445566,
+          elena.ferri@email.it): aggiungila. Poi lei richiama: usa di nuovo <code>cerca</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Email nuova</td>
+        <td>chiama tua cugina Giulia (339 8765432) e dice che ha cambiato email: con il puntatore restituito da
+          <code>cerca</code> cambiale l'email in giulia.verdi@posta.it</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Fine</td>
+        <td>libera la memoria di tutta la rubrica</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>I contatti dell'agendina (passo 1), nell'ordine in cui li trovi</h3>
+  <table class="contatti-table">
+    <thead>
+      <tr><th>Nome</th><th>Cognome</th><th>Numero</th><th>Email</th><th>Chi è</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Mario</td><td>Rossi</td><td><code>333 1234567</code></td><td><code>mario.rossi@email.it</code></td><td>il vicino di casa</td></tr>
+      <tr><td>Luca</td><td>Bianchi</td><td><code>347 5551234</code></td><td><code>luca.bianchi@email.it</code></td><td>il compagno di bocce</td></tr>
+      <tr><td>Giulia</td><td>Verdi</td><td><code>339 8765432</code></td><td><code>giulia.verdi@email.it</code></td><td>tua cugina</td></tr>
+      <tr><td>Paolo</td><td>Neri</td><td><code>0761 334455</code></td><td><code>paolo.neri@email.it</code></td><td>il ferramenta</td></tr>
+      <tr><td>Anna</td><td>Rossi</td><td><code>333 7654321</code></td><td><code>anna.rossi@email.it</code></td><td>la moglie del vicino</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve stampare esattamente l'output seguente.
+  </div>
+
+  <div class="out-label">Passi 1 – 5</div>
+<pre class="out">--- L'agendina ---
+Bianchi Luca - 347 5551234 - luca.bianchi@email.it
+Neri Paolo - 0761 334455 - paolo.neri@email.it
+Rossi Anna - 333 7654321 - anna.rossi@email.it
+Rossi Mario - 333 1234567 - mario.rossi@email.it
+Verdi Giulia - 339 8765432 - giulia.verdi@email.it
+--- Squilla il telefono ---
+Squilla 347 5551234: Bianchi Luca
+Squilla 328 4445566: numero sconosciuto
+--- La dottoressa ---
+Squilla 328 4445566: Ferri Elena
+--- Email nuova ---
+Squilla 339 8765432: Verdi Giulia
+Bianchi Luca - 347 5551234 - luca.bianchi@email.it
+Ferri Elena - 328 4445566 - elena.ferri@email.it
+Neri Paolo - 0761 334455 - paolo.neri@email.it
+Rossi Anna - 333 7654321 - anna.rossi@email.it
+Rossi Mario - 333 1234567 - mario.rossi@email.it
+Verdi Giulia - 339 8765432 - giulia.verdi@posta.it
+--- Fine ---
+Contatti cancellati: 6
+Rubrica vuota</pre>
+
+  <div class="out-label" style="margin-top: 14px;">Da notare</div>
+  <ul>
+    <li>il passo 1 prova tutti i casi di <code>aggiungi</code>: Rossi Mario entra nella rubrica vuota, Bianchi in
+      testa, Verdi in coda, Neri in mezzo. Se l'ordine è sbagliato, cerca quale caso non funziona</li>
+    <li>Rossi Anna e Rossi Mario hanno lo stesso cognome, quindi decide il nome: se Anna finisce dopo Mario, controlla
+      il confronto sui nomi</li>
+    <li>Ferri entra subito dopo la testa, e la seconda volta che chiama il nonno sa chi è: <code>cerca</code> trova
+      anche i contatti aggiunti dopo</li>
+    <li><code>cerca</code> trova Bianchi, che è il primo, e Verdi, che è l'ultimo. Se il programma si blocca sul
+      numero sconosciuto, controlla la condizione del ciclo</li>
+    <li>nel passo 4 non serve nessuna <code>new</code>: cambi un campo di un contatto che è già nella rubrica</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 5 ══════════════ -->
+  <h2>Parte 5 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li>Perché il campo <code>numero</code> è una <code>string</code> e non un <code>int</code>? Pensa al numero del
+      ferramenta.</li>
+    <li>Nel passo 4 cambi l'email di Giulia scrivendo solo nel <code>main</code>, senza passare la rubrica a nessuna
+      funzione. Come fa la modifica a finire dentro la rubrica?</li>
+    <li>Nel passo 4, che cosa succede se Giulia chiama da un numero che non è in rubrica e tu usi lo stesso il
+      puntatore restituito da <code>cerca</code>? Come eviti il problema?</li>
+    <li>In quali casi <code>aggiungi</code> restituisce una testa diversa da quella che ha ricevuto? Quante
+      <code>new</code> e quante <code>delete</code> esegue il tuo programma?</li>
+  </ol>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> prova ogni funzione su tre casi: rubrica vuota, un solo contatto, più contatti. Per
+    <code>aggiungi</code> prova anche i casi del passo 1: in testa, in mezzo, in coda e con lo stesso cognome. In quale
+    caso rischi di usare <code>-&gt;</code> su un puntatore che vale <code>nullptr</code>?
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> per agganciare un contatto in mezzo basta un puntatore al contatto che resta
+    <strong>prima</strong>: è lui che deve cambiare il proprio <code>next</code>. Scorri la rubrica finché il
+    successivo va prima del nuovo, poi fermati. Disegna le due frecce prima di scrivere il codice: l'ordine in cui le
+    cambi conta.
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Funzioni</td>
+        <td>Solo le quattro funzioni della Parte 2 più il <code>main</code>. Nessun parametro per riferimento (&amp;),
+          nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Memoria</td>
+        <td><code>new</code> si usa solo in <code>aggiungi</code>, <code>delete</code> solo in <code>svuota</code>. A
+          fine programma non deve restare memoria occupata</td>
+      </tr>
+      <tr>
+        <td>Ordine</td>
+        <td>Per cognome e, a parità di cognome, per nome. Vietato aggiungere in coda e riordinare dopo: ogni contatto
+          entra subito al suo posto</td>
+      </tr>
+      <tr>
+        <td>Confronti</td>
+        <td>Nomi e cognomi iniziano con la maiuscola e proseguono in minuscolo, quindi <code>&lt;</code> e
+          <code>==</code> sulle <code>string</code> bastano per metterli in ordine</td>
+      </tr>
+      <tr>
+        <td>Fine lista</td>
+        <td><code>next</code> vale <code>nullptr</code> per l'ultimo contatto; <code>rubrica</code> vale
+          <code>nullptr</code> se la rubrica è vuota</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le tue funzioni, il <code>main</code> e in fondo le risposte della
+          Parte 5</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
