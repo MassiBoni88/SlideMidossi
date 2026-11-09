@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione — «Te lo consiglio!»: Documenti, file e cartelle, Gmail</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+      background: #f0f4f8; color: #1a202c;
+      padding: 30px 20px 60px; font-size: 17px; line-height: 1.7;
+    }
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 26px 32px; margin-bottom: 16px;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 6px; line-height: 1.3; }
+    header p  { font-size: 1rem; opacity: 0.9; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 3px 14px;
+      font-size: 0.85rem; margin-top: 10px; margin-right: 5px;
+    }
+
+    /* linguette: una parte alla volta */
+    .tabs { display: none; }
+    .js .tabs {
+      display: flex; flex-wrap: wrap; gap: 5px; position: sticky; top: 0; z-index: 10;
+      background: #f0f4f8; padding: 8px 0 10px; margin-bottom: 8px;
+    }
+    .tabs button {
+      font: inherit; font-size: 0.9rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+      border: 1px solid #cbd5e0; background: white; color: #2d3748; border-radius: 20px; padding: 5px 11px;
+    }
+    .tabs button b {
+      display: inline-block; width: 22px; height: 22px; line-height: 22px; border-radius: 50%; text-align: center;
+      background: #bee3f8; color: #2a4365; font-size: 0.8rem; margin-right: 4px;
+    }
+    .tabs button.active { background: #2b6cb0; border-color: #2b6cb0; color: white; }
+    .tabs button.active b { background: white; }
+    .tabs button.extra b { background: #e9d8fd; color: #553c9a; }
+    .step { scroll-margin-top: 70px; }
+    .pager { display: none; }
+    .js .pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 4px; }
+    .pager button {
+      font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; border-radius: 8px; padding: 10px 18px;
+      border: 1px solid #cbd5e0; background: white; color: #2d3748;
+    }
+    .pager button.next { background: #2b6cb0; border-color: #2b6cb0; color: white; margin-left: auto; }
+    .pager button:disabled { visibility: hidden; }
+
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 26px 30px; margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1.3rem; color: #2b6cb0;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 12px; margin-bottom: 16px; line-height: 1.35;
+    }
+    .card h3 { font-size: 1.02rem; color: #2d3748; margin: 22px 0 8px; font-weight: 700; }
+    .card p + p { margin-top: 8px; }
+    .muted { font-size: 0.9rem; color: #4a5568; }
+
+    .points { float: right; background: #edf2f7; border-radius: 14px;
+              padding: 2px 12px; font-size: 0.8rem; color: #4a5568; font-weight: 600; margin-top: 4px; }
+
+    .part-num {
+      display: inline-block; background: #2b6cb0; color: white;
+      width: 38px; height: 38px; border-radius: 50%;
+      text-align: center; line-height: 38px; font-size: 1.1rem;
+      font-weight: 700; margin-right: 10px; vertical-align: middle;
+    }
+    .part-extra .part-num { background: #805ad5; }
+    .part-extra h2 { color: #805ad5; border-left-color: #805ad5; }
+
+    .info-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 5px; padding: 12px 18px; margin: 12px 0; }
+    .warn-box { background: #fffff0; border-left: 5px solid #d69e2e; border-radius: 5px; padding: 12px 18px; margin: 12px 0; }
+    .tip-box  { background: #f0fff4; border-left: 5px solid #38a169; border-radius: 5px; padding: 12px 18px; margin: 12px 0; }
+    ul.plain { margin: 4px 0 0 22px; }
+    ul.plain li { margin: 3px 0; }
+
+    /* passi operativi */
+    ol.steps { list-style: none; counter-reset: st; margin: 6px 0 0 0; }
+    ol.steps li {
+      counter-increment: st; position: relative;
+      padding: 8px 0 8px 44px; border-bottom: 1px solid #edf2f7;
+    }
+    ol.steps li:last-child { border-bottom: none; }
+    ol.steps li::before {
+      content: counter(st); position: absolute; left: 0; top: 9px;
+      background: #bee3f8; color: #2a4365; font-weight: 700;
+      width: 30px; height: 30px; border-radius: 50%;
+      text-align: center; line-height: 30px; font-size: 0.9rem;
+    }
+
+    /* punto di controllo */
+    .check { background: #f0fff4; border: 2px solid #38a169; border-radius: 8px; padding: 14px 20px; margin-top: 18px; }
+    .check .title { font-weight: 700; color: #22543d; margin-bottom: 4px; }
+    .check ul { list-style: none; }
+    .check li { padding: 4px 0 4px 32px; position: relative; }
+    .check li::before { content: '☐'; position: absolute; left: 0; top: 2px; font-size: 1.3rem; color: #38a169; line-height: 1; }
+
+    /* domande: la risposta va in risposte.txt */
+    .q-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 18px; margin: 14px 0; }
+    .q-num { display: inline-block; background: #2b6cb0; color: white; border-radius: 5px;
+             padding: 0 8px; margin-right: 8px; font-size: 0.85rem; font-weight: 700; }
+    .part-extra .q-num { background: #805ad5; }
+    .to-txt { display: inline-block; margin-top: 6px; font-size: 0.85rem; color: #744210;
+              background: #fefcbf; border-radius: 5px; padding: 1px 10px; }
+
+    .tag { display: inline-block; border-radius: 4px; padding: 2px 9px; font-size: 0.82rem; font-weight: bold;
+           margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+    .tag-doc  { background: #c3dafe; color: #2a4365; }
+    .tag-win  { background: #fefcbf; color: #744210; }
+    .tag-mail { background: #fed7d7; color: #9b2c2c; }
+    .tag-plus { background: #e9d8fd; color: #553c9a; }
+
+    code { background: #edf2f7; padding: 2px 7px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.92em; color: #2d3748; overflow-wrap: anywhere; }
+    kbd { background: #fff; border: 1px solid #cbd5e0; border-bottom-width: 2px; border-radius: 4px;
+          padding: 0 6px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 0.85em; color: #2d3748; white-space: nowrap; }
+    .menu { font-weight: 600; color: #1a365d; }
+
+    /* il viaggio del file */
+    .journey { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .stop { position: relative; border: 2px solid #cbd5e0; border-radius: 10px; padding: 24px 6px 10px;
+            text-align: center; background: #f7fafc; line-height: 1.3; }
+    .stop .k { position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+               width: 26px; height: 26px; border-radius: 50%; background: #2b6cb0; color: white;
+               font-size: 0.82rem; font-weight: 700; line-height: 26px; }
+    .stop .ico { font-size: 1.5rem; display: block; line-height: 1.2; }
+    .stop b { display: block; font-size: 0.88rem; margin-top: 4px; overflow-wrap: anywhere; }
+    .stop small { display: block; font-size: 0.76rem; color: #4a5568; margin-top: 2px; }
+    .stop.cloud { border-color: #90cdf4; background: #ebf8ff; }
+    .stop.pc    { border-color: #f6e05e; background: #fffff0; }
+    .stop.mail  { border-color: #feb2b2; background: #fff5f5; }
+
+    /* albero delle cartelle */
+    .tree { background: #0d1117; border-radius: 8px; padding: 14px 20px; font-family: 'Courier New', monospace;
+            font-size: 0.86rem; color: #c9d1d9; line-height: 1.6; overflow-x: auto; white-space: pre; margin: 10px 0; }
+    .tree .dir  { color: #7ee787; font-weight: bold; }
+    .tree .file { color: #79c0ff; }
+    .tree .zip  { color: #ffa657; }
+    .tree .txt  { color: #f2cc60; }
+    .tree .cmt  { color: #8b949e; font-style: italic; }
+
+    /* il modello di risposte.txt, da copiare */
+    .tpl-wrap { border: 1px solid #cbd5e0; border-radius: 8px; overflow: hidden; margin: 10px 0; }
+    .tpl-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+               background: #edf2f7; padding: 8px 14px; font-size: 0.9rem; }
+    .copy-btn { font: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+                background: #2b6cb0; color: white; border: none; border-radius: 6px; padding: 6px 14px; }
+    .copy-btn.ok { background: #38a169; }
+    pre.tpl { background: white; font-family: Consolas, 'Courier New', monospace; font-size: 0.84rem;
+              line-height: 1.45; padding: 12px 18px; max-height: 210px; overflow: auto; white-space: pre; }
+
+    /* «come si fa» con schema accanto */
+    .howto { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; align-items: start; margin-top: 4px; }
+    figure.ui { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+    figure.ui figcaption { font-size: 0.78rem; color: #4a5568; margin-top: 8px; line-height: 1.4; }
+
+    /* schema: griglia «Inserisci → Tabella» */
+    .gp { background: white; border: 1px solid #dadce0; border-radius: 6px; padding: 10px; width: fit-content; margin: 0 auto;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.12); font-family: Arial, sans-serif; }
+    .gp-menu { font-size: 0.8rem; color: #444; margin-bottom: 6px; }
+    .gp-grid { display: grid; grid-template-columns: repeat(8, 18px); gap: 3px; }
+    .gp-grid i { width: 18px; height: 18px; border: 1px solid #c4c7c5; border-radius: 2px; background: white; }
+    .gp-grid i.on { background: #c2dbff; border-color: #1a73e8; }
+    .gp-lab { text-align: center; font-size: 0.9rem; font-weight: 700; color: #1a73e8; margin-top: 6px; }
+
+    /* schema: menu del tasto destro di Windows 11 */
+    .ctx-row { display: flex; align-items: flex-start; gap: 4px; justify-content: center; }
+    .ctx { background: white; border: 1px solid #d0d0d0; border-radius: 8px; padding: 4px; font-family: 'Segoe UI', Arial, sans-serif;
+           font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 150px; }
+    .ctx-bar { display: flex; justify-content: space-around; padding: 4px 2px 6px; border-bottom: 1px solid #e5e5e5; margin-bottom: 3px; }
+    .ctx-it { padding: 4px 8px; border-radius: 4px; white-space: nowrap; display: flex; justify-content: space-between; gap: 8px; }
+    .ctx-it.hl { background: #dbeafe; font-weight: 700; color: #1a365d; }
+    .ctx-sep { border-top: 1px solid #e5e5e5; margin: 3px 0; }
+    .ctx.sub { min-width: 90px; margin-top: 38px; }
+
+    /* il documento modello */
+    .doc-wrap { background: #e2e8f0; border-radius: 8px; padding: 16px 14px; margin-top: 10px; }
+    .doc-mock { display: grid; grid-template-columns: minmax(0, 1fr) 190px; column-gap: 14px; }
+    .doc-mock .pg { background: white; border-left: 1px solid #cbd5e0; border-right: 1px solid #cbd5e0;
+                    padding: 3px 34px; font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #000; line-height: 1.45; }
+    .doc-mock .pg.first { border-top: 1px solid #cbd5e0; border-radius: 4px 4px 0 0; padding-top: 24px; }
+    .doc-mock .pg.last  { border-bottom: 1px solid #cbd5e0; border-radius: 0 0 4px 4px; padding-bottom: 24px; }
+    .doc-mock .lab { align-self: center; font-size: 0.76rem; line-height: 1.4; color: #4a5568;
+                     border-left: 3px solid #90cdf4; padding: 1px 0 1px 10px; }
+    .doc-mock .lab b { color: #1a365d; }
+    .d-title { font-size: 25px; line-height: 1.2; }
+    .d-sub   { font-size: 15px; color: #666666; }
+    .d-h1    { font-size: 19px; margin-top: 10px; }
+    .d-list  { margin: 0 0 0 20px; }
+    .d-table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 2px; }
+    .d-table td { border: 1px solid #000; padding: 3px 8px; }
+    .d-table td:first-child { font-weight: bold; width: 40%; }
+    .d-table td.stars { color: #e3a008; letter-spacing: 1px; }
+
+    /* la finestra «Nuovo messaggio» di Gmail */
+    .mail-mock { border: 1px solid #cbd5e0; border-radius: 10px; overflow: hidden; margin-top: 12px;
+                 box-shadow: 0 2px 10px rgba(0,0,0,0.12); max-width: 660px; background: white;
+                 font-family: Arial, Helvetica, sans-serif; font-size: 0.92rem; line-height: 1.5; }
+    .mm-top { background: #f2f6fc; padding: 7px 16px; font-weight: 600; color: #1f1f1f; }
+    .mm-row { display: flex; gap: 10px; align-items: baseline; border-bottom: 1px solid #e8eaed; padding: 6px 16px; }
+    .mm-row .k { color: #5f6368; min-width: 60px; }
+    .mm-row .v { flex: 1; overflow-wrap: anywhere; }
+    .mm-row .ph { color: #5f6368; font-style: italic; }
+    .mm-body { padding: 10px 16px 4px; }
+    .mm-body p + p { margin-top: 8px; }
+    .mm-att { display: inline-flex; align-items: center; gap: 8px; margin: 6px 16px 10px; border: 1px solid #dadce0;
+              border-radius: 6px; padding: 4px 12px; background: #f8f9fa; font-size: 0.86rem; overflow-wrap: anywhere; }
+    .mm-foot { padding: 8px 16px; border-top: 1px solid #e8eaed; }
+    .mm-send { display: inline-block; background: #0b57d0; color: white; border-radius: 18px; padding: 3px 20px; font-weight: 600; }
+
+    .subjects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; margin: 8px 0 4px; }
+    .subjects div { font-size: 0.92rem; }
+    .nosub { color: #a0aec0; font-style: italic; }
+
+    footer { text-align: center; font-size: 0.85rem; color: #a0aec0; margin-top: 30px; }
+
+    @media (max-width: 760px) {
+      .journey { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 22px; }
+      .howto { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 640px) {
+      body { padding: 16px 12px 40px; font-size: 16px; }
+      header { padding: 20px 18px; }
+      header h1 { font-size: 1.4rem; }
+      .card { padding: 20px 16px; }
+      .points { float: none; display: inline-block; margin: 6px 0 0; }
+      .doc-mock { grid-template-columns: minmax(0, 1fr); }
+      .doc-mock .pg { padding: 3px 16px; }
+      .doc-mock .lab { background: white; border-left: 1px solid #cbd5e0; border-right: 1px solid #cbd5e0;
+                       padding: 0 16px 6px; color: #2b6cb0; }
+      .doc-mock .pg.last { border-bottom: none; border-radius: 0; }
+      .doc-mock .lab.last { border-bottom: 1px solid #cbd5e0; border-radius: 0 0 4px 4px; }
+      .subjects { grid-template-columns: minmax(0, 1fr); }
+      ol.steps li { padding-left: 40px; }
+      .js .tabs { flex-wrap: nowrap; overflow-x: auto; }
+    }
+
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: white; padding: 0; font-size: 10pt; line-height: 1.45; }
+      .js .tabs, .js .pager, .copy-btn { display: none !important; }
+      .step[hidden] { display: block !important; }
+      header { padding: 12px 18px; margin-bottom: 10px; background: #1a365d !important; }
+      header h1 { font-size: 1.4rem; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 12px 16px; margin-bottom: 10px; }
+      .card h2 { font-size: 1.12rem; margin-bottom: 8px; }
+      .part-num { width: 28px; height: 28px; line-height: 28px; font-size: 0.95rem; }
+      .card h3 { margin: 10px 0 4px; font-size: 0.95rem; }
+      ol.steps li { padding: 3px 0 3px 32px; }
+      ol.steps li::before { width: 22px; height: 22px; line-height: 22px; font-size: 0.75rem; top: 4px; }
+      .info-box, .warn-box, .tip-box, .q-box { padding: 7px 12px; margin: 7px 0; }
+      .check { padding: 8px 14px; margin-top: 10px; }
+      .check li { padding: 1px 0 1px 28px; }
+      .check li::before { top: 0; font-size: 1.1rem; }
+      .journey { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+      .howto { grid-template-columns: minmax(0, 1fr) 230px; }
+      pre.tpl { max-height: none; overflow: visible; font-size: 0.76rem; line-height: 1.3; padding: 8px 14px; }
+      .tree { font-size: 0.75rem; line-height: 1.4; overflow: visible; }
+      .mail-mock { overflow: visible; box-shadow: none; }
+      .mm-top { border-radius: 10px 10px 0 0; }
+      .card h2, .card h3 { break-after: avoid; page-break-after: avoid; }
+      .q-box, .check, .info-box, .warn-box, .tip-box, .tree, .journey, .mail-mock, figure.ui,
+      .doc-mock > div { break-inside: avoid; page-break-inside: avoid; }
+      header, .tag, .part-num, .q-num, .stop, .stop .k, .tree, .to-txt, .doc-wrap, .check, .info-box,
+      .warn-box, .tip-box, .tpl-bar, .mm-top, .mm-send, .mm-att, .points, .q-box, ol.steps li::before,
+      .gp-grid i.on, .ctx-it.hl, figure.ui {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>«Te lo consiglio!»</h1>
+    <p>Scrivi un consiglio con Documenti Google, mettilo in ordine sul PC e spediscilo a un compagno con Gmail</p>
+    <span class="badge">1ª D · Informatica e Comunicazione</span>
+    <span class="badge">2 ore</span>
+    <span class="badge">100 punti</span>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Parti dell'esercitazione">
+    <button type="button" data-label="Inizio">Inizio</button>
+    <button type="button" data-label="1 · Scrivi"><b>1</b>Scrivi</button>
+    <button type="button" data-label="2 · Scarica"><b>2</b>Scarica</button>
+    <button type="button" data-label="3 · Ordina"><b>3</b>Ordina</button>
+    <button type="button" data-label="4 · Spedisci"><b>4</b>Spedisci</button>
+    <button type="button" data-label="5 · Ricevi"><b>5</b>Ricevi</button>
+    <button type="button" data-label="6 · Consegna"><b>6</b>Consegna</button>
+    <button type="button" data-label="Extra" class="extra"><b>+</b>Extra</button>
+  </nav>
+
+  <!-- INIZIO -->
+  <section class="step" id="inizio">
+  <div class="card">
+    <h2>Che cosa fai oggi</h2>
+    <p>Segui un tuo file in tutto il suo viaggio: nasce nel <strong>cloud</strong>, scende sul <strong>PC</strong>, viene
+       messo in ordine e riparte per la <strong>rete</strong> fino a un compagno.</p>
+
+    <div class="journey">
+      <div class="stop cloud"><span class="k">1</span><span class="ico">☁️</span><b>Drive</b><small>Documento Google</small></div>
+      <div class="stop pc"><span class="k">2</span><span class="ico">⬇️</span><b>Download</b><small>.docx e .pdf</small></div>
+      <div class="stop pc"><span class="k">3</span><span class="ico">📁</span><b>Originali</b><small>la tua cartella</small></div>
+      <div class="stop pc"><span class="k">3</span><span class="ico">🗜️</span><b>Da_inviare</b><small>un file .zip</small></div>
+      <div class="stop mail"><span class="k">4</span><span class="ico">✉️</span><b>Gmail</b><small>allegato</small></div>
+      <div class="stop pc"><span class="k">5</span><span class="ico">👥</span><b>Ricevuti</b><small>sul PC del compagno</small></div>
+    </div>
+
+    <h3>Come lavorare</h3>
+    <ul class="plain">
+      <li><strong>Una parte alla volta:</strong> usa i pulsanti in alto oppure <em>Avanti</em> in fondo. Ogni parte finisce con un
+          <strong>✔ punto di controllo</strong>.</li>
+      <li><strong>Le risposte</strong> alle domande le scrivi nel file <code>risposte.txt</code>, che crei nella Parte 3 e
+          alla fine mandi all'insegnante.</li>
+      <li><strong>Scrivi al compagno che viene dopo di te</strong> nell'elenco della classe (l'ultimo scrive al primo):
+          riceverai l'email da chi viene prima di te.</li>
+    </ul>
+
+    <div class="warn-box">
+      <strong>Prima di cominciare:</strong> accedi a Chrome con l'<strong>account della scuola</strong> e apri
+      <strong>Esplora file</strong> con <kbd>Win</kbd>+<kbd>E</kbd>. Per passare da una finestra all'altra:
+      <kbd>Alt</kbd>+<kbd>Tab</kbd>.
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 1 -->
+  <section class="step" id="parte1">
+  <div class="card">
+    <h2><span class="part-num">1</span>Scrivi il consiglio <span class="tag tag-doc">Documenti</span>
+        <span class="points">~25 min · 20 punti</span></h2>
+
+    <p>Scegli una cosa da consigliare alla classe: un libro, un film, una serie, un videogioco, una canzone, un'app, uno sport…
+       Scrivi con parole tue e <strong>senza dati personali</strong>.</p>
+
+    <ol class="steps">
+      <li>In <strong>Drive</strong>: <span class="menu">+ Nuovo → Documenti Google → Documento vuoto</span>.</li>
+      <li>Clicca su <em>Documento senza titolo</em> e scrivi il titolo <code>AAAA-MM-GG_Cognome_consiglio</code> con la data
+          di oggi, per esempio <code>2026-11-10_Rossi_consiglio</code>. Niente spazi né accenti.</li>
+      <li>Scrivi il testo come nel <strong>modello</strong> qui sotto. Lo stile di ogni riga si sceglie dal menu
+          <span class="menu">Testo normale</span> nella barra in alto: <strong>Titolo</strong>, <strong>Sottotitolo</strong>,
+          <strong>Intestazione 1</strong>.</li>
+      <li>Per i tre motivi usa l'<strong>elenco puntato</strong> (il pulsante con i pallini nella barra) e il
+          <strong>grassetto</strong> (<kbd>Ctrl</kbd>+<kbd>B</kbd>).</li>
+      <li>Per la scheda crea una <strong>tabella</strong>: è spiegato passo passo più sotto.</li>
+    </ol>
+
+    <h3>Il modello (l'esempio di Luca: tu scegli un'altra cosa)</h3>
+    <div class="doc-wrap">
+      <div class="doc-mock">
+        <div class="pg first"><div class="d-title">Il piccolo principe</div></div>
+        <div class="lab"><b>Titolo</b></div>
+        <div class="pg"><div class="d-sub">Consigliato da Luca Rossi, 1ª D</div></div>
+        <div class="lab"><b>Sottotitolo</b></div>
+        <div class="pg"><div class="d-h1">Di che cosa si tratta</div></div>
+        <div class="lab"><b>Intestazione 1</b></div>
+        <div class="pg">È un libro breve, con i disegni dell'autore. Un pilota resta bloccato nel deserto con l'aereo in
+          panne e incontra un bambino arrivato da un pianeta piccolissimo.</div>
+        <div class="lab"><b>Testo normale</b> — 3–5 righe, senza spoiler</div>
+        <div class="pg"><div class="d-h1">Tre motivi per leggerlo</div></div>
+        <div class="lab"><b>Intestazione 1</b></div>
+        <div class="pg"><ul class="d-list">
+          <li><b>Si legge in un pomeriggio</b>: è corto e scorre veloce.</li>
+          <li>Fa <b>ridere e pensare</b> insieme.</li>
+          <li>Va bene <b>a ogni età</b>.</li>
+        </ul></div>
+        <div class="lab"><b>Elenco puntato</b> con parole in grassetto</div>
+        <div class="pg"><div class="d-h1">La scheda</div></div>
+        <div class="lab"><b>Intestazione 1</b></div>
+        <div class="pg last"><table class="d-table">
+          <tr><td>Che cos'è</td><td>Un libro</td></tr>
+          <tr><td>Chi l'ha creato</td><td>Antoine de Saint-Exupéry</td></tr>
+          <tr><td>Anno di uscita</td><td>1943</td></tr>
+          <tr><td>Il mio voto</td><td class="stars">★★★★★</td></tr>
+        </table></div>
+        <div class="lab last"><b>Tabella</b>: 2 colonne, 4 righe</div>
+      </div>
+    </div>
+
+    <h3>Come si crea la tabella</h3>
+    <div class="howto">
+      <ol class="steps">
+        <li>Clicca alla fine della riga <em>La scheda</em> e premi <kbd>Invio</kbd>: vai a capo, su una riga nuova.</li>
+        <li>Apri il menu <span class="menu">Inserisci → Tabella</span>: compare una griglia di quadratini.</li>
+        <li><strong>Senza cliccare</strong>, muovi il mouse sulla griglia finché si colorano <strong>2 colonne e 4 righe</strong>
+            (sotto c'è scritto <strong>2 x 4</strong>). Adesso clicca: la tabella appare nel documento.</li>
+        <li>Clicca nella prima casella e scrivi. Per passare alla casella dopo premi <kbd>Tab</kbd> (il tasto con le due
+            frecce, sopra il lucchetto delle maiuscole) oppure clicca dentro la casella.</li>
+        <li>Nella colonna di sinistra scrivi <em>Che cos'è</em>, <em>Chi l'ha creato</em>, <em>Anno di uscita</em>,
+            <em>Il mio voto</em>; a destra le tue risposte.</li>
+        <li>Per il grassetto: trascina il mouse dalla prima all'ultima casella di sinistra per selezionarle, poi
+            <kbd>Ctrl</kbd>+<kbd>B</kbd>.</li>
+      </ol>
+      <figure class="ui">
+        <div class="gp">
+          <div class="gp-menu">Inserisci › Tabella</div>
+          <div class="gp-grid">
+            <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="gp-lab">2 x 4</div>
+        </div>
+        <figcaption>2 colonne in larghezza, 4 righe in altezza: quando vedi così, clicca.</figcaption>
+      </figure>
+    </div>
+    <div class="warn-box">
+      Nell'<strong>ultima</strong> casella non premere <kbd>Tab</kbd>: Documenti aggiunge una riga in più. Se succede,
+      <kbd>Ctrl</kbd>+<kbd>Z</kbd>. Per le stelline del voto: <kbd>Win</kbd>+<kbd>.</kbd>, scrivi <em>stella</em> e scegli ⭐.
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 1</div>
+      <ul>
+        <li>Il titolo del documento segue la regola (data di oggi, il mio cognome, <code>consiglio</code>)</li>
+        <li><span class="menu">Visualizza → Mostra struttura</span>: a sinistra compaiono le mie tre sezioni</li>
+        <li>La tabella ha 2 colonne e 4 righe, tutte scritte, con la colonna di sinistra in grassetto</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 2 -->
+  <section class="step" id="parte2">
+  <div class="card">
+    <h2><span class="part-num">2</span>Scaricalo sul PC <span class="tag tag-doc">Documenti</span>
+        <span class="points">~5 min · 5 punti</span></h2>
+
+    <p>Il Documento Google sta nel cloud, su Drive. <strong>Scaricarlo</strong> vuol dire farne una <strong>copia</strong>
+       sul disco del PC. Ne fai due, in due formati.</p>
+
+    <ol class="steps">
+      <li><span class="menu">File → Scarica → Microsoft Word (.docx)</span>: la versione che si può modificare.</li>
+      <li><span class="menu">File → Scarica → Documento PDF (.pdf)</span>: la versione da leggere e stampare.</li>
+      <li>In alto a destra in Chrome clicca l'icona <strong>⬇</strong>, poi l'icona della <strong>cartella</strong> accanto
+          a un file: Esplora file si apre nella cartella <strong>Download</strong>.</li>
+    </ol>
+
+    <div class="warn-box">
+      Se il file si chiama <code>Documento senza titolo</code>, hai dimenticato il titolo: dallo al documento, elimina il file
+      sbagliato da Download e scarica di nuovo.
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 2</div>
+      <ul><li>In Download ci sono due file con lo <strong>stesso nome</strong> ed <strong>estensione diversa</strong></li></ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 3 -->
+  <section class="step" id="parte3">
+  <div class="card">
+    <h2><span class="part-num">3</span>Mettilo in ordine <span class="tag tag-win">Esplora file</span>
+        <span class="points">~25 min · 20 punti</span></h2>
+
+    <h3>A · La tua cartella</h3>
+    <ol class="steps">
+      <li>In Esplora file: <span class="menu">Visualizza → Mostra → Estensioni nomi file</span>, poi
+          <span class="menu">Visualizza → Dettagli</span>.</li>
+      <li>Apri <strong>Documenti</strong> e crea la cartella <code>1D_Cognome</code> (<span class="menu">+ Nuovo → Cartella</span>,
+          scrivi il nome, <kbd>Invio</kbd>).</li>
+      <li>Entra nella cartella e crea allo stesso modo <code>Originali</code>, <code>Da_inviare</code> e <code>Ricevuti</code>.</li>
+    </ol>
+
+    <h3>B · Il file delle risposte</h3>
+    <ol class="steps">
+      <li>Sempre in <code>1D_Cognome</code>: <span class="menu">+ Nuovo → Documento di testo</span>, scrivi <code>risposte</code>
+          e premi <kbd>Invio</kbd>. Deve chiamarsi <code>risposte.txt</code>.</li>
+      <li>Aprilo con un doppio clic (si apre il <strong>Blocco note</strong>). Premi <strong>Copia il modello</strong> qui
+          sotto, incolla con <kbd>Ctrl</kbd>+<kbd>V</kbd>, scrivi nome e compagni e salva con <kbd>Ctrl</kbd>+<kbd>S</kbd>.</li>
+    </ol>
+    <div class="tpl-wrap">
+      <div class="tpl-bar"><b>Il modello di risposte.txt</b>
+        <button class="copy-btn" type="button" data-target="tpl">📋 Copia il modello</button></div>
+<pre class="tpl" id="tpl">RISPOSTE - Te lo consiglio!
+Nome e cognome:
+Classe: 1D
+Scrivo a:
+Ricevo da:
+
+D1 - Percorso completo della cartella Download:
+
+D2 - Il voto nel PDF è cambiato? Perché?
+
+D3 - Dimensioni
+.docx:
+.pdf:
+.zip:
+Lo ZIP è molto più piccolo dei due file o quasi uguale? Perché?
+
+D4 - Oggetti: GIUSTO o SBAGLIATO, e perché
+a)
+b)
+c)
+d)
+e)
+f)
+
+GRIGLIA - Messaggio ricevuto: SÌ o NO
+1. Oggetto secondo la regola:
+2. Saluto, testo chiaro e firma:
+3. Insegnante in Cc:
+4. ZIP allegato con il nome giusto:
+5. Nello ZIP ci sono il .docx e il .pdf:
+
+D5 - Il viaggio del file (almeno 5 posti, con il formato)
+1.
+2.
+3.
+4.
+5.
+
+EXTRA (se le hai fatte)
+E1 -
+E2 -
+
+Che cosa non è riuscito (se c'è qualcosa):
+</pre>
+    </div>
+
+    <h3>C · Sposta i file scaricati</h3>
+    <ol class="steps">
+      <li>Vai in <strong>Download</strong> e clicca nella <strong>barra degli indirizzi</strong> in alto: compare il percorso
+          che comincia con <code>C:\</code>. Copialo (<kbd>Ctrl</kbd>+<kbd>C</kbd>) e incollalo in <code>risposte.txt</code>
+          accanto a <strong>D1</strong>.</li>
+      <li>Seleziona i tuoi due file: clic sul primo, poi <kbd>Ctrl</kbd>+clic sul secondo. <strong>Taglia</strong> con
+          <kbd>Ctrl</kbd>+<kbd>X</kbd>.</li>
+      <li>Apri <code>1D_Cognome\Originali</code> e <strong>incolla</strong> con <kbd>Ctrl</kbd>+<kbd>V</kbd>. In Download i file
+          non ci sono più: li hai <strong>spostati</strong>, non copiati.</li>
+    </ol>
+
+    <h3>D · Un esperimento</h3>
+    <ol class="steps">
+      <li>Apri il PDF che sta in <code>Originali</code> (doppio clic).</li>
+      <li>In Documenti Google cambia il tuo voto nella tabella.</li>
+      <li>Torna al PDF e premi <kbd>F5</kbd>. Poi rimetti il voto com'era (<kbd>Ctrl</kbd>+<kbd>Z</kbd>).</li>
+    </ol>
+    <div class="q-box">
+      <span class="q-num">D2</span>Nel PDF il voto è cambiato? Perché?
+      <br><span class="to-txt">✎ in risposte.txt</span>
+    </div>
+
+    <h3>E · Crea lo ZIP</h3>
+    <p>Uno ZIP è un file che ne contiene altri, compressi: è comodo per spedire più file come se fossero uno solo.</p>
+    <div class="howto">
+      <ol class="steps">
+        <li>Apri <code>Originali</code>: ci sono il .docx e il .pdf.</li>
+        <li>Selezionali tutti e due: <kbd>Ctrl</kbd>+<kbd>A</kbd>. Diventano azzurri.</li>
+        <li>Fai clic con il <strong>tasto destro</strong> sopra uno dei due: si apre un menu.</li>
+        <li>Porta il mouse su <span class="menu">Comprimi in</span> e clicca <span class="menu">File ZIP</span>.</li>
+        <li>Compare un file nuovo: l'icona è una cartella con la cerniera. Il nome è già scritto ed evidenziato:
+            controlla che sia <code>AAAA-MM-GG_Cognome_consiglio</code> e premi <kbd>Invio</kbd>. Ora guarda la
+            colonna <em>Dimensione</em>: ti serve per la D3.</li>
+        <li>Selezionalo, taglialo con <kbd>Ctrl</kbd>+<kbd>X</kbd>, apri <code>Da_inviare</code> e incolla con
+            <kbd>Ctrl</kbd>+<kbd>V</kbd>.</li>
+      </ol>
+      <figure class="ui">
+        <div class="ctx-row">
+          <div class="ctx">
+            <div class="ctx-bar"><span>✂️</span><span>📄</span><span>✏️</span><span>🗑️</span></div>
+            <div class="ctx-it">Apri</div>
+            <div class="ctx-it hl">Comprimi in <span>›</span></div>
+            <div class="ctx-it">Copia come percorso</div>
+            <div class="ctx-it">Proprietà</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-it">Mostra altre opzioni</div>
+          </div>
+          <div class="ctx sub">
+            <div class="ctx-it hl">File ZIP</div>
+            <div class="ctx-it">File 7z</div>
+            <div class="ctx-it">File TAR</div>
+          </div>
+        </div>
+        <figcaption>Il menu del tasto destro di Windows 11 (schema semplificato).</figcaption>
+      </figure>
+    </div>
+    <div class="tip-box">
+      <strong>Non trovi «Comprimi in»?</strong> Cerca <span class="menu">Comprimi in file ZIP</span>. Se non c'è nemmeno
+      quello: <span class="menu">Mostra altre opzioni → Invia a → Cartella compressa</span>.
+    </div>
+    <div class="q-box">
+      <span class="q-num">D3</span>Quanto pesano il .docx, il .pdf e lo .zip? Lo ZIP è
+      molto più piccolo dei due file insieme, o quasi uguale? Perché? (Aiutino: un .docx è già uno ZIP.)
+      <br><span class="to-txt">✎ in risposte.txt</span>
+    </div>
+
+    <p class="muted" style="margin-top:12px">Alla fine la tua cartella è così:</p>
+<div class="tree"><span class="dir">1D_Rossi</span>
+├── <span class="dir">Originali</span>    <span class="file">2026-11-10_Rossi_consiglio.docx</span>, <span class="file">…_consiglio.pdf</span>
+├── <span class="dir">Da_inviare</span>   <span class="zip">2026-11-10_Rossi_consiglio.zip</span>
+├── <span class="dir">Ricevuti</span>     <span class="cmt">(vuota: la usi nella Parte 5)</span>
+└── <span class="txt">risposte.txt</span></div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 3</div>
+      <ul>
+        <li>La cartella <code>1D_Cognome</code> è come nello schema qui sopra, e in Download i miei file non ci sono più</li>
+        <li>In <code>risposte.txt</code> ho scritto D1, D2 e D3 e ho salvato</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 4 -->
+  <section class="step" id="parte4">
+  <div class="card">
+    <h2><span class="part-num">4</span>Spediscilo con Gmail <span class="tag tag-mail">Gmail</span>
+        <span class="points">~20 min · 20 punti</span></h2>
+
+    <p>Mandi lo ZIP al compagno. L'insegnante va in <strong>Cc</strong> (copia conoscenza): riceve una copia e vede il tuo lavoro.
+       L'<strong>oggetto</strong> deve seguire questa regola:</p>
+    <p style="text-align:center; margin:10px 0"><code style="font-size:1.05rem">1D - Te lo consiglio - Cognome Nome</code></p>
+
+    <div class="q-box">
+      <span class="q-num">D4</span>Questi oggetti sono giusti o sbagliati? Perché?
+      <div class="subjects">
+        <div>a) <span class="nosub">(nessun oggetto)</span></div>
+        <div>b) <code>ciao</code></div>
+        <div>c) <code>1D - Te lo consiglio - Bianchi Marco</code></div>
+        <div>d) <code>TE LO CONSIGLIO!!!</code></div>
+        <div>e) <code>file x te 😂😂</code></div>
+        <div>f) <code>Te lo consiglio - Verdi Anna</code></div>
+      </div>
+      <span class="to-txt">✎ in risposte.txt</span>
+    </div>
+
+    <div class="mail-mock">
+      <div class="mm-top">Nuovo messaggio</div>
+      <div class="mm-row"><span class="k">A</span><span class="v">marco.bianchi@istituto.edu.it</span></div>
+      <div class="mm-row"><span class="k">Cc</span><span class="v ph">l'indirizzo dell'insegnante</span></div>
+      <div class="mm-row"><span class="k">Oggetto</span><span class="v"><strong>1D - Te lo consiglio - Rossi Luca</strong></span></div>
+      <div class="mm-body">
+        <p>Ciao Marco,</p>
+        <p>ti mando il mio consiglio: è un libro, «Il piccolo principe». Nello ZIP trovi il documento in .docx e in PDF.
+           Quando lo hai letto, rispondimi!</p>
+        <p>A presto,<br>Luca Rossi – 1ª D</p>
+      </div>
+      <div class="mm-att">📎 2026-11-10_Rossi_consiglio.zip</div>
+      <div class="mm-foot"><span class="mm-send">Invia</span></div>
+    </div>
+
+    <h3>Come si fa</h3>
+    <ol class="steps">
+      <li>Apri <strong>Gmail</strong> e premi <span class="menu">✎ Scrivi</span>.</li>
+      <li><strong>A:</strong> scrivi il cognome del compagno e scegli l'indirizzo della scuola che Gmail ti propone.</li>
+      <li><strong>Cc:</strong> clicca <span class="menu">Cc</span> a destra e scrivi l'indirizzo dell'insegnante (è alla lavagna).</li>
+      <li><strong>Oggetto</strong> secondo la regola; <strong>testo</strong> con saluto, due righe e firma con la classe.</li>
+      <li><strong>Allegato:</strong> clicca la graffetta 📎 in basso, vai in
+          <span class="menu">Documenti → 1D_Cognome → Da_inviare</span>, scegli lo ZIP e premi <span class="menu">Apri</span>.
+          Aspetta che finisca di caricarsi.</li>
+      <li>Ricontrolla e premi <span class="menu">Invia</span>.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 4</div>
+      <ul>
+        <li>In <strong>Inviati</strong> c'è il mio messaggio, con la graffetta 📎</li>
+        <li>Compagno in <em>A</em>, insegnante in <em>Cc</em>, oggetto <em>esattamente</em> come la regola</li>
+        <li>Ho scritto la D4 in <code>risposte.txt</code> e ho salvato</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 5 -->
+  <section class="step" id="parte5">
+  <div class="card">
+    <h2><span class="part-num">5</span>Ricevi e rispondi <span class="tag tag-mail">Gmail</span> <span class="tag tag-win">Esplora file</span>
+        <span class="points">~15 min · 15 punti</span></h2>
+
+    <p>Ora il viaggio al contrario: il file di un compagno arriva dalla rete e tu lo porti sul tuo PC.
+       Se l'email non è ancora arrivata, controlla <strong>Spam</strong> e intanto prova gli <em>Extra</em>.</p>
+
+    <ol class="steps">
+      <li>Apri l'email del compagno e controllala con la <strong>GRIGLIA</strong> di <code>risposte.txt</code> (per vedere chi
+          è in Cc, clicca la freccina ▾ accanto a <em>a me</em>).</li>
+      <li>Passa il mouse sopra lo ZIP allegato e clicca <strong>⬇ Scarica</strong>: finisce in Download.</li>
+      <li>In Esplora file <strong>sposta</strong> lo ZIP da Download a <code>Ricevuti</code> (<kbd>Ctrl</kbd>+<kbd>X</kbd>,
+          <kbd>Ctrl</kbd>+<kbd>V</kbd>).</li>
+      <li>Tasto destro sullo ZIP → <span class="menu">Estrai tutto…</span> → <span class="menu">Estrai</span>. Si apre una
+          cartella con i due file: apri il PDF e leggi il consiglio.</li>
+      <li>In Gmail premi <span class="menu">Rispondi a tutti</span> (così la risposta arriva anche all'insegnante). L'oggetto
+          diventa <code>Re: …</code>: non cambiarlo.</li>
+      <li>Scrivi due o tre righe: che hai aperto il file, che cosa ti ha incuriosito, un consiglio se nella griglia c'è qualche
+          NO. Firma e invia.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 5</div>
+      <ul>
+        <li>In <code>Ricevuti</code> ci sono lo ZIP del compagno e la cartella estratta</li>
+        <li>In <strong>Inviati</strong> c'è la mia risposta, con <code>Re:</code> e l'insegnante in Cc</li>
+        <li>Ho compilato la GRIGLIA in <code>risposte.txt</code> e ho salvato</li>
+      </ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- PARTE 6 -->
+  <section class="step" id="parte6">
+  <div class="card">
+    <h2><span class="part-num">6</span>Consegna le risposte <span class="tag tag-mail">Gmail</span>
+        <span class="points">~5 min · 20 punti, risposte comprese</span></h2>
+
+    <div class="q-box">
+      <span class="q-num">D5</span>Elenca almeno <strong>cinque posti</strong> in cui adesso c'è una copia del tuo consiglio
+      e, per ognuno, il formato (Documento Google, .docx, .pdf o .zip).
+      <br><span class="to-txt">✎ in risposte.txt</span>
+    </div>
+
+    <ol class="steps">
+      <li>Completa <code>risposte.txt</code> e <strong>salva</strong> con <kbd>Ctrl</kbd>+<kbd>S</kbd>: Gmail allega il file
+          così com'è salvato.</li>
+      <li>In Gmail: <span class="menu">✎ Scrivi</span>. <strong>A:</strong> solo l'insegnante.
+          <strong>Oggetto:</strong> <code>1D - Risposte Te lo consiglio - Cognome Nome</code>.</li>
+      <li>Scrivi un messaggio <strong>formale</strong>, con il Lei, come nel modello. Allega <code>risposte.txt</code> (non serve
+          lo ZIP: è un file solo) e premi <span class="menu">Invia</span>.</li>
+      <li>Avvisa l'insegnante che hai finito, poi <strong>esci dall'account</strong> e chiudi il browser.</li>
+    </ol>
+
+    <div class="mail-mock">
+      <div class="mm-top">Nuovo messaggio</div>
+      <div class="mm-row"><span class="k">A</span><span class="v ph">l'indirizzo dell'insegnante</span></div>
+      <div class="mm-row"><span class="k">Oggetto</span><span class="v"><strong>1D - Risposte Te lo consiglio - Rossi Luca</strong></span></div>
+      <div class="mm-body">
+        <p>Buongiorno,</p>
+        <p>Le invio in allegato le risposte dell'esercitazione «Te lo consiglio!».</p>
+        <p>Cordiali saluti,<br>Luca Rossi – 1ª D</p>
+      </div>
+      <div class="mm-att">📎 risposte.txt</div>
+      <div class="mm-foot"><span class="mm-send">Invia</span></div>
+    </div>
+
+    <div class="check">
+      <div class="title">✔ Punto di controllo 6</div>
+      <ul><li>In <strong>Inviati</strong> c'è l'email all'insegnante con <code>risposte.txt</code>; aprendo l'allegato vedo tutte le mie risposte</li></ul>
+    </div>
+  </div>
+  </section>
+
+  <!-- EXTRA -->
+  <section class="step" id="extra">
+  <div class="card part-extra">
+    <h2><span class="part-num">+</span>Per chi finisce prima <span class="tag tag-plus">se resta tempo</span></h2>
+    <p class="muted">Le risposte vanno nella parte EXTRA di <code>risposte.txt</code>, prima della consegna.</p>
+
+    <h3>E1 · Una nuova versione</h3>
+    <ol class="steps">
+      <li>Aggiungi un'immagine al documento: <span class="menu">Inserisci → Immagine → Cerca sul web</span>.</li>
+      <li>Scarica di nuovo il PDF e spostalo in <code>Originali</code>: Windows dice che c'è già un file con quel nome. Scegli
+          <span class="menu">Sostituisci il file nella destinazione</span>.</li>
+    </ol>
+    <div class="q-box">
+      <span class="q-num">E1</span>Il PDF pesa di più o di meno di prima? Il compagno ha la versione con l'immagine? Perché?
+    </div>
+
+    <h3>E2 · Allegato o link?</h3>
+    <ol class="steps">
+      <li>Nel documento premi <span class="menu">Condividi</span>, aggiungi il compagno come <strong>Commentatore</strong> e invia.</li>
+      <li>Cambia una parola e chiedi al compagno di aprire il link.</li>
+    </ol>
+    <div class="q-box">
+      <span class="q-num">E2</span>Con il link il compagno vede la modifica? E nello ZIP? Quando conviene il link e quando l'allegato?
+    </div>
+  </div>
+  </section>
+
+  <div class="pager">
+    <button type="button" id="prev">← Indietro</button>
+    <button type="button" id="next" class="next">Avanti →</button>
+  </div>
+
+  <footer>«Te lo consiglio!» — 1ª D ITT Informatica e Comunicazione — A.S. 2026/2027</footer>
+</div>
+
+<script>
+  (function () {
+    document.documentElement.classList.add('js');
+    var steps = [].slice.call(document.querySelectorAll('.step'));
+    var tabs = [].slice.call(document.querySelectorAll('#tabs button'));
+    var prev = document.getElementById('prev'), next = document.getElementById('next');
+    var nav = document.getElementById('tabs');
+    var current = 0;
+
+    function show(i, scroll) {
+      current = Math.max(0, Math.min(steps.length - 1, i));
+      steps.forEach(function (s, k) { s.hidden = k !== current; });
+      tabs.forEach(function (t, k) { t.classList.toggle('active', k === current); });
+      prev.disabled = current === 0;
+      next.disabled = current === steps.length - 1;
+      if (current > 0) prev.textContent = '← ' + tabs[current - 1].dataset.label;
+      if (current < steps.length - 1) next.textContent = 'Avanti: ' + tabs[current + 1].dataset.label + ' →';
+      if (history.replaceState) history.replaceState(null, '', '#' + steps[current].id);
+      tabs[current].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      if (scroll) {
+        var hdr = document.querySelector('header');
+        var y = hdr.offsetTop + hdr.offsetHeight;
+        if (window.scrollY > y) window.scrollTo(0, y);
+      }
+    }
+
+    tabs.forEach(function (t, k) { t.addEventListener('click', function () { show(k, true); }); });
+    prev.addEventListener('click', function () { show(current - 1, true); });
+    next.addEventListener('click', function () { show(current + 1, true); });
+
+    var start = 0;
+    steps.forEach(function (s, k) { if (location.hash === '#' + s.id) start = k; });
+    show(start, false);
+    window.scrollTo(0, 0);
+    // il browser salterebbe all'àncora #parteN: si riparte dall'alto, con titolo e linguette in vista
+    if (location.hash) window.addEventListener('load', function () { setTimeout(function () { window.scrollTo(0, 0); }, 0); });
+
+    // Copia il modello di risposte.txt negli Appunti
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      var label = btn.textContent;
+      btn.addEventListener('click', function () {
+        var pre = document.getElementById(btn.dataset.target);
+        var text = pre.innerText;
+        function fallback() {
+          var range = document.createRange();
+          range.selectNodeContents(pre);
+          var sel = window.getSelection();
+          sel.removeAllRanges(); sel.addRange(range);
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+          sel.removeAllRanges();
+          return ok;
+        }
+        function done(ok) {
+          btn.textContent = ok ? '✔ Copiato: incollalo nel Blocco note con Ctrl+V'
+                               : 'Non riesco: seleziona il testo e copialo con Ctrl+C';
+          btn.classList.toggle('ok', ok);
+          setTimeout(function () { btn.textContent = label; btn.classList.remove('ok'); }, 4000);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallback()); });
+        } else {
+          done(fallback());
+        }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
