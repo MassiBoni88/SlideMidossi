@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unità 3 — Lab 4 · STP e Root Bridge</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f8fafc;
+    --border: #e2e8f0;
+    --accent1: #059669;
+    --accent2: #dc2626;
+    --accent3: #d97706;
+    --accent4: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ct: #475569;
+    --code-bg: #f1f5f9;
+    --grid: rgba(0,0,0,0.025);
+    --c1t: #065f46; --c2t: #991b1b; --c3t: #78350f; --c4t: #1e40af;
+  }
+  [data-theme="dark"] {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #34d399;
+    --accent2: #f87171;
+    --accent3: #fbbf24;
+    --accent4: #60a5fa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --ct: #6b7280;
+    --code-bg: #080a0f;
+    --grid: rgba(255,255,255,0.03);
+    --c1t: #6ee7b7; --c2t: #fca5a5; --c3t: #fde68a; --c4t: #93c5fd;
+  }
+  [data-theme="dark"] { --ct: #9ca3af; }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px 10px 64px; border-bottom: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #fff; border-color: var(--accent1); }
+
+  #stage { flex: 1; position: relative; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0; padding: 32px 52px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+  .slide.top    { justify-content: flex-start; padding-top: 18px; padding-bottom: 14px; }
+  .slide.top .section-header { margin-bottom: 14px; }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.1rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row { display: flex; gap: 12px; margin-top: 28px; justify-content: center; flex-wrap: wrap; }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(5,150,105,0.1);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(220,38,38,0.1);  color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(217,119,6,0.1);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(37,99,235,0.1);  color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); font-weight: 800; letter-spacing: -1px; }
+  .section-num { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .two-col > *, .two-col-l > *, .three-col > * { min-width: 0; }
+  .card { overflow-x: auto; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .card h3 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card p, .card li { font-size: 0.9rem; color: var(--ct); line-height: 1.55; }
+  .card ul, .card ol { padding-left: 18px; }
+  .card li { margin-bottom: 3px; }
+  .card strong, .callout strong { color: var(--text); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.86em; }
+  pre, code { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(0.72rem, 1vw, 0.85rem);
+    line-height: 1.6; overflow-x: auto; color: var(--ct);
+  }
+  [data-theme="dark"] pre { color: #c9ced8; }
+  pre .kw  { color: var(--accent2); font-weight: 700; }
+  pre .cmd { color: var(--accent4); font-weight: 700; }
+  pre .arg { color: var(--accent3); }
+  pre .cmt { color: var(--muted); font-style: italic; }
+  pre .ok  { color: var(--accent1); font-weight: 700; }
+
+  .code-wrap { position: relative; }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    padding: 3px 9px; border-radius: 4px; cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--accent1); border-color: var(--accent1); }
+
+  .callout {
+    border-radius: 8px; padding: 10px 13px; font-size: 0.9rem; line-height: 1.55;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(5,150,105,0.07);  border: 1px solid rgba(5,150,105,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(220,38,38,0.07);  border: 1px solid rgba(220,38,38,0.3);  color: var(--c2t); }
+  .callout-yellow { background: rgba(217,119,6,0.07);  border: 1px solid rgba(217,119,6,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(37,99,235,0.07);  border: 1px solid rgba(37,99,235,0.3);  color: var(--c4t); }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 7px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--ct);
+    min-width: 0;
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.lbl      { flex: 0 0 150px; text-align: left; color: var(--muted); }
+  .proto-cell.hl       { background: rgba(5,150,105,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(37,99,235,0.1);  color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(217,119,6,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(220,38,38,0.1);  color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; } .proto-cell.w3 { flex: 3; } .proto-cell.w4 { flex: 4; }
+
+  .bid-grid { display: grid; grid-template-columns: 150px repeat(6, 1fr); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .bc { padding: 7px 8px; text-align: center; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--ct); min-width: 0; }
+  .bc.lbl { text-align: left; color: var(--muted); }
+  .bc:nth-last-child(-n+3) { border-bottom: none; }
+  .bc.hl { background: rgba(5,150,105,0.1); color: var(--accent1); }
+  .bc.hl-blue { background: rgba(37,99,235,0.1); color: var(--accent4); }
+  .bc.hl-yel { background: rgba(217,119,6,0.1); color: var(--accent3); }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .ov-content h4 { font-size: 0.97rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.85rem; color: var(--muted); }
+
+  .ov-item.ov-link { cursor: pointer; position: relative; padding-right: 30px !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+  .ov-item.ov-link::after {
+    content: '\2192'; position: absolute; right: 11px; top: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .ov-item.ov-link:hover, .ov-item.ov-link:focus-visible {
+    border-color: var(--ovc, var(--accent4)); transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); outline: none;
+  }
+  .ov-item.ov-link:hover::after, .ov-item.ov-link:focus-visible::after {
+    color: var(--ovc, var(--accent4)); transform: translateX(3px);
+  }
+
+  .ad-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; margin-top: 6px; }
+  .ad-table th, .ad-table td { border: 1px solid var(--border); padding: 6px 9px; text-align: left; }
+  .ad-table th { background: rgba(37,99,235,0.1); color: var(--accent4); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .ad-table td { color: var(--ct); }
+  .ad-table td.mono { font-family: 'JetBrains Mono', monospace; }
+  .ad-table .best { color: var(--accent1); font-weight: 700; }
+  .ad-table .mid  { color: var(--accent3); font-weight: 700; }
+  .ad-table .bad  { color: var(--accent2); font-weight: 700; }
+
+  .reveal-btn {
+    margin-top: 10px; background: transparent; border: 1px dashed var(--accent1); color: var(--accent1);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 6px 12px; border-radius: 5px; cursor: pointer;
+  }
+  .reveal-box { display: none; margin-top: 10px; }
+  .reveal-box.open { display: block; }
+
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; font-weight: 700; color: var(--bg); flex-shrink: 0;
+  }
+
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid #cbd5e1;
+    color: var(--text); padding: 7px 18px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  [data-theme="dark"] #nav button { border-color: #2a3142; }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #fff; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  #progress-fill { height: 100%; background: var(--accent1); border-radius: 2px; transition: width 0.4s ease; }
+  #section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); min-width: 180px; text-align: right; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+  @media (max-width: 640px) {
+    html { font-size: 100%; }
+    #topbar { padding: 8px 12px 8px 56px; }
+    #topbar .course { font-size: 0.65rem; letter-spacing: 1px; }
+    #topbar .title-bar { font-size: 0.78rem; }
+    #slide-counter { font-size: 0.72rem; }
+    #theme-btn { padding: 4px 9px; font-size: 0.68rem; }
+    .slide { padding: 14px 12px; justify-content: flex-start; }
+    .slide-title .big { font-size: clamp(1.5rem, 7vw, 2.2rem); letter-spacing: -0.5px; }
+    .slide-title .sub { font-size: 0.82rem; margin-top: 8px; }
+    .slide-title .tag-row { margin-top: 14px; gap: 6px; }
+    .section-header { margin-bottom: 10px; gap: 8px; }
+    .section-header h2 { font-size: 1.1rem; letter-spacing: -0.3px; }
+    .section-num { display: none; }
+    .two-col, .two-col-l, .three-col, .overview-grid { grid-template-columns: 1fr !important; }
+    .bid-grid { grid-template-columns: 80px repeat(6, 1fr); }
+    .bc { font-size: 0.62rem; padding: 5px 4px; }
+    .card { padding: 10px 12px; }
+    .card h3 { font-size: 0.88rem; }
+    .card p, .card li { font-size: 0.82rem; }
+    pre { font-size: 0.7rem !important; padding: 8px 10px; }
+    .callout { font-size: 0.82rem; padding: 8px 10px; }
+    #nav { padding: 8px 10px; gap: 6px; }
+    #nav button { padding: 10px 12px; font-size: 0.72rem; }
+    #section-label { display: none; }
+  }
+</style>
+</head>
+<body>
+<a href="../../index.html" title="Torna all'indice" style="position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(13,15,20,0.9);backdrop-filter:blur(8px);border:1px solid rgba(52,211,153,0.25);border-radius:50%;text-decoration:none;box-shadow:0 2px 12px rgba(0,0,0,0.5);transition:transform 0.15s,border-color 0.15s;" onmouseover="this.style.transform='scale(1.12)';this.style.borderColor='rgba(52,211,153,0.7)'" onmouseout="this.style.transform='scale(1)';this.style.borderColor='rgba(52,211,153,0.25)'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10.5z"/><path d="M9 22V13h6v9"/></svg></a>
+
+<div id="topbar">
+  <div>
+    <div class="course">Quarto Anno · Sistemi e Reti</div>
+    <div class="title-bar">Unità 3 — Lab 4 · STP e scelta del Root Bridge</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter">01 / 16</div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+
+<div id="stage">
+
+<!-- ═══ SLIDE 1 — TITOLO ═══ -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">Laboratorio 4</div>
+  <div class="big" style="color:var(--accent1);">STP e scelta</div>
+  <div class="big" style="color:var(--accent1);">del Root Bridge</div>
+  <div class="sub" style="font-size:1.0rem; font-weight:700; color:var(--text); margin-top:10px;">
+    Simulare l'elezione in Python · TextEdit + Terminale
+  </div>
+  <div class="sub">Quarto anno · Sistemi e Reti · Unità 3, pp. 81-83 · <em>Internetworking 2</em> (Baldino, Rondano, Iacobelli)</div>
+  <div class="tag-row">
+    <span class="tag tag-blue">Spanning Tree</span>
+    <span class="tag tag-yellow">Bridge ID</span>
+    <span class="tag tag-green">Tuple Python</span>
+    <span class="tag tag-red">Priorità · 4096</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 2 — PANORAMICA ═══ -->
+<div class="slide" data-section="intro">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">In questa lezione</h2>
+  </div>
+  <div class="overview-grid">
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="ripasso">
+      <div class="ov-num" style="color:var(--accent4)">01</div>
+      <div class="ov-content"><h4>Ripasso: perché STP</h4><p>Loop tra switch · Albero logico · Root bridge, root port, porte bloccate</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="bid">
+      <div class="ov-num" style="color:var(--accent3)">02</div>
+      <div class="ov-content"><h4>Il Bridge ID</h4><p>Priorità + MAC di base · Le due regole · Prova a mano</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="codice">
+      <div class="ov-num" style="color:var(--accent4)">03</div>
+      <div class="ov-content"><h4>Dalla regola al codice</h4><p>Cos'è una tupla · Il confronto elemento per elemento · Dizionari</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="strumenti">
+      <div class="ov-num" style="color:var(--accent1)">04</div>
+      <div class="ov-content"><h4>TextEdit e Terminale</h4><p>Cartella e file da Terminale · Impostazioni di TextEdit · Esecuzione</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent4);" data-goto="9">
+      <div class="ov-num" style="color:var(--accent4)">05</div>
+      <div class="ov-content"><h4>Il programma</h4><p><code>root_bridge_election()</code> · Il main · L'output</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent2);" data-goto="prove">
+      <div class="ov-num" style="color:var(--accent2)">06</div>
+      <div class="ov-content"><h4>Prove ed errori</h4><p>Esperimenti in classe · Il MAC come stringa · Errori tipici</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent3);" data-goto="pt">
+      <div class="ov-num" style="color:var(--accent3)">07</div>
+      <div class="ov-content"><h4>Collegamento con Packet Tracer</h4><p><code>show spanning-tree</code> · Priorità 32769 · Forzare il root</p></div>
+    </div>
+    <div class="ov-item" style="--ovc:var(--accent1);" data-goto="verifica">
+      <div class="ov-num" style="color:var(--accent1)">08</div>
+      <div class="ov-content"><h4>Verifica e riepilogo</h4><p>Domande di fine laboratorio · Esercizio sulla priorità</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 3 — RIPASSO STP ═══ -->
+<div class="slide" data-section="ripasso">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Ripasso — perché serve un Root Bridge</h2>
+    <span class="section-num">L3 · 03/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Il problema: i loop</h3>
+        <p>Per avere ridondanza colleghiamo gli switch con più percorsi. Ma un broadcast verrebbe inoltrato all'infinito lungo l'anello: il frame Ethernet non ha un TTL che lo fermi. È la <strong>broadcast storm</strong>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">La soluzione: un albero logico</h3>
+        <p>STP lascia la rete <strong>fisica</strong> ridondante, ma blocca alcune porte: la rete <strong>logica</strong> diventa un albero senza cicli. Se un collegamento cade, una porta bloccata si riattiva.</p>
+        <ol style="margin-top:6px;">
+          <li><strong>Elezione del root bridge</strong>: la radice dell'albero ← <em>oggi</em></li>
+          <li>Ogni altro switch sceglie la <strong>root port</strong>, il percorso più economico verso la radice</li>
+          <li>Su ogni segmento c'è una <strong>designated port</strong>; le porte rimaste vengono <strong>bloccate</strong></li>
+        </ol>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="display:flex;justify-content:center;">
+        <svg viewBox="0 0 360 230" width="100%" style="max-width:420px;" role="img" aria-label="Tre switch collegati ad anello: il root bridge in alto, un collegamento bloccato in basso">
+          <line x1="180" y1="58" x2="78" y2="168" style="stroke:var(--accent1);stroke-width:3"/>
+          <line x1="180" y1="58" x2="282" y2="168" style="stroke:var(--accent1);stroke-width:3"/>
+          <line x1="110" y1="186" x2="250" y2="186" style="stroke:var(--muted);stroke-width:3;stroke-dasharray:7 6"/>
+          <rect x="125" y="22" width="110" height="40" rx="7" style="fill:rgba(52,211,153,0.15);stroke:var(--accent1);stroke-width:2"/>
+          <text x="180" y="47" text-anchor="middle" style="fill:var(--accent1);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700">ROOT</text>
+          <rect x="22" y="166" width="100" height="40" rx="7" style="fill:var(--panel);stroke:var(--accent4);stroke-width:2"/>
+          <text x="72" y="191" text-anchor="middle" style="fill:var(--accent4);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">Switch B</text>
+          <rect x="238" y="166" width="100" height="40" rx="7" style="fill:var(--panel);stroke:var(--accent4);stroke-width:2"/>
+          <text x="288" y="191" text-anchor="middle" style="fill:var(--accent4);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700">Switch C</text>
+          <circle cx="234" cy="186" r="8" style="fill:var(--accent3)"/>
+          <text x="180" y="222" text-anchor="middle" style="fill:var(--accent3);font-family:'JetBrains Mono',monospace;font-size:12px">porta bloccata (Altn BLK)</text>
+          <text x="104" y="110" text-anchor="middle" style="fill:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px">root port</text>
+          <text x="258" y="110" text-anchor="middle" style="fill:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px">root port</text>
+        </svg>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🔗</span>
+        <span>Nel Laboratorio 6 (Packet Tracer) il root è <strong>Switch5</strong>. I pallini arancioni sono le porte bloccate: Fa5/1 di Switch2 e Fa4/1 di Switch4 (p. 94).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 4 — IL BRIDGE ID ═══ -->
+<div class="slide" data-section="bid">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Il Bridge ID (BID) — 8 byte</h2>
+    <span class="section-num">L4 · 04/16</span>
+  </div>
+  <div class="bid-grid" style="margin-bottom:14px;">
+    <div class="bc lbl">Classico</div>
+    <div class="bc hl-yel" style="grid-column:span 2">Priority · 2 byte (16 bit)</div>
+    <div class="bc hl-blue" style="grid-column:span 4">MAC address di base · 6 byte (48 bit)</div>
+    <div class="bc lbl">802.1Q moderno</div>
+    <div class="bc hl-yel">Priority · 4 bit</div>
+    <div class="bc hl">Ext. System ID · 12 bit = VLAN</div>
+    <div class="bc hl-blue" style="grid-column:span 4">MAC address di base · 48 bit</div>
+    <div class="bc lbl">Esempio</div>
+    <div class="bc">32768</div>
+    <div class="bc">+ 1 (VLAN 1)</div>
+    <div class="bc" style="grid-column:span 4">00:11:22:33:44:55 → priorità mostrata: 32769</div>
+  </div>
+  <div class="three-col">
+    <div class="card">
+      <h3 style="color:var(--accent3);">Le due regole</h3>
+      <ol>
+        <li>Vince la <strong>priorità più bassa</strong></li>
+        <li>A parità di priorità, vince il <strong>MAC più basso</strong></li>
+      </ol>
+      <p style="margin-top:6px;">In una parola: vince il <strong>BID più basso</strong>.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent3);">La priorità</h3>
+      <ul>
+        <li>Predefinita: <strong>32768</strong></li>
+        <li>La sceglie l'amministratore, per esempio bassa sullo switch centrale</li>
+        <li>Solo <strong>multipli di 4096</strong>: 0, 4096 … 61440 (16 valori)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--accent4);">Il MAC di base</h3>
+      <p>È il MAC dello switch come apparato (<em>base MAC</em> o <em>chassis MAC</em>), non quello di una singola porta. È univoco: garantisce che non ci siano pareggi.</p>
+    </div>
+  </div>
+  <div class="callout callout-yellow" style="margin-top:12px;">
+    <span class="callout-icon">💡</span>
+    <span>Perché 4096? Dei 16 bit di priorità, 12 servono ora per la VLAN: restano 4 bit regolabili, a passi di 2<sup>12</sup> = 4096. Nel codice di oggi usiamo la priorità «classica» a 16 bit, come il libro.</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 5 — PROVA A MANO ═══ -->
+<div class="slide" data-section="bid">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Prima del codice: eleggiamo a mano</h2>
+    <span class="section-num">L4 · 05/16</span>
+  </div>
+  <div class="two-col-l">
+    <div class="card">
+      <h3 style="color:var(--accent3);">I cinque switch del libro</h3>
+      <table class="ad-table">
+        <tr><th>Switch</th><th>Priority</th><th>MAC di base</th></tr>
+        <tr><td>SwitchA</td><td class="mono">32768</td><td class="mono">00:11:22:33:44:55</td></tr>
+        <tr><td>SwitchB</td><td class="mono">28672</td><td class="mono">00:11:22:33:44:66</td></tr>
+        <tr><td>SwitchC</td><td class="mono">24576</td><td class="mono">00:11:22:33:44:77</td></tr>
+        <tr><td>SwitchD</td><td class="mono">32768</td><td class="mono">00:11:22:33:44:88</td></tr>
+        <tr><td>SwitchE</td><td class="mono">24576</td><td class="mono">00:11:22:33:44:44</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <div class="callout callout-blue">
+        <span class="callout-icon">🎤</span>
+        <span><strong>Chiedi alla classe:</strong> chi diventa root bridge? Con quale regola?</span>
+      </div>
+      <button class="reveal-btn" data-reveal="r1">Mostra la risposta</button>
+      <div class="reveal-box" id="r1">
+        <div class="callout callout-green">
+          <span class="callout-icon">✅</span>
+          <span><strong>SwitchE.</strong> La priorità più bassa è 24576, condivisa da SwitchC e SwitchE. A parità si guarda il MAC: <code>…:44</code> è più basso di <code>…:77</code>.</span>
+        </div>
+      </div>
+      <div class="callout callout-yellow">
+        <span class="callout-icon">🤔</span>
+        <span><strong>E se SwitchA avesse priorità 4096?</strong> Vincerebbe SwitchA: la priorità conta prima del MAC, anche se il suo MAC è più alto.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 6 — COS'È UNA TUPLA ═══ -->
+<div class="slide" data-section="codice">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Cos'è una tupla</h2>
+    <span class="section-num">L4 · 06/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Una sequenza ordinata e immutabile</h3>
+        <ul>
+          <li>Raggruppa più valori in un unico oggetto, tra <strong>parentesi tonde</strong>, separati da virgole</li>
+          <li>È <strong>ordinata</strong>: ogni valore ha una posizione (indice), a partire da <code>0</code></li>
+          <li>I valori possono essere di tipo diverso: qui un numero e una stringa</li>
+          <li>È <strong>immutabile</strong>: una volta creata non si possono cambiare, aggiungere o togliere elementi</li>
+        </ul>
+<pre style="margin-top:8px;">bid = (<span class="arg">24576</span>, <span class="arg">"00:11:22:33:44:44"</span>)
+<span class="cmt">#        bid[0]          bid[1]</span>
+<span class="cmt">#      priorità           MAC</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">Tupla o lista?</h3>
+        <p>La <strong>lista</strong> <code>[ ]</code> è una raccolta che cresce e cambia, per esempio l'elenco degli switch. La <strong>tupla</strong> <code>( )</code> è un «pacchetto» fisso di dati che stanno insieme: un BID, le coordinate <code>(x, y)</code>, una data <code>(giorno, mese, anno)</code>.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Provalo nel Terminale</h3>
+<pre><span class="cmt">$</span> <span class="cmd">python3</span>
+<span class="cmt">&gt;&gt;&gt;</span> bid = (<span class="arg">24576</span>, <span class="arg">"00:11:22:33:44:44"</span>)
+<span class="cmt">&gt;&gt;&gt;</span> bid[<span class="arg">0</span>]
+<span class="ok">24576</span>
+<span class="cmt">&gt;&gt;&gt;</span> bid[<span class="arg">0</span>] = <span class="arg">4096</span>
+<span class="cmt">Traceback (most recent call last): …</span>
+<span class="kw">TypeError</span>: 'tuple' object does not support item assignment
+<span class="cmt">&gt;&gt;&gt;</span> priority, mac = bid      <span class="cmt"># spacchettamento</span>
+<span class="cmt">&gt;&gt;&gt;</span> mac
+<span class="ok">'00:11:22:33:44:44'</span></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Nel nostro programma le tuple sono 4</h3>
+        <ul>
+          <li><code>bridge_id = (data["priority"], data["mac"])</code>: il BID</li>
+          <li><code>switches.items()</code> dà coppie <code>(nome, dati)</code>, spacchettate nel <code>for</code></li>
+          <li><code>return (root_bridge, root_data)</code>: due valori restituiti insieme</li>
+          <li><code>name, data = result</code>: spacchettamento del risultato</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — CONFRONTO TRA TUPLE ═══ -->
+<div class="slide" data-section="codice">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Confrontare tuple = la regola di STP</h2>
+    <span class="section-num">L4 · 07/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Il trucco del libro</h3>
+        <p>Rappresentiamo il BID come tupla <code>(priority, mac)</code>. Con <code>&lt;</code> Python confronta due tuple <strong>elemento per elemento</strong>: prima i due elementi in posizione <code>0</code>; solo se sono uguali, passa a quelli in posizione <code>1</code>.</p>
+        <p style="margin-top:6px;">È esattamente la regola di STP: niente <code>if</code> per gestire la parità.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent3);">I dati: un dizionario di dizionari</h3>
+<pre>{<span class="arg">"nome_switch"</span>: {<span class="arg">"priority"</span>: int, <span class="arg">"mac"</span>: str}}
+
+switches[<span class="arg">"SwitchE"</span>][<span class="arg">"priority"</span>]   <span class="cmt"># 24576</span></pre>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Provalo subito nel Terminale</h3>
+<pre><span class="cmt">$</span> <span class="cmd">python3</span>
+<span class="cmt">&gt;&gt;&gt;</span> (<span class="arg">24576</span>, <span class="arg">"00:11:22:33:44:44"</span>) &lt; (<span class="arg">24576</span>, <span class="arg">"00:11:22:33:44:77"</span>)
+<span class="ok">True</span>
+<span class="cmt">&gt;&gt;&gt;</span> (<span class="arg">24576</span>, <span class="arg">"00:11:22:33:44:77"</span>) &lt; (<span class="arg">28672</span>, <span class="arg">"00:11:22:33:44:00"</span>)
+<span class="ok">True</span>
+<span class="cmt">&gt;&gt;&gt;</span> <span class="cmd">exit</span>()</pre>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Nel secondo confronto vince il primo BID anche se il suo MAC (<code>…77</code>) è più alto: decide già la priorità, il MAC non viene neanche guardato.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 7 — STRUMENTI ═══ -->
+<div class="slide" data-section="strumenti">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Gli strumenti: Terminale + TextEdit</h2>
+    <span class="section-num">L4 · 08/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);"><span class="step-num" style="background:var(--accent1)">1</span> Terminale: cartella e file</h3>
+<pre><span class="cmd">mkdir</span> <span class="arg">-p</span> ~/Documents/PythonLab/STP_RootBridge
+<span class="cmd">cd</span> ~/Documents/PythonLab/STP_RootBridge
+<span class="cmd">touch</span> RootBridgeElection.py
+<span class="cmd">open</span> <span class="arg">-a</span> TextEdit RootBridgeElection.py</pre>
+        <p style="margin-top:6px;">Creato così, il file ha già l'estensione <code>.py</code> e TextEdit lo apre come <strong>testo semplice</strong>: nessuna finestra di salvataggio da sistemare.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent1);"><span class="step-num" style="background:var(--accent1)">3</span> Esegui e modifica</h3>
+<pre><span class="cmd">python3</span> RootBridgeElection.py</pre>
+        <p style="margin-top:6px;">A ogni modifica: <strong>⌘S</strong> in TextEdit, poi nel Terminale <strong>↑</strong> e <strong>Invio</strong> per rilanciare.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);"><span class="step-num" style="background:var(--accent3)">2</span> TextEdit: spegni le correzioni</h3>
+        <ul>
+          <li>Menu <strong>Modifica → Sostituzioni</strong>: togli la spunta alle virgolette e ai trattini «smart» e alla sostituzione del testo</li>
+          <li>Menu <strong>Modifica → Ortografia e grammatica</strong>: togli la correzione automatica</li>
+          <li>TextEdit non indenta da solo: usa <strong>sempre 4 spazi</strong>, senza mescolarli con il tasto Tab</li>
+        </ul>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">⚠️</span>
+        <span>Con le virgolette «smart» attive, <code>"mac"</code> diventa <code>“mac”</code> e Python si ferma con <code>SyntaxError: invalid character '“' (U+201C)</code>.</span>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">✅</span>
+        <span>Niente ambiente virtuale né <code>pip</code>: lo script usa solo Python standard. Il libro crea la <code>.venv</code> per abitudine, qui non serve.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 8 — CODICE 1/2 ═══ -->
+<div class="slide top" data-section="codice">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il programma 1/2 — la funzione</h2>
+    <span class="section-num">L4 · 09/16</span>
+  </div>
+  <div class="two-col-l">
+    <div class="code-wrap">
+      <button class="copy-btn" data-copy="code-func">Copia</button>
+<pre id="code-func"><span class="cmt"># RootBridgeElection.py - Unità 3, Laboratorio 4</span>
+<span class="cmt"># Simula l'elezione del Root Bridge dello Spanning Tree (STP)</span>
+
+<span class="kw">def</span> <span class="cmd">root_bridge_election</span>(switches):
+    <span class="arg">"""Elegge come root bridge lo switch con il Bridge ID più basso."""</span>
+    <span class="kw">if</span> <span class="kw">not</span> switches:
+        <span class="kw">return</span> <span class="ok">None</span>
+
+    root_bridge = <span class="ok">None</span>
+    lowest_bridge_id = <span class="ok">None</span>
+
+    <span class="kw">for</span> name, data <span class="kw">in</span> switches.items():
+        <span class="cmt"># Controllo validità dei dati</span>
+        <span class="kw">if</span> <span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span> <span class="kw">not</span> <span class="kw">in</span> data <span class="kw">or</span> <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span> <span class="kw">not</span> <span class="kw">in</span> data:
+            <span class="cmd">print</span>(<span class="arg">f</span><span class="arg">"</span><span class="arg">Errore: dati mancanti per lo switch </span><span class="arg">{</span>name<span class="arg">}</span><span class="arg">"</span>)
+            <span class="kw">continue</span>
+
+        <span class="cmt"># Il Bridge ID come tupla: prima la priorità, poi il MAC</span>
+        bridge_id = (data[<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>], data[<span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>])
+
+        <span class="cmt"># Se è il più basso trovato finora, diventa il candidato root</span>
+        <span class="kw">if</span> lowest_bridge_id <span class="kw">is</span> <span class="ok">None</span> <span class="kw">or</span> bridge_id &lt; lowest_bridge_id:
+            root_bridge = name
+            lowest_bridge_id = bridge_id
+            root_data = data
+
+    <span class="kw">return</span> (root_bridge, root_data) <span class="kw">if</span> root_bridge <span class="kw">else</span> <span class="ok">None</span></pre>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent4);">Come ragiona</h3>
+        <ul>
+          <li><code>root_bridge</code> e <code>lowest_bridge_id</code> partono da <code>None</code>: nessun vincitore ancora</li>
+          <li>Il <code>for</code> esamina uno switch alla volta con <code>.items()</code>: nome e dati</li>
+          <li>Se mancano <code>priority</code> o <code>mac</code>: messaggio e <code>continue</code>, si passa al successivo</li>
+          <li>Il BID è la tupla <code>(priority, mac)</code></li>
+          <li>Se è il più basso visto finora, quello switch diventa il candidato root</li>
+        </ul>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🎤</span>
+        <span><strong>Chiedi:</strong> è lo stesso algoritmo con cui cercate il minimo in una lista. Che ruolo ha <code>lowest_bridge_id is None</code>? (Serve al primo giro, quando non c'è ancora nulla da confrontare.)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 9 — CODICE 2/2 ═══ -->
+<div class="slide top" data-section="codice">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent4)"></div>
+    <h2 style="color:var(--accent4)">Il programma 2/2 — il main e l'output</h2>
+    <span class="section-num">L4 · 10/16</span>
+  </div>
+  <div class="two-col-l">
+    <div class="code-wrap">
+      <button class="copy-btn" data-copy="code-main">Copia</button>
+<pre id="code-main"><span class="kw">if</span> __name__ == <span class="arg">"</span><span class="arg">__main__</span><span class="arg">"</span>:
+    <span class="cmt"># Dizionario degli switch: nome -&gt; priorità e MAC di base</span>
+    switches = {
+        <span class="arg">"</span><span class="arg">SwitchA</span><span class="arg">"</span>: {<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>: <span class="arg">32768</span>, <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>: <span class="arg">"</span><span class="arg">00:11:22:33:44:55</span><span class="arg">"</span>},
+        <span class="arg">"</span><span class="arg">SwitchB</span><span class="arg">"</span>: {<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>: <span class="arg">28672</span>, <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>: <span class="arg">"</span><span class="arg">00:11:22:33:44:66</span><span class="arg">"</span>},
+        <span class="arg">"</span><span class="arg">SwitchC</span><span class="arg">"</span>: {<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>: <span class="arg">24576</span>, <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>: <span class="arg">"</span><span class="arg">00:11:22:33:44:77</span><span class="arg">"</span>},
+        <span class="arg">"</span><span class="arg">SwitchD</span><span class="arg">"</span>: {<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>: <span class="arg">32768</span>, <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>: <span class="arg">"</span><span class="arg">00:11:22:33:44:88</span><span class="arg">"</span>},
+        <span class="arg">"</span><span class="arg">SwitchE</span><span class="arg">"</span>: {<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>: <span class="arg">24576</span>, <span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>: <span class="arg">"</span><span class="arg">00:11:22:33:44:44</span><span class="arg">"</span>},
+    }
+
+    <span class="cmt"># Eseguiamo l'elezione e mostriamo il risultato</span>
+    result = root_bridge_election(switches)
+    <span class="kw">if</span> <span class="kw">not</span> result:
+        <span class="cmd">print</span>(<span class="arg">"</span><span class="arg">Errore: nessuno switch valido trovato per l</span><span class="arg">'</span><span class="arg">elezione.</span><span class="arg">"</span>)
+    <span class="kw">else</span>:
+        name, data = result
+        <span class="cmd">print</span>(<span class="arg">"</span><span class="arg">\n</span><span class="arg">--- RISULTATO DELL</span><span class="arg">'</span><span class="arg">ELEZIONE DEL ROOT BRIDGE ---</span><span class="arg">"</span>)
+        <span class="cmd">print</span>(<span class="arg">f</span><span class="arg">"</span><span class="arg">Root Bridge: </span><span class="arg">{</span>name<span class="arg">}</span><span class="arg">"</span>)
+        <span class="cmd">print</span>(<span class="arg">f</span><span class="arg">"</span><span class="arg">Bridge ID: </span><span class="arg">{</span>data[<span class="arg">'</span><span class="arg">priority</span><span class="arg">'</span>]<span class="arg">:</span><span class="arg">,</span><span class="arg">}</span><span class="arg">.</span><span class="arg">{</span>data[<span class="arg">'</span><span class="arg">mac</span><span class="arg">'</span>]<span class="arg">}</span><span class="arg">"</span>)
+        <span class="cmd">print</span>(<span class="arg">"</span><span class="arg">-----------------------------------------------</span><span class="arg">\n</span><span class="arg">"</span>)</pre>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">Esecuzione</h3>
+<pre><span class="cmt">$</span> <span class="cmd">python3</span> RootBridgeElection.py
+
+--- RISULTATO DELL'ELEZIONE DEL ROOT BRIDGE ---
+Root Bridge: <span class="ok">SwitchE</span>
+Bridge ID: <span class="arg">24,576.00:11:22:33:44:44</span>
+-----------------------------------------------</pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent4);">Da notare</h3>
+        <ul>
+          <li><code>if __name__ == "__main__":</code> esegue il blocco solo se lanci il file, non se lo importi</li>
+          <li><code>name, data = result</code> spacchetta la tupla restituita dalla funzione</li>
+          <li><code>{...:,}</code> stampa 24576 come <code>24,576</code>: un separatore delle migliaia che si confonde con il BID</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 10 — ESPERIMENTI ═══ -->
+<div class="slide" data-section="prove">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Esperimenti in classe</h2>
+    <span class="section-num">L4 · 11/16</span>
+  </div>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Cambia i dati nel main, salva con ⌘S e rilancia. Prima di premere Invio, fai prevedere il risultato alla classe.</p>
+  <div class="two-col">
+    <div class="col">
+      <div class="card" style="border-left:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">1 · Priorità bassa a SwitchA</h3>
+        <p><code>"priority": 4096</code> su SwitchA → vince <strong>SwitchA</strong>. La priorità batte il MAC.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">2 · Togli il MAC a SwitchB</h3>
+        <p><code>"SwitchB": {"priority": 28672}</code> → stampa <code>Errore: dati mancanti per lo switch SwitchB</code> e l'elezione continua. Vince ancora <strong>SwitchE</strong>.</p>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">3 · Nessuno switch</h3>
+        <p><code>switches = {}</code> → <code>Errore: nessuno switch valido trovato per l'elezione.</code></p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-left:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">4 · Il tranello: lettere nel MAC</h3>
+        <p style="margin-bottom:6px;">Metti SwitchE a 32768 e cambia i MAC di C e D (entrambi con priorità 24576):</p>
+<pre><span class="arg">"SwitchC"</span>: {<span class="arg">"priority"</span>: <span class="arg">24576</span>, <span class="arg">"mac"</span>: <span class="arg">"00:11:22:aa:00:00"</span>},
+<span class="arg">"SwitchD"</span>: {<span class="arg">"priority"</span>: <span class="arg">24576</span>, <span class="arg">"mac"</span>: <span class="arg">"00:11:22:BB:00:00"</span>},</pre>
+        <p style="margin-top:6px;">Lo script elegge <strong>SwitchD</strong>. Ma AA è minore di BB: doveva vincere <strong>SwitchC</strong>!</p>
+      </div>
+      <div class="callout callout-red">
+        <span class="callout-icon">🐞</span>
+        <span>Abbiamo trovato un bug del programma del libro. Perché succede? Prossima slide.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 11 — IL MAC COME STRINGA ═══ -->
+<div class="slide" data-section="prove">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Il punto debole: il MAC confrontato come testo</h2>
+    <span class="section-num">L4 · 12/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent2);">Cosa succede</h3>
+        <p>Le stringhe si confrontano carattere per carattere, secondo il <strong>codice</strong> di ogni carattere: <code>'B'</code> = 66, <code>'a'</code> = 97. Quindi per Python <code>"BB" &lt; "aa"</code>, anche se come numeri esadecimali BB &gt; AA.</p>
+        <p style="margin-top:6px;">Altri casi che falsano il confronto: formati diversi come <code>0011.2233.4455</code> (Cisco) o <code>00-11-22-33-44-55</code> (Windows).</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">💡</span>
+        <span>Per STP il MAC è un <strong>numero di 48 bit</strong>, non un testo. Con i dati del libro funziona solo perché sono tutti scritti nello stesso formato e solo con cifre.</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">La correzione: MAC → numero</h3>
+        <div class="code-wrap">
+          <button class="copy-btn" data-copy="code-fix">Copia</button>
+<pre id="code-fix"><span class="kw">def</span> <span class="cmd">mac_to_int</span>(mac):
+    <span class="arg">"""Converte un MAC in numero, qualunque sia il formato."""</span>
+    cifre = mac.replace(<span class="arg">"</span><span class="arg">:</span><span class="arg">"</span>, <span class="arg">"</span><span class="arg">"</span>).replace(<span class="arg">"</span><span class="arg">-</span><span class="arg">"</span>, <span class="arg">"</span><span class="arg">"</span>).replace(<span class="arg">"</span><span class="arg">.</span><span class="arg">"</span>, <span class="arg">"</span><span class="arg">"</span>)
+    <span class="kw">return</span> <span class="cmd">int</span>(cifre, <span class="arg">16</span>)
+
+<span class="cmt"># nel for, al posto della riga del libro:</span>
+bridge_id = (data[<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>], mac_to_int(data[<span class="arg">"</span><span class="arg">mac</span><span class="arg">"</span>]))</pre>
+        </div>
+        <p style="margin-top:6px;"><code>int(cifre, 16)</code> legge le 12 cifre in base 16. Con la correzione l'esperimento 4 elegge <strong>SwitchC</strong>, come deve.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 12 — ERRORI TIPICI ═══ -->
+<div class="slide" data-section="prove">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent2)"></div>
+    <h2 style="color:var(--accent2)">Errori tipici con TextEdit e Terminale</h2>
+    <span class="section-num">L4 · 13/16</span>
+  </div>
+  <div class="card">
+    <table class="ad-table">
+      <tr><th>Messaggio o sintomo</th><th>Causa</th><th>Rimedio</th></tr>
+      <tr><td class="mono bad">SyntaxError: invalid character '“'</td><td>Virgolette «smart» di TextEdit</td><td>Spegni le sostituzioni e riscrivi le virgolette</td></tr>
+      <tr><td class="mono bad">IndentationError / TabError</td><td>Rientri irregolari, o spazi e Tab mescolati</td><td>Solo 4 spazi per livello</td></tr>
+      <tr><td class="mono bad">No such file or directory</td><td>Il Terminale è in un'altra cartella</td><td><code>pwd</code> per vedere dove sei, <code>ls</code> per vedere i file, poi <code>cd</code></td></tr>
+      <tr><td class="mono mid">RootBridgeElection.py.rtf</td><td>File salvato da TextEdit come testo formattato</td><td>Crea il file con <code>touch</code> e aprilo con <code>open -a TextEdit</code></td></tr>
+      <tr><td class="mono mid">NameError: name 'swithces' …</td><td>Nome scritto in modo diverso tra definizione e uso</td><td>Il messaggio indica riga e nome: confrontali</td></tr>
+      <tr><td class="mono mid">Il Mac propone di installare gli «strumenti da riga di comando»</td><td>Python 3 non è ancora installato</td><td>Accetta, oppure installa Python da python.org</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-yellow" style="margin-top:12px;">
+    <span class="callout-icon">🎯</span>
+    <span>Leggere il messaggio di errore è metà del lavoro: Python indica il <strong>file</strong>, la <strong>riga</strong> e il <strong>tipo</strong> di errore. Fallo leggere ad alta voce a chi l'ha ricevuto.</span>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 13 — PACKET TRACER ═══ -->
+<div class="slide" data-section="pt">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent3)"></div>
+    <h2 style="color:var(--accent3)">Lo stesso calcolo, su uno switch Cisco</h2>
+    <span class="section-num">L4 · 14/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Leggere il Bridge ID</h3>
+<pre>Switch# <span class="cmd">show spanning-tree</span>
+VLAN0001
+  Root ID    Priority    <span class="arg">32769</span>
+             Address     0001.C9CE.07E6
+  Bridge ID  Priority    <span class="arg">32769</span>  (priority <span class="ok">32768</span> sys-id-ext <span class="ok">1</span>)
+             Address     0030.F295.B9B9</pre>
+        <p style="margin-top:6px;">32769 = 32768 + VLAN 1: è l'<strong>Extended System ID</strong>. Root ID e Bridge ID diversi: questo switch <strong>non</strong> è il root (output di p. 95).</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">Forzare il root bridge</h3>
+<pre>Switch(config)# <span class="cmd">spanning-tree vlan</span> <span class="arg">1</span> <span class="cmd">priority</span> <span class="arg">4096</span>
+<span class="cmt">! oppure lascia scegliere un valore basso a IOS:</span>
+Switch(config)# <span class="cmd">spanning-tree vlan</span> <span class="arg">1</span> <span class="cmd">root primary</span></pre>
+        <p style="margin-top:6px;">Apri lo scenario del Laboratorio 6, abbassa la priorità di Switch1 e rilancia <code>show spanning-tree</code>: ora il root è Switch1 e cambiano le porte bloccate.</p>
+      </div>
+      <div class="callout callout-blue">
+        <span class="callout-icon">🎤</span>
+        <span><strong>Chiedi:</strong> cosa risponde lo switch a <code>spanning-tree vlan 1 priority 30000</code>? Provatelo: accetta solo multipli di 4096, come il controllo dell'esercizio 2.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 14 — VERIFICA ═══ -->
+<div class="slide" data-section="verifica">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Verifica di fine laboratorio (p. 83)</h2>
+    <span class="section-num">L4 · 15/16</span>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent1);">1 · Tuple, dizionari e liste</h3>
+        <table class="ad-table">
+          <tr><th>Struttura</th><th>Si modifica?</th><th>Si accede con</th><th>Nel programma</th></tr>
+          <tr><td class="mono">tuple ( )</td><td>No</td><td>posizione</td><td>il BID</td></tr>
+          <tr><td class="mono">dict { }</td><td>Sì</td><td>chiave</td><td>gli switch</td></tr>
+          <tr><td class="mono">list [ ]</td><td>Sì</td><td>posizione</td><td>—</td></tr>
+        </table>
+        <p style="margin-top:6px;">Le tuple si confrontano con <code>&lt;</code> elemento per elemento; i dizionari no.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3 style="color:var(--accent3);">2 · La priorità deve essere un multiplo di 4096</h3>
+        <p>Aggiungi al programma un controllo: se la priorità non è valida, stampa un errore e passa allo switch successivo.</p>
+        <p style="margin-top:6px;"><strong>Suggerimento:</strong> l'operatore <code>%</code> dà il resto della divisione.</p>
+        <button class="reveal-btn" data-reveal="r2">Mostra la soluzione</button>
+        <div class="reveal-box" id="r2">
+          <div class="code-wrap">
+            <button class="copy-btn" data-copy="code-sol">Copia</button>
+<pre id="code-sol"><span class="kw">def</span> <span class="cmd">priorita_valida</span>(priority):
+    <span class="kw">return</span> priority % <span class="arg">4096</span> == <span class="arg">0</span> <span class="kw">and</span> <span class="arg">0</span> &lt;= priority &lt;= <span class="arg">61440</span>
+
+<span class="cmt"># nel for, dopo il controllo dei dati mancanti:</span>
+<span class="kw">if</span> <span class="kw">not</span> priorita_valida(data[<span class="arg">"</span><span class="arg">priority</span><span class="arg">"</span>]):
+    <span class="cmd">print</span>(<span class="arg">f</span><span class="arg">"</span><span class="arg">Errore: priorità non valida per </span><span class="arg">{</span>name<span class="arg">}</span><span class="arg">"</span>)
+    <span class="kw">continue</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 15 — RIEPILOGO ═══ -->
+<div class="slide" data-section="riepilogo">
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--accent1)"></div>
+    <h2 style="color:var(--accent1)">Riepilogo — Laboratorio 4</h2>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="card" style="border-top:3px solid var(--accent4);">
+        <h3 style="color:var(--accent4);">🔵 STP</h3>
+        <ul>
+          <li>Toglie i loop: rete fisica ridondante, rete logica ad albero</li>
+          <li>Primo passo: l'elezione del <strong>root bridge</strong></li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);">
+        <h3 style="color:var(--accent3);">🟡 Bridge ID</h3>
+        <ul>
+          <li>Priorità (default 32768, multipli di 4096) + MAC di base</li>
+          <li>Vince il BID più basso: prima la priorità, poi il MAC</li>
+          <li>Su Cisco la priorità mostrata include la VLAN: 32769</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="border-top:3px solid var(--accent1);">
+        <h3 style="color:var(--accent1);">🟢 Python</h3>
+        <ul>
+          <li>BID come tupla <code>(priority, mac)</code>: il confronto tra tuple applica la regola di STP</li>
+          <li>Ricerca del minimo con un <code>for</code> su un dizionario</li>
+          <li>Il MAC va confrontato come numero: <code>int(cifre, 16)</code></li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2);">
+        <h3 style="color:var(--accent2);">🔴 TextEdit e Terminale</h3>
+        <ul>
+          <li>File creato con <code>touch</code>, aperto con <code>open -a TextEdit</code></li>
+          <li>Virgolette «smart» spente, rientri di 4 spazi</li>
+          <li>⌘S, poi ↑ e Invio nel Terminale</li>
+        </ul>
+      </div>
+      <div class="callout callout-green">
+        <span class="callout-icon">🚀</span>
+        <span><strong>Prossima lezione (5):</strong> le VLAN — e il perché di quei 12 bit di Extended System ID.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /stage -->
+
+<div id="nav">
+  <button id="btn-prev" disabled>← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const sectionNames = {
+    'intro':      'Introduzione',
+    'ripasso':    'Ripasso STP',
+    'bid':        'Bridge ID',
+    'codice':     'Il codice Python',
+    'strumenti':  'TextEdit · Terminale',
+    'prove':      'Prove ed errori',
+    'pt':         'Packet Tracer',
+    'verifica':   'Verifica',
+    'riepilogo':  'Riepilogo'
+  };
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 420);
+    current = idx;
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+
+    document.getElementById('slide-counter').textContent =
+      String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('progress-fill').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    const sec = slides[current].dataset.section || '';
+    document.getElementById('section-label').textContent = sectionNames[sec] || '';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  goTo(0);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+  }
+
+  let _touchStartX = 0, _touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) goTo(current + 1);
+      else        goTo(current - 1);
+    }
+  }, { passive: true });
+
+  // sommario cliccabile: ogni voce porta alla slide corrispondente
+  (function () {
+    var all = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    document.querySelectorAll('[data-goto]').forEach(function (el) {
+      var v = el.getAttribute('data-goto'), t;
+      if (/^[0-9]+$/.test(v)) {
+        t = parseInt(v, 10) - 1;
+      } else {
+        t = -1;
+        for (var k = 0; k < all.length; k++) {
+          if (all[k].dataset.section === v) { t = k; break; }
+        }
+      }
+      if (t < 0 || t >= all.length) return;
+      el.classList.add('ov-link');
+      el.setAttribute('role', 'link');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () { goTo(t); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(t); }
+      });
+    });
+  })();
+
+  // pulsanti «Mostra la risposta»
+  document.querySelectorAll('[data-reveal]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var box = document.getElementById(btn.getAttribute('data-reveal'));
+      var open = box.classList.toggle('open');
+      btn.textContent = open ? 'Nascondi' : (btn.dataset.label || 'Mostra la risposta');
+    });
+    btn.dataset.label = btn.textContent;
+  });
+
+  // pulsanti «Copia»: copiano il codice esatto, da incollare in TextEdit
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = document.getElementById(btn.getAttribute('data-copy')).textContent;
+      function done() { btn.textContent = 'Copiato ✓'; setTimeout(function () { btn.textContent = 'Copia'; }, 1500); }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = 'Seleziona e ⌘C'; }
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } else { fallback(); }
+    });
+  });
+</script>
+</body>
+</html>
