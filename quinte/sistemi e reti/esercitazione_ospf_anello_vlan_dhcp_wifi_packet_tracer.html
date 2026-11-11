@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esercitazione di laboratorio — La rete del Resort Le Ginestre</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+      background: #f0f4f8; color: #1a202c;
+      padding: 30px 20px; font-size: 17px; line-height: 1.75;
+    }
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 30px 34px; margin-bottom: 30px;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 8px; line-height: 1.3; }
+    header p  { font-size: 1rem; opacity: 0.9; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 0.85rem; margin-top: 12px; margin-right: 5px;
+    }
+
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 26px 30px; margin-bottom: 26px;
+    }
+    .card h2 {
+      font-size: 1.3rem; color: #2b6cb0;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 12px; margin-bottom: 18px; line-height: 1.35;
+    }
+    .card h3 {
+      font-size: 1.02rem; color: #2d3748;
+      margin: 22px 0 10px; font-weight: 700;
+    }
+    .card p { margin: 8px 0; }
+
+    /* numero grande della parte */
+    .part-num {
+      display: inline-block; background: #2b6cb0; color: white;
+      width: 38px; height: 38px; border-radius: 50%;
+      text-align: center; line-height: 38px; font-size: 1.1rem;
+      font-weight: 700; margin-right: 10px; vertical-align: middle;
+    }
+    .part-extra .part-num { background: #805ad5; }
+    .part-extra h2 { color: #805ad5; border-left-color: #805ad5; }
+    .tempo { float: right; background: #edf2f7; color: #4a5568; border-radius: 12px;
+             padding: 2px 11px; font-size: 0.8rem; font-weight: 600; margin-top: 6px; }
+
+    .topology {
+      background: #0d1117; border-radius: 8px;
+      padding: 22px; font-family: 'Courier New', monospace;
+      font-size: 0.85rem; color: #c9d1d9;
+      line-height: 1.6; overflow-x: auto; white-space: pre; margin: 12px 0;
+    }
+    .topology .label  { color: #ffa657; font-weight: bold; }
+    .topology .device { color: #7ee787; font-weight: bold; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+    .topology .srv    { color: #58a6ff; font-weight: bold; }
+    .topology .fib    { color: #39c5cf; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 8px; }
+    th { background: #2b6cb0; color: white; padding: 11px 13px; text-align: left; font-weight: 600; }
+    td { padding: 11px 13px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    td.vlan { white-space: nowrap; }
+
+    .info-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .warn-box { background: #fffff0; border-left: 5px solid #d69e2e; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+
+    /* che cosa scrivere nel Documento Google */
+    .doc { display: flex; gap: 14px; align-items: flex-start;
+           background: #f5f9ff; border: 1px solid #bee3f8; border-left: 5px solid #2b6cb0;
+           border-radius: 6px; padding: 12px 16px; margin: 14px 0; }
+    .doc svg { width: 24px; height: 30px; flex-shrink: 0; margin-top: 4px; }
+    .doc > div { flex: 1; min-width: 0; }
+    .doc .doc-t { font-weight: 700; color: #2a4365; }
+    .doc p { margin: 4px 0; }
+    .col { display: inline-block; background: white; border: 1px solid #a0c4e8; border-radius: 4px;
+           padding: 0 8px; margin: 4px 4px 0 0; font-size: 0.86rem; color: #2a4365; }
+
+    /* passi operativi: uno per riga, ben spaziati */
+    ol.steps { list-style: none; counter-reset: st; margin: 10px 0 0 0; }
+    ol.steps li {
+      counter-increment: st; position: relative;
+      padding: 10px 0 10px 44px; border-bottom: 1px solid #edf2f7;
+    }
+    ol.steps li:last-child { border-bottom: none; }
+    ol.steps li::before {
+      content: counter(st); position: absolute; left: 0; top: 10px;
+      background: #bee3f8; color: #2a4365; font-weight: 700;
+      width: 30px; height: 30px; border-radius: 50%;
+      text-align: center; line-height: 30px; font-size: 0.9rem;
+    }
+    /* requisiti del cliente: numerati in quadrato */
+    ol.steps.req li::before { border-radius: 6px; background: #2b6cb0; color: white; }
+
+    /* punto di controllo a fine parte */
+    .check {
+      background: #f0fff4; border: 2px solid #38a169; border-radius: 8px;
+      padding: 16px 20px; margin-top: 20px;
+    }
+    .check .title { font-weight: 700; color: #22543d; margin-bottom: 8px; font-size: 1.02rem; }
+    .check ul { list-style: none; margin: 0; }
+    .check li { padding: 6px 0 6px 34px; position: relative; }
+    .check li::before {
+      content: '✓'; position: absolute; left: 4px; top: 5px;
+      font-size: 1.1rem; font-weight: 700; color: #38a169; line-height: 1.4;
+    }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 9px; font-size: 0.82rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-pt    { background: #fefcbf; color: #744210; }
+    .tag-cli   { background: #c3dafe; color: #2a4365; }
+    .tag-doc   { background: #fed7d7; color: #9b2c2c; }
+    .tag-core  { background: #c6f6d5; color: #22543d; }
+    .tag-plus  { background: #e9d8fd; color: #553c9a; }
+
+    code { background: #edf2f7; padding: 2px 7px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.92em; color: #2d3748; }
+
+    .roadmap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .rm-item {
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px 16px;
+      background: #f7fafc;
+    }
+    .rm-item .n {
+      background: #2b6cb0; color: white; width: 32px; height: 32px;
+      border-radius: 50%; text-align: center; line-height: 32px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .rm-item.extra .n { background: #805ad5; }
+    .rm-item .txt { flex: 1; }
+    .rm-item .txt b { display: block; font-size: 1rem; }
+    .rm-item .txt span { font-size: 0.88rem; color: #718096; }
+
+    /* domande: la risposta va nel documento */
+    .q { font-weight: 600; margin-top: 16px; }
+    .q .qn { display: inline-block; background: #2b6cb0; color: white; border-radius: 4px;
+             padding: 0 8px; margin-right: 6px; font-size: 0.85rem; }
+    .part-extra .q .qn { background: #805ad5; }
+
+    .small { font-size: 0.9rem; color: #4a5568; margin-top: 10px; }
+
+    footer { text-align: center; font-size: 0.85rem; color: #a0aec0;
+             margin-top: 34px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      body { padding: 16px; font-size: 16px; }
+      header { padding: 22px 20px; }
+      header h1 { font-size: 1.45rem; }
+      .card { padding: 20px 16px; }
+      .tempo { float: none; display: inline-block; margin: 6px 0 0 0; }
+      .doc svg { display: none; }
+    }
+    @media print {
+      @page { margin: 1.2cm; }
+      body { background: white; padding: 0; font-size: 10pt; line-height: 1.4; }
+      .page { max-width: none; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 12px 16px; margin-bottom: 12px; }
+      .card h2 { margin-bottom: 8px; }
+      .card h3 { margin: 12px 0 5px; }
+      header { background: #1a365d !important; padding: 14px 20px; margin-bottom: 12px; }
+      th, td { padding: 5px 8px; }
+      ol.steps li { padding: 5px 0 5px 34px; }
+      ol.steps li::before { top: 4px; width: 22px; height: 22px; line-height: 22px; }
+      .info-box, .warn-box, .doc { padding: 7px 12px; margin: 7px 0; }
+      .check { padding: 8px 12px; margin-top: 10px; }
+      .check li { padding: 2px 0 2px 26px; }
+      .check li::before { top: 1px; }
+      .rm-item { padding: 5px 10px; }
+      .topology { padding: 10px 14px; line-height: 1.3; font-size: 8.5pt; }
+      .q { margin-top: 8px; }
+      header, .topology, .tag, .q .qn, .part-num, ol.steps li::before, .doc, .col, th, td {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .check, .doc, table, .topology { page-break-inside: avoid; }
+      h2, h3, .q { page-break-after: avoid; break-after: avoid; }
+      .card > h2 + p, .card > h2 + ol { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- icona del documento, riusata nei riquadri «Nel documento» -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="foglio" viewBox="0 0 24 30">
+      <path d="M2 1h13l7 7v20a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="#2b6cb0"/>
+      <path d="M15 1v7h7z" fill="#90cdf4"/>
+      <rect x="5" y="13" width="13" height="2" rx="1" fill="white"/>
+      <rect x="5" y="18" width="13" height="2" rx="1" fill="white"/>
+      <rect x="5" y="23" width="9" height="2" rx="1" fill="white"/>
+    </symbol>
+  </svg>
+
+  <header>
+    <h1>Esercitazione di laboratorio — La rete del Resort Le Ginestre</h1>
+    <p>Quattro router ad anello in fibra ottica con OSPF, VLAN, due server DHCP con relay agent e un Wi-Fi per gli ospiti</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT — Sistemi e Reti</span>
+    <span class="badge">VLSM · VLAN · OSPF · DHCP relay · Wi-Fi</span>
+    <span class="badge">Durata: 3 ore</span>
+  </header>
+
+  <!-- COME LAVORARE -->
+  <div class="card">
+    <h2>Come lavorare</h2>
+    <ol class="steps">
+      <li><strong>Questa esercitazione non è guidata.</strong> Trovi i requisiti della rete, non i comandi. Le scelte le fai tu.</li>
+      <li><strong>Le risposte vanno in un Documento Google.</strong> Prima di iniziare crea un documento chiamato <code>Cognome_Nome_ginestre</code>
+          e in cima scrivi nome, cognome, classe e data. Per ogni parte scrivi un titolo: <em>Parte 1</em>, <em>Parte 2</em> e così via.</li>
+      <li><strong>Segui i riquadri «Nel documento».</strong> Ognuno ti dice che cosa scrivere. Quando indica delle colonne, crea la tabella
+          con <em>Inserisci → Tabella</em>. Per le domande scrivi il numero (D1, D2…) e sotto la risposta.
+          Tabelle e risposte devono corrispondere a ciò che configuri in Packet Tracer.</li>
+      <li><strong>Router e switch si configurano solo dalla CLI.</strong> La scheda <em>Config</em> puoi usarla solo per PC, server,
+          access point e dispositivi wireless. L'insegnante controllerà la <code>running-config</code> di ogni router e switch.</li>
+      <li><strong>Segui le parti in ordine.</strong> Alla fine di ogni parte c'è un <em>punto di controllo</em>: passa alla successiva
+          solo quando tutte le verifiche sono soddisfatte. Le sfide finali sono per chi ha finito.</li>
+      <li><strong>Salva spesso</strong> il file con il nome <code>Cognome_Nome_ginestre.pkt</code>. Il documento invece si salva da solo.</li>
+      <li>Se non ricordi la sintassi di un comando, usa il punto interrogativo <code>?</code> nella CLI.</li>
+    </ol>
+    <div class="warn-box">
+      <strong>Gestisci il tempo.</strong> Se resti bloccato più di 10 minuti sullo stesso problema, annotalo in fondo al documento
+      e vai avanti: puoi tornarci alla fine.
+    </div>
+  </div>
+
+  <!-- MAPPA -->
+  <div class="card">
+    <h2>Le parti del lavoro</h2>
+    <div class="roadmap">
+      <div class="rm-item">
+        <div class="n">1</div>
+        <div class="txt"><b>Piano di indirizzamento <span class="tag tag-doc">Documento Google</span></b>
+        <span>VLSM delle LAN, collegamenti tra router, indirizzi dei server · ~30 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">2</div>
+        <div class="txt"><b>Topologia e cablaggio <span class="tag tag-core">da fare</span></b>
+        <span>Dispositivi, moduli in fibra, cavi e porte degli switch · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">3</div>
+        <div class="txt"><b>VLAN e trunk <span class="tag tag-core">da fare</span></b>
+        <span>Domini di broadcast separati sugli stessi switch · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">4</div>
+        <div class="txt"><b>Interfacce dei router <span class="tag tag-core">da fare</span></b>
+        <span>Un'interfaccia per ogni rete, collegamenti dell'anello · ~15 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">5</div>
+        <div class="txt"><b>Routing dinamico OSPF <span class="tag tag-core">da fare</span></b>
+        <span>Vicini, wildcard e tabelle di routing · ~25 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">6</div>
+        <div class="txt"><b>DHCP e relay agent <span class="tag tag-core">da fare</span></b>
+        <span>Due server, sei pool, il relay solo dove serve · ~30 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">7</div>
+        <div class="txt"><b>Wi-Fi per gli ospiti <span class="tag tag-core">da fare</span></b>
+        <span>Access point protetto e dispositivi wireless · ~15 min</span></div>
+      </div>
+      <div class="rm-item">
+        <div class="n">8</div>
+        <div class="txt"><b>Collaudo e prova di guasto <span class="tag tag-core">da fare</span></b>
+        <span>La rete regge se si rompe un cavo dell'anello? · ~15 min</span></div>
+      </div>
+      <div class="rm-item extra">
+        <div class="n">+</div>
+        <div class="txt"><b>Sfide <span class="tag tag-plus">se resta tempo</span></b>
+        <span>Linea di emergenza, ospiti isolati, DHCP di riserva</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Lo scenario</h2>
+    <p>Il <strong>Resort Le Ginestre</strong> ha quattro edifici, ognuno con un router Cisco 2911. Gli edifici sono distanti tra loro
+       e i router sono collegati con cavi in <strong>fibra ottica</strong>. Perché un solo cavo rotto non isoli un edificio, i collegamenti
+       formano un <strong>anello</strong>: ogni edificio può raggiungere gli altri da due strade diverse.
+       Le rotte non si scrivono a mano: le calcola OSPF.</p>
+    <p>Il responsabile informatico del resort ti consegna l'elenco delle reti e i requisiti. Progetta e configura la rete rispettandoli tutti.</p>
+
+    <h3>Le reti da realizzare</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Edificio (router)</th><th>Rete</th><th>VLAN</th><th>Dispositivi</th><th>Indirizzi assegnati da</th></tr>
+      <tr><td rowspan="3">Edificio principale (R1)</td><td>RECEPTION</td><td class="vlan">10</td><td>18</td><td>DHCP-2</td></tr>
+      <tr><td>AMMINISTRAZIONE</td><td class="vlan">20</td><td>25, compreso DHCP-2</td><td>DHCP-2 (il server ha un indirizzo statico)</td></tr>
+      <tr><td>OSPITI (Wi-Fi della hall)</td><td class="vlan">50</td><td>180</td><td>DHCP-1</td></tr>
+      <tr><td>Ristorante (R2)</td><td>RISTORANTE</td><td class="vlan">—</td><td>12</td><td>DHCP-2</td></tr>
+      <tr><td rowspan="2">Centro congressi (R3)</td><td>SALE CONVEGNI</td><td class="vlan">30</td><td>55</td><td>DHCP-1</td></tr>
+      <tr><td>STAFF EVENTI</td><td class="vlan">40</td><td>10</td><td>DHCP-2</td></tr>
+      <tr><td>CED (R4)</td><td>SERVER</td><td class="vlan">—</td><td>5: DHCP-1, WEB e 3 di riserva</td><td>Indirizzi statici</td></tr>
+    </table></div>
+    <p class="small">Il numero di dispositivi non comprende l'interfaccia del router.</p>
+
+    <h3>I requisiti</h3>
+    <ol class="steps req">
+      <li><strong>Indirizzi delle LAN.</strong> Le sette reti si ricavano con la VLSM dal blocco che inizia da <code>172.16.10.0</code>.
+          Usa il blocco più piccolo possibile e assegna le reti partendo dalla più grande.</li>
+      <li><strong>Indirizzi tra i router.</strong> Ogni collegamento tra due router usa una rete privata di classe C intera, senza suddividerla.
+          Il terzo byte si ottiene scrivendo uno dopo l'altro i numeri dei due router, prima il più piccolo:
+          tra R2 e R3 la rete è <code>192.168.23.0</code>. Su ogni collegamento il router usa come ultimo byte il proprio numero.</li>
+      <li><strong>Indirizzi fissi.</strong> In ogni LAN il gateway è il primo indirizzo assegnabile. I server hanno indirizzi statici:
+          DHCP-1 e DHCP-2 usano l'ultimo indirizzo assegnabile della loro rete, WEB il penultimo.</li>
+      <li><strong>Un'interfaccia per ogni rete.</strong> Ogni rete della tabella è un dominio di broadcast separato e ha una propria
+          interfaccia fisica sul router, come indicato nella tabella delle interfacce. Dove reti diverse condividono gli stessi switch,
+          separale con le VLAN.</li>
+      <li><strong>Routing.</strong> Solo OSPF, area 0, configurato dalla CLI. Router ID: <code>1.1.1.1</code> per R1, <code>2.2.2.2</code> per R2 e così via.
+          Nessuna rotta statica. I messaggi OSPF non devono uscire sulle LAN.</li>
+      <li><strong>DHCP.</strong> PC, laptop e smartphone ricevono l'indirizzo in automatico dal server indicato in tabella.
+          Nessun indirizzo deve essere assegnato due volte, compresi quelli dei gateway e dei server.</li>
+      <li><strong>Wi-Fi ospiti.</strong> Un access point nella hall, chiamato AP-HALL e collegato a SW-P0.
+          SSID <code>Ginestre-Ospiti</code>, protezione WPA2-PSK, password <code>Ginestre2026</code>.</li>
+      <li><strong>Ridondanza.</strong> Se si guasta un qualsiasi collegamento dell'anello, tutte le reti devono continuare a comunicare
+          senza che nessuno modifichi la configurazione.</li>
+    </ol>
+
+    <h3>La topologia</h3>
+<div class="topology"><span class="label">RESORT LE GINESTRE — anello in fibra ottica tra i quattro edifici</span>
+
+       <span class="net">EDIFICIO PRINCIPALE</span>                             <span class="net">RISTORANTE</span>
+ <span class="net">1° piano</span>   <span class="net">piano terra</span>
+  <span class="device">[SW-P1]</span><span class="link">────</span><span class="device">[SW-P0]</span>                                      <span class="device">[SW2]</span>
+               <span class="link">│││</span>                                          <span class="link">│</span>
+               <span class="link">│││</span> Gig0/0 · Gig0/1 · Gig0/2                 <span class="link">│</span> Gig0/0
+             <span class="srv">[ R1 ]</span> Gig0/0/0 <span class="fib">══════════════════</span> Gig0/1/0 <span class="srv">[ R2 ]</span>
+       Gig0/1/0 <span class="fib">║</span>                                           <span class="fib">║</span> Gig0/0/0
+                <span class="fib">║</span>                                           <span class="fib">║</span>
+                <span class="fib">║</span>                                           <span class="fib">║</span>
+       Gig0/0/0 <span class="fib">║</span>                                           <span class="fib">║</span> Gig0/1/0
+             <span class="srv">[ R4 ]</span> Gig0/1/0 <span class="fib">══════════════════</span> Gig0/0/0 <span class="srv">[ R3 ]</span>
+                <span class="link">│</span> Gig0/0                                   <span class="link">││</span> Gig0/0 · Gig0/1
+                <span class="link">│</span>                                          <span class="link">││</span>
+              <span class="device">[SW4]</span>                                       <span class="device">[SW3]</span>
+
+        <span class="net">CED (sala server)</span>                           <span class="net">CENTRO CONGRESSI</span>
+
+ <span class="fib">═══</span> fibra ottica (moduli HWIC-1GE-SFP)      <span class="link">───</span> rame</div>
+
+    <h3>I dispositivi</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Edificio</th><th>Che cosa inserire</th></tr>
+      <tr><td>Edificio principale</td><td>R1 · <strong>SW-P0</strong> al piano terra: 2 PC della reception e l'access point AP-HALL ·
+          <strong>SW-P1</strong> al primo piano: 2 PC dell'amministrazione, il server DHCP-2 e 1 PC della reception (ufficio prenotazioni)</td></tr>
+      <tr><td>Hall</td><td>Almeno 1 laptop e 1 smartphone o tablet degli ospiti, collegati al Wi-Fi</td></tr>
+      <tr><td>Ristorante</td><td>R2 · <strong>SW2</strong>: 2 PC (cassa e cucina)</td></tr>
+      <tr><td>Centro congressi</td><td>R3 · <strong>SW3</strong>: 2 PC delle sale convegni e 2 PC dello staff eventi</td></tr>
+      <tr><td>CED</td><td>R4 · <strong>SW4</strong>: i server DHCP-1 e WEB</td></tr>
+    </table></div>
+    <p class="small">Router Cisco 2911 con due moduli in fibra HWIC-1GE-SFP ciascuno, negli slot EHWIC 0 e 1. Switch Cisco 2960.
+       Le porte degli switch le scegli tu e le annoti nella Parte 2.</p>
+
+    <h3>Le interfacce dei router</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Router</th><th>LAN (rame)</th><th>Anello (fibra)</th></tr>
+      <tr><td>R1</td><td><code>Gig0/0</code> RECEPTION · <code>Gig0/1</code> AMMINISTRAZIONE · <code>Gig0/2</code> OSPITI</td><td><code>Gig0/0/0</code> verso R2 · <code>Gig0/1/0</code> verso R4</td></tr>
+      <tr><td>R2</td><td><code>Gig0/0</code> RISTORANTE</td><td><code>Gig0/0/0</code> verso R3 · <code>Gig0/1/0</code> verso R1</td></tr>
+      <tr><td>R3</td><td><code>Gig0/0</code> SALE CONVEGNI · <code>Gig0/1</code> STAFF EVENTI</td><td><code>Gig0/0/0</code> verso R4 · <code>Gig0/1/0</code> verso R2</td></tr>
+      <tr><td>R4</td><td><code>Gig0/0</code> SERVER</td><td><code>Gig0/0/0</code> verso R1 · <code>Gig0/1/0</code> verso R3</td></tr>
+    </table></div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2><span class="part-num">1</span>Piano di indirizzamento <span class="tag tag-doc">Documento Google</span><span class="tempo">~30 min</span></h2>
+    <p>Fai questa parte prima di aprire Packet Tracer. Tutto il resto del lavoro si basa su questi numeri:
+       un errore fatto qui si ripete ovunque.</p>
+
+    <h3>A. Il blocco delle LAN</h3>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento</div>
+      <p>Scrivi tre risultati: gli indirizzi necessari in totale (la somma dei blocchi delle sette reti),
+         il blocco più piccolo che li contiene a partire da <code>172.16.10.0</code> (indirizzo/prefisso) e quanti indirizzi del blocco restano liberi.</p>
+    </div></div>
+
+    <h3>B. VLSM delle LAN</h3>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per rete, dalla più grande alla più piccola</div>
+      <span class="col">#</span><span class="col">Rete</span><span class="col">Prefisso</span><span class="col">Indirizzo di rete</span><span class="col">Maschera</span><span class="col">Gateway</span><span class="col">Assegnabili (primo – ultimo)</span><span class="col">Broadcast</span>
+    </div></div>
+
+    <h3>C. I collegamenti dell'anello</h3>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per collegamento: R1–R2, R2–R3, R3–R4, R1–R4</div>
+      <span class="col">Collegamento</span><span class="col">Rete</span><span class="col">Maschera</span><span class="col">IP del primo router</span><span class="col">IP del secondo router</span>
+    </div></div>
+
+    <h3>D. I server</h3>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per DHCP-1, WEB e DHCP-2</div>
+      <span class="col">Server</span><span class="col">Rete</span><span class="col">Indirizzo IP</span><span class="col">Maschera</span><span class="col">Default gateway</span>
+    </div></div>
+
+    <p class="q"><span class="qn">D1</span>Ogni collegamento tra router usa 2 indirizzi su 254 assegnabili. Quale prefisso basterebbe?
+       Che vantaggio dà, comunque, usare una rete di classe C per ogni collegamento?</p>
+    <p class="q"><span class="qn">D2</span>In futuro il resort vuole una seconda rete ospiti da 50 dispositivi. Entra nel blocco che hai scelto?
+       Se sì, scrivi l'indirizzo di rete e il prefisso.</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 1</div>
+      <ul>
+        <li>Ho ordinato le reti dalla più grande alla più piccola</li>
+        <li>Ogni rete inizia da un indirizzo multiplo della sua dimensione</li>
+        <li>Le reti non si sovrappongono e stanno tutte dentro il blocco</li>
+        <li>In ogni rete c'è posto per tutti i dispositivi e per il gateway</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2><span class="part-num">2</span>Topologia e cablaggio <span class="tag tag-pt">Packet Tracer</span><span class="tempo">~25 min</span></h2>
+    <ol class="steps">
+      <li>Inserisci tutti i dispositivi elencati nello scenario. Usa i nomi della tabella per router, switch, server e access point;
+          per i PC scegli nomi che si capiscano, come <code>PC-REC-1</code>.</li>
+      <li>Monta su ogni router i due moduli in fibra, prima di configurarlo.</li>
+      <li>Collega i router ad anello rispettando le interfacce della tabella.</li>
+      <li>Collega le interfacce LAN dei router agli switch del loro edificio, poi PC, server e access point.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per ogni porta usata di SW-P0, SW-P1 e SW3</div>
+      <span class="col">Switch</span><span class="col">Porta</span><span class="col">Collegata a</span><span class="col">Modalità (access o trunk)</span><span class="col">VLAN</span>
+    </div></div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 2</div>
+      <ul>
+        <li>Ci sono tutti i dispositivi, con i nomi richiesti</li>
+        <li>Ogni router ha i due moduli in fibra e l'anello usa le interfacce della tabella</li>
+        <li>Ogni rete è collegata all'interfaccia del router indicata nella tabella</li>
+        <li>Ho annotato le porte di SW-P0, SW-P1 e SW3</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2><span class="part-num">3</span>VLAN e trunk <span class="tag tag-cli">CLI</span><span class="tempo">~25 min</span></h2>
+    <p>Nell'edificio principale e nel centro congressi gruppi diversi di utenti sono collegati agli stessi switch,
+       ma devono stare in domini di broadcast separati (requisito 4).</p>
+    <ol class="steps">
+      <li>Configura le VLAN sugli switch dove servono, con i numeri e i nomi della tabella dello scenario.</li>
+      <li>Assegna ogni porta alla VLAN giusta e configura i collegamenti che devono trasportare più VLAN.</li>
+      <li>Verifica la configurazione con i comandi <code>show</code> adatti.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento</div>
+      <p>Scrivi quali comandi <code>show</code> hai usato e che cosa ti mostrano.</p>
+    </div></div>
+
+    <p class="q"><span class="qn">D3</span>Un PC della reception al piano terra invia una richiesta ARP in broadcast. Quali dispositivi la ricevono?
+       Quali la riceverebbero se nell'edificio principale non ci fossero le VLAN?</p>
+    <p class="q"><span class="qn">D4</span>Sul collegamento tra SW-P0 e SW-P1 serve far passare la VLAN 50? Che cosa succede se passa lo stesso,
+       e come puoi impedirlo?</p>
+    <p class="q"><span class="qn">D5</span>Hai configurato delle VLAN al ristorante e nel CED? Motiva la scelta.</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 3</div>
+      <ul>
+        <li>Ogni porta verso un PC, un server, l'access point o un'interfaccia del router è nella VLAN giusta</li>
+        <li>I collegamenti che trasportano più VLAN sono configurati da entrambi i lati</li>
+        <li>Ogni switch conosce tutte le VLAN che deve inoltrare</li>
+        <li>Il PC della reception al primo piano è nella stessa VLAN dei PC della reception al piano terra</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2><span class="part-num">4</span>Interfacce dei router <span class="tag tag-cli">CLI</span><span class="tempo">~15 min</span></h2>
+    <ol class="steps">
+      <li>Su ogni router imposta il nome (<em>hostname</em>) e configura le interfacce con gli indirizzi della Parte 1,
+          rispettando la tabella delle interfacce.</li>
+      <li>Verifica che tutte le interfacce usate siano attive e abbiano l'indirizzo giusto.</li>
+      <li>Da ogni router fai un ping ai due router vicini.</li>
+    </ol>
+    <p class="q"><span class="qn">D6</span>Come hai configurato la porta di SW-P0 collegata a <code>Gig0/2</code> di R1? Che cosa succederebbe
+       se la lasciassi com'è di fabbrica?</p>
+    <p class="q"><span class="qn">D7</span>Da R1 prova a fare un ping a R3 sul collegamento R2–R3. Funziona? Perché?</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 4</div>
+      <ul>
+        <li>Tutte le interfacce usate sono attive (up/up) e hanno l'indirizzo giusto</li>
+        <li>Ogni LAN ha il suo gateway sull'interfaccia del router indicata nella tabella</li>
+        <li>Ogni router risponde al ping dei due router vicini</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2><span class="part-num">5</span>Routing dinamico OSPF <span class="tag tag-cli">CLI</span><span class="tempo">~25 min</span></h2>
+    <ol class="steps">
+      <li>Prepara nel documento l'elenco delle reti da annunciare, con la wildcard di ciascuna.</li>
+      <li>Configura OSPF su tutti e quattro i router, rispettando il requisito 5.</li>
+      <li>Controlla i vicini OSPF e la tabella di routing di ogni router.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella 5A con una riga per ognuna delle 7 LAN e una per i collegamenti tra router</div>
+      <span class="col">Rete</span><span class="col">Indirizzo di rete</span><span class="col">Wildcard</span><span class="col">Annunciata da</span>
+    </div></div>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella 5B con una riga per router</div>
+      <span class="col">Router</span><span class="col">Vicini OSPF (router ID)</span><span class="col">Interfacce verso i vicini</span><span class="col">Reti imparate con OSPF (codice O)</span>
+    </div></div>
+
+    <p class="q"><span class="qn">D8</span>Nella tabella di routing di R1 confronta le righe delle reti del centro congressi con quella del ristorante.
+       Che differenza noti? Perché succede?</p>
+    <p class="q"><span class="qn">D9</span>Come hai impedito che i messaggi OSPF uscissero sulle LAN? Perché è importante, soprattutto nella rete degli ospiti?</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 5</div>
+      <ul>
+        <li>Ogni router ha esattamente due vicini OSPF</li>
+        <li>Ogni router conosce tutte le 11 reti: 7 LAN e 4 collegamenti</li>
+        <li>Nessun router ha rotte statiche</li>
+        <li>I messaggi OSPF non escono sulle LAN, ma le reti delle LAN sono comunque annunciate</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 6 -->
+  <div class="card">
+    <h2><span class="part-num">6</span>DHCP e relay agent <span class="tag tag-pt">Packet Tracer</span> <span class="tag tag-cli">CLI</span><span class="tempo">~30 min</span></h2>
+    <p>I due server stanno in edifici diversi e quasi tutti i client che devono servire si trovano in altre reti.</p>
+    <ol class="steps">
+      <li>Assegna ai server WEB, DHCP-1 e DHCP-2 gli indirizzi statici della Parte 1.</li>
+      <li>Prepara nel documento la tabella dei pool, poi crea su ogni server un pool per ogni rete che deve servire.</li>
+      <li>Per ogni rete decidi se serve il relay agent e verso quale server, poi configura i router.</li>
+      <li>Imposta tutti i PC su DHCP e controlla che ognuno riceva un indirizzo della rete giusta, con il gateway giusto.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella 6A con una riga per pool</div>
+      <span class="col">Server</span><span class="col">Rete servita</span><span class="col">Default Gateway</span><span class="col">Start IP Address</span><span class="col">Subnet Mask</span><span class="col">Maximum Number of Users</span>
+    </div></div>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella 6B con una riga per ognuna delle 7 reti</div>
+      <span class="col">Rete</span><span class="col">Interfaccia del router</span><span class="col">Serve il relay?</span><span class="col">Verso quale indirizzo</span><span class="col">Perché</span>
+    </div></div>
+
+    <p class="q"><span class="qn">D10</span>DHCP-1 riceve tramite il relay le richieste di due reti diverse. Come capisce da quale pool prendere l'indirizzo?</p>
+    <p class="q"><span class="qn">D11</span>Togli per un momento il default gateway a DHCP-1 e rinnova l'indirizzo di un PC delle sale convegni. Che cosa succede? Perché?
+       Poi rimetti il gateway.</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 6</div>
+      <ul>
+        <li>Ogni PC riceve un indirizzo della rete giusta, con il gateway giusto</li>
+        <li>Nessun PC ha ricevuto l'indirizzo di un gateway o di un server</li>
+        <li>Il relay è configurato solo dove serve, e verso il server giusto</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 7 -->
+  <div class="card">
+    <h2><span class="part-num">7</span>Wi-Fi per gli ospiti <span class="tag tag-pt">Packet Tracer</span><span class="tempo">~15 min</span></h2>
+    <ol class="steps">
+      <li>Configura AP-HALL secondo il requisito 7.</li>
+      <li>Collega al Wi-Fi almeno un laptop e uno smartphone o un tablet. Attenzione: in Packet Tracer il laptop nasce con una scheda di rete cablata.</li>
+      <li>Controlla che i dispositivi wireless ricevano un indirizzo della rete OSPITI.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per dispositivo wireless</div>
+      <span class="col">Dispositivo</span><span class="col">Indirizzo IP ricevuto</span><span class="col">Default gateway</span><span class="col">Ping verso WEB riuscito?</span>
+    </div></div>
+
+    <p class="q"><span class="qn">D12</span>Hai dato un indirizzo IP ad AP-HALL? A quale livello della pila ISO/OSI lavora l'access point?</p>
+    <p class="q"><span class="qn">D13</span>Da uno smartphone ospite fai un ping a un PC dell'amministrazione. Che cosa succede? Va bene per un hotel?</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 7</div>
+      <ul>
+        <li>AP-HALL usa WPA2-PSK, con l'SSID e la password richiesti</li>
+        <li>I dispositivi wireless ricevono l'indirizzo da DHCP-1</li>
+        <li>Gli ospiti raggiungono il server WEB</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 8 -->
+  <div class="card">
+    <h2><span class="part-num">8</span>Collaudo e prova di guasto <span class="tag tag-pt">Packet Tracer</span> <span class="tag tag-cli">CLI</span><span class="tempo">~15 min</span></h2>
+
+    <h3>A. Il collaudo</h3>
+    <p>Esegui queste prove di ping.</p>
+    <div class="table-wrap"><table>
+      <tr><th>#</th><th>Da</th><th>Verso</th></tr>
+      <tr><td>1</td><td>PC della reception, piano terra</td><td>PC della reception, primo piano</td></tr>
+      <tr><td>2</td><td>PC della reception</td><td>PC dell'amministrazione</td></tr>
+      <tr><td>3</td><td>PC della cassa del ristorante</td><td>Server WEB</td></tr>
+      <tr><td>4</td><td>PC dello staff eventi</td><td>PC di una sala convegni</td></tr>
+      <tr><td>5</td><td>Laptop di un ospite</td><td>PC di una sala convegni</td></tr>
+      <tr><td>6</td><td>PC dell'amministrazione</td><td>Server DHCP-1</td></tr>
+    </table></div>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con una riga per prova</div>
+      <span class="col">#</span><span class="col">Ping riuscito?</span><span class="col">Se non è riuscito: che cosa hai corretto</span>
+    </div></div>
+
+    <h3>B. Il guasto</h3>
+    <ol class="steps">
+      <li>Da un PC della reception lancia un <code>tracert</code> verso il server WEB e annota gli indirizzi attraversati.</li>
+      <li>Simula il guasto del collegamento R1–R4: elimina il cavo oppure spegni l'interfaccia su uno dei due router.</li>
+      <li>Ripeti il <code>tracert</code> e annota il nuovo percorso.</li>
+      <li>Ripristina il collegamento e controlla che il percorso torni quello di prima.</li>
+    </ol>
+    <div class="doc"><svg aria-hidden="true"><use href="#foglio"/></svg><div>
+      <div class="doc-t">Nel documento · tabella con due righe: prima e dopo il guasto</div>
+      <span class="col">Momento</span><span class="col">Indirizzi attraversati</span><span class="col">Numero di salti</span>
+      <p>Sotto la tabella incolla uno screenshot dei due <code>tracert</code>.</p>
+    </div></div>
+
+    <p class="q"><span class="qn">D14</span>Che cosa hai dovuto riconfigurare perché la rete funzionasse dopo il guasto? Chi ha fatto il lavoro, e come?</p>
+    <p class="q"><span class="qn">D15</span>Si guastano insieme i collegamenti R1–R4 e R2–R3. Quali edifici possono ancora comunicare tra loro?
+       Come renderesti la rete più robusta?</p>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 8</div>
+      <ul>
+        <li>Tutte le prove del collaudo riescono</li>
+        <li>Dopo il guasto il traffico prende un'altra strada, senza che io tocchi la configurazione</li>
+        <li>Ho salvato <code>Cognome_Nome_ginestre.pkt</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SFIDE -->
+  <div class="card part-extra">
+    <h2><span class="part-num">+</span>Sfide <span class="tag tag-plus">se resta tempo</span></h2>
+    <p>Prima di iniziare, salva una copia del file: <code>Cognome_Nome_ginestre_sfide.pkt</code>.
+       Nel documento aggiungi un titolo <em>Sfide</em> e rispondi sotto, con il numero della sfida.</p>
+
+    <p class="q"><span class="qn">E1</span><strong>La linea di emergenza.</strong> Aggiungi tra R2 e R4 un collegamento seriale, con la stessa regola
+       di indirizzamento degli altri collegamenti, e fallo conoscere a OSPF. Il traffico tra ristorante e CED passa dalla linea seriale? Perché?
+       In quale situazione la usa?</p>
+    <p class="q"><span class="qn">E2</span><strong>Ospiti isolati.</strong> Fai in modo che gli ospiti raggiungano il server WEB ma nessun'altra rete interna del resort.
+       Il Wi-Fi deve continuare a dare gli indirizzi. Su quale router e su quale interfaccia conviene intervenire? Scrivi i comandi.</p>
+    <p class="q"><span class="qn">E3</span><strong>DHCP di riserva.</strong> Se DHCP-1 si guasta, gli ospiti restano senza indirizzo. Fai in modo che DHCP-2 possa
+       sostituirlo per la rete OSPITI, senza che i due server assegnino mai lo stesso indirizzo. Provalo spegnendo il servizio DHCP su DHCP-1.</p>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Quando hai finito</h2>
+    <ol class="steps">
+      <li>Salva il file <code>Cognome_Nome_ginestre.pkt</code>, e il file delle sfide se lo hai fatto.</li>
+      <li>Rileggi il documento: ci devono essere tutte le tabelle e le risposte, con i numeri delle domande.</li>
+      <li>Se un punto di controllo non è soddisfatto, scrivilo in fondo al documento con che cosa non funzionava.
+          Serve a capire insieme dove intervenire, e conta come parte del lavoro.</li>
+      <li>Consegna i file <code>.pkt</code> e il Documento Google nel modo indicato dall'insegnante.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Esercitazione di laboratorio — La rete del Resort Le Ginestre — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
