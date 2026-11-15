@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizio C++ – Lo zaino dell'eroe</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+    .header-right .time {
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-top: 6px;
+      color: #fff;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody td code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    .star { color: #1e6fa8; font-size: 14px; }
+
+    /* ── TABELLA MENU ── */
+    .menu-table thead tr { background: #1b3a5c; }
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── TABELLA CONTROLLO ── */
+    .check-table thead th:not(:first-child),
+    .check-table tbody td:not(:first-child) { text-align: right; white-space: nowrap; }
+
+    .center-table thead th:not(:first-child),
+    .center-table tbody td:not(:first-child) { text-align: center; }
+
+    /* ── OUTPUT CONSOLE ── */
+    .out-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 10px 0 18px;
+    }
+    .out-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1b3a5c;
+      margin-bottom: 4px;
+    }
+    pre.out {
+      background: #f0f5fa;
+      border: 1px solid #d4dfe8;
+      border-left: 4px solid #2e5f8a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1b3a5c;
+      overflow-x: auto;
+    }
+    .out-grid pre.out { font-size: 12px; }
+
+    /* ── CODICE DA COPIARE ── */
+    pre.code {
+      background: #f7fafd;
+      border: 1px solid #c9dbe9;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #1b3a5c;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+    }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code {
+      background: #d2e9f7;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #0d3050;
+    }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 160px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code {
+      background: #fbecc0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    p code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+    ol { margin: 6px 0 10px 22px; line-height: 1.7; }
+    li code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── TABELLA OGGETTI ── */
+    .oggetti-table th:last-child,
+    .oggetti-table td:last-child { text-align: center; width: 110px; }
+    .menu-table tbody td:nth-child(2) { white-space: nowrap; }
+
+    /* ── PULSANTE TEMA ── */
+    #theme-btn {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 100;
+      background: #fff;
+      border: 1px solid #c9dbe9;
+      color: #1b3a5c;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    #theme-btn:hover { background: #1b3a5c; color: #fff; border-color: #1b3a5c; }
+    @media (max-width: 1000px) { body { padding-top: 56px; } }
+
+    /* ── TEMA SCURO (solo a schermo: in stampa la pagina resta chiara) ── */
+    @media screen {
+      [data-theme="dark"] { color-scheme: dark; }
+      [data-theme="dark"] body { background: #0f1720; color: #dbe4ee; }
+      [data-theme="dark"] h2 { color: #5fb0ee; border-bottom-color: #5fb0ee; }
+      [data-theme="dark"] h3 { color: #e8eef5; }
+      [data-theme="dark"] thead tr { background: #1f4470; }
+      [data-theme="dark"] tbody tr:nth-child(odd)  { background: #131d29; }
+      [data-theme="dark"] tbody tr:nth-child(even) { background: #182536; }
+      [data-theme="dark"] tbody td { border-bottom-color: #2a3a4d; }
+      [data-theme="dark"] tbody td code,
+      [data-theme="dark"] p code,
+      [data-theme="dark"] li code { background: #1e2f43; color: #a9d4ff; }
+      [data-theme="dark"] .star { color: #5fb0ee; }
+      [data-theme="dark"] .menu-table tbody td:first-child,
+      [data-theme="dark"] .vincoli-table tbody td:first-child,
+      [data-theme="dark"] .out-label { color: #a9d4ff; }
+      [data-theme="dark"] pre.out { background: #142131; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] pre.code { background: #111b26; border-color: #2a3a4d; border-left-color: #4a8fd0; color: #d3e6f8; }
+      [data-theme="dark"] .hint { background: #13263a; border-left-color: #3d8fd1; color: #d6e4f0; }
+      [data-theme="dark"] .hint strong { color: #a9d4ff; }
+      [data-theme="dark"] .hint code { background: #1d3a57; color: #d4ebff; }
+      [data-theme="dark"] .nota { background: #2a2110; color: #f0e3c4; }
+      [data-theme="dark"] .nota strong { color: #f3c45a; }
+      [data-theme="dark"] .nota code { background: #3d3016; color: #f7dfa6; }
+      [data-theme="dark"] #theme-btn { background: #142131; border-color: #2a3a4d; color: #d3e6f8; }
+      [data-theme="dark"] #theme-btn:hover { background: #5fb0ee; border-color: #5fb0ee; color: #0f1720; }
+    }
+
+    /* ── SCHERMI PICCOLI E STAMPA ── */
+    @media (max-width: 640px) {
+      body { padding: 56px 16px 20px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .out-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      body { padding: 0; }
+      #theme-btn { display: none; }
+      table, pre.out, pre.code, .hint, .nota { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      pre.out, pre.code { white-space: pre-wrap; }
+      .out-grid pre.out { font-size: 11px; }
+      pre.code { font-size: 10.5px; }
+    }
+  </style>
+  <script>
+    (function () {
+      try { if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <button id="theme-btn" onclick="toggleTheme()">◐ Dark</button>
+
+  <!-- ══════════════ INTESTAZIONE ══════════════ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO C++ –<br>LO ZAINO DELL'EROE</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Classe 4°</span>
+      <span class="topics">Argomenti: lista concatenata, inserimento in fondo<br>con un limite di peso, new e delete</span>
+      <span class="time">Tempo a disposizione: 2 ore</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ SCENARIO ══════════════ -->
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Stai programmando un piccolo <strong>gioco di ruolo</strong> testuale. L'eroe esplora una caverna, passa dal
+    mercante e alla fine sfida il drago. Tutto quello che trova finisce nel suo <strong>zaino</strong>.
+  </p>
+  <p class="scenario">
+    Lo zaino è una <strong>lista concatenata</strong>: ogni oggetto è un nodo creato con <code>new</code> e il
+    puntatore <code>zaino</code> del <code>main</code> indica il primo oggetto (la <strong>testa</strong>). Nessuno sa
+    quanti oggetti l'eroe raccoglierà, per questo un array non va bene. Gli oggetti raccolti si mettono
+    <strong>in fondo</strong>, quindi lo zaino li tiene in ordine di raccolta.
+  </p>
+  <p class="scenario">
+    <strong>Il limite di peso.</strong> Lo zaino ha una <strong>capienza</strong>: all'inizio regge al massimo 20 kg.
+    Un oggetto si raccoglie solo se, con lui, il peso totale resta entro la capienza: arrivare esattamente alla
+    capienza va bene, superarla anche di 1 kg no. Se non entra, l'oggetto resta dov'è e lo zaino non cambia.
+  </p>
+
+  <!-- ══════════════ PARTE 1 ══════════════ -->
+  <h2>Parte 1 – La struct</h2>
+
+  <h3>Definisci la struct <strong>Oggetto</strong> con i seguenti campi:</h3>
+  <table>
+    <thead>
+      <tr><th>Campo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>nome</code></td><td>il nome dell'oggetto (es. "spada")</td></tr>
+      <tr><td><code>tipo</code></td><td>la categoria dell'oggetto (es. "arma", "cura", "oro")</td></tr>
+      <tr><td><code>peso</code></td><td>il peso in kg, intero (es. 5)</td></tr>
+      <tr><td><code>next</code></td><td><strong>puntatore</strong> all'oggetto successivo, <code>nullptr</code> se è l'ultimo</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ PARTE 2 ══════════════ -->
+  <h2>Parte 2 – Funzioni richieste</h2>
+
+  <p><strong>Implementa le seguenti tre funzioni.</strong> Il tipo restituito non è indicato: deducilo dalla
+    descrizione.</p>
+  <table>
+    <thead>
+      <tr><th>Prototipo</th><th>Descrizione</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>raccogli(Oggetto* testa, string nome, string tipo, int peso, int capienza)</code></td>
+        <td>Se con il nuovo oggetto il peso totale non supera <code>capienza</code>, lo crea con <code>new</code> e lo
+          aggancia <strong>in fondo</strong> allo zaino, senza stampare niente. Altrimenti non crea niente e stampa che
+          l'oggetto è troppo pesante. Restituisce il primo oggetto dello zaino</td>
+      </tr>
+      <tr>
+        <td><code>mostra(Oggetto* testa)</code></td>
+        <td>Stampa lo zaino, un oggetto per riga con la sua posizione, e poi il peso totale. Se lo zaino è vuoto stampa
+          <code>Zaino vuoto</code></td>
+      </tr>
+      <tr>
+        <td><code>svuota(Oggetto* testa)</code></td>
+        <td>Libera la memoria di tutti gli oggetti, stampa quanti ne ha cancellati e restituisce lo zaino vuoto</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> dopo <code>delete p</code> l'oggetto non esiste più, e leggere <code>p-&gt;next</code>
+    è un errore anche quando sembra funzionare. In <code>svuota</code>, prima di fare <code>delete</code> devi sapere
+    dove andare dopo.
+  </div>
+
+  <!-- ══════════════ PARTE 3 ══════════════ -->
+  <h2>Parte 3 – Funzione main()</h2>
+
+  <p>All'inizio lo zaino è vuoto: <code>Oggetto* zaino = nullptr;</code>. Nel <code>main</code> dichiara anche
+    <code>int capienza = 20;</code> e passala a <code>raccogli</code>. Esegui in ordine i passi seguenti: prima di
+    ognuno stampa il nome del passo (es. <code style="white-space: nowrap;">--- La caverna ---</code>); alla fine di
+    <strong>ogni</strong> passo mostra lo zaino con <code>mostra</code>.</p>
+
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Passo</th><th>Cosa deve fare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>La caverna</td>
+        <td>l'eroe prova a raccogliere i sette oggetti della tabella qui sotto, nell'ordine in cui li trova</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Il mercante</td>
+        <td>il mercante vende all'eroe uno zaino più grande, da 30 kg: porta <code>capienza</code> a 30. Poi l'eroe
+          compra un'armatura (difesa, 9 kg) e uno scudo (difesa, 4 kg): prova a raccoglierli in quest'ordine</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Il drago</td>
+        <td>vinto il drago, l'eroe prova a raccogliere il tesoro (oro, 5 kg) e poi la corona (oro, 4 kg)</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Fine partita</td>
+        <td>libera la memoria di tutto lo zaino</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Gli oggetti della caverna (passo 1), nell'ordine in cui l'eroe li trova</h3>
+  <table class="oggetti-table">
+    <thead>
+      <tr><th>Nome</th><th>Tipo</th><th>Peso (kg)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>sasso</td><td>rottame</td><td>2</td></tr>
+      <tr><td>torcia</td><td>luce</td><td>1</td></tr>
+      <tr><td>pozione</td><td>cura</td><td>2</td></tr>
+      <tr><td>spada</td><td>arma</td><td>5</td></tr>
+      <tr><td>pozione</td><td>cura</td><td>2</td></tr>
+      <tr><td>armatura</td><td>difesa</td><td>9</td></tr>
+      <tr><td>pane</td><td>cibo</td><td>1</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════ CONTROLLO RAPIDO ══════════════ -->
+  <div class="hint">
+    <strong>Controllo rapido:</strong> il tuo programma deve stampare esattamente l'output seguente.
+  </div>
+
+  <div class="out-grid">
+    <div>
+      <div class="out-label">Passi 1 – 2</div>
+<pre class="out">--- La caverna ---
+Troppo pesante: armatura (difesa, 9 kg)
+1. sasso (rottame, 2 kg)
+2. torcia (luce, 1 kg)
+3. pozione (cura, 2 kg)
+4. spada (arma, 5 kg)
+5. pozione (cura, 2 kg)
+6. pane (cibo, 1 kg)
+Peso totale: 13 kg
+--- Il mercante ---
+1. sasso (rottame, 2 kg)
+2. torcia (luce, 1 kg)
+3. pozione (cura, 2 kg)
+4. spada (arma, 5 kg)
+5. pozione (cura, 2 kg)
+6. pane (cibo, 1 kg)
+7. armatura (difesa, 9 kg)
+8. scudo (difesa, 4 kg)
+Peso totale: 26 kg</pre>
+    </div>
+    <div>
+      <div class="out-label">Passi 3 – 4</div>
+<pre class="out">--- Il drago ---
+Troppo pesante: tesoro (oro, 5 kg)
+1. sasso (rottame, 2 kg)
+2. torcia (luce, 1 kg)
+3. pozione (cura, 2 kg)
+4. spada (arma, 5 kg)
+5. pozione (cura, 2 kg)
+6. pane (cibo, 1 kg)
+7. armatura (difesa, 9 kg)
+8. scudo (difesa, 4 kg)
+9. corona (oro, 4 kg)
+Peso totale: 30 kg
+--- Fine partita ---
+Oggetti cancellati: 9
+Zaino vuoto</pre>
+    </div>
+  </div>
+
+  <div class="out-label" style="margin-top: 14px;">Da notare</div>
+  <ul>
+    <li>il sasso è il primo oggetto: entra nello zaino vuoto e diventa la testa</li>
+    <li>nel passo 1 l'armatura non entra (12 + 9 = 21 kg), ma il pane che viene dopo sì: un oggetto rifiutato non
+      blocca le raccolte successive</li>
+    <li>nel passo 2 l'armatura entra (13 + 9 = 22 kg) perché ora la capienza è 30</li>
+    <li>nel passo 3 il tesoro non entra (26 + 5 = 31 kg), la corona porta il peso a 30 kg esatti ed entra: se il tuo
+      programma la rifiuta, controlla il confronto con la capienza</li>
+  </ul>
+
+  <!-- ══════════════ PARTE 4 ══════════════ -->
+  <h2>Parte 4 – Domande</h2>
+
+  <p>Rispondi con un commento in fondo al file <code>main.cpp</code>, in una o due righe per domanda.</p>
+  <ol>
+    <li><code>raccogli</code> controlla il peso <strong>prima</strong> di fare <code>new</code>. Che cosa rischi se
+      fai prima la <code>new</code> e poi scopri che l'oggetto non entra?</li>
+    <li>In quale caso <code>raccogli</code> restituisce una testa diversa da quella che ha ricevuto? Perché nel
+      <code>main</code> scrivi comunque <code>zaino = raccogli(...)</code>?</li>
+    <li>Nel passo 2 l'eroe cambia zaino, ma tu non modifichi <code>raccogli</code>. Perché funziona lo stesso?</li>
+    <li>Nel <code>main</code> chiami <code>raccogli</code> 11 volte, ma alla fine <code>svuota</code> stampa
+      <code>Oggetti cancellati: 9</code>. Perché? Quante <code>new</code> e quante <code>delete</code> esegue il tuo
+      programma?</li>
+    <li><span class="star">&#9733;</span> <code>raccogli</code> ricalcola il peso totale scorrendo tutto lo zaino a
+      ogni chiamata. Come lo terresti aggiornato senza ricalcolarlo, senza variabili globali e senza parametri per
+      riferimento?</li>
+  </ol>
+  <p>La domanda contrassegnata con <span class="star">&#9733;</span> è <strong>facoltativa</strong>: dà punteggio
+    aggiuntivo.</p>
+
+  <!-- ══════════════ SUGGERIMENTI ══════════════ -->
+  <div class="hint">
+    <strong>Suggerimento:</strong> in <code>raccogli</code> basta un solo giro dello zaino: mentre sommi i pesi, tieni
+    da parte l'ultimo oggetto che hai visto. Alla fine del giro sai sia il peso totale sia a chi agganciare il nuovo
+    oggetto.
+  </div>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> scrivi <code>mostra</code> subito dopo <code>raccogli</code>, così puoi controllare
+    ogni oggetto che aggiungi. Prova ogni funzione su tre casi: zaino vuoto, un solo oggetto, più oggetti. In quale
+    caso rischi di usare <code>-&gt;</code> su un puntatore che vale <code>nullptr</code>?
+  </div>
+
+  <!-- ══════════════ VINCOLI E NOTE ══════════════ -->
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Funzioni</td>
+        <td>Solo le tre funzioni della Parte 2 più il <code>main</code>. Nessun parametro per riferimento (&amp;),
+          nessuna variabile globale</td>
+      </tr>
+      <tr>
+        <td>Memoria</td>
+        <td><code>new</code> si usa solo in <code>raccogli</code>, e solo per gli oggetti che entrano;
+          <code>delete</code> solo in <code>svuota</code>. A fine programma non deve restare memoria occupata</td>
+      </tr>
+      <tr>
+        <td>Cicli</td>
+        <td>Per scorrere lo zaino si usa <code>while</code></td>
+      </tr>
+      <tr>
+        <td>Peso</td>
+        <td>Il peso totale non deve mai superare la capienza; arrivare esattamente alla capienza è permesso</td>
+      </tr>
+      <tr>
+        <td>Ordine</td>
+        <td>Lo zaino non si riordina mai: gli oggetti restano nell'ordine in cui sono stati raccolti</td>
+      </tr>
+      <tr>
+        <td>Fine lista</td>
+        <td><code>next</code> vale <code>nullptr</code> per l'ultimo oggetto; <code>zaino</code> vale
+          <code>nullptr</code> se lo zaino è vuoto</td>
+      </tr>
+      <tr>
+        <td>Consegna</td>
+        <td>Un solo file: <code>main.cpp</code>, con le tue funzioni, il <code>main</code> e in fondo le risposte della
+          Parte 4</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function aggiornaPulsante() {
+      var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-btn').textContent = scuro ? '◑ Light' : '◐ Dark';
+    }
+    function toggleTheme() {
+      var html = document.documentElement;
+      var prossimo = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', prossimo);
+      try { localStorage.setItem('theme', prossimo); } catch (e) {}
+      aggiornaPulsante();
+    }
+    aggiornaPulsante();
+  </script>
+
+</body>
+</html>
