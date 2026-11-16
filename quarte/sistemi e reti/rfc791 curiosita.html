@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFC 791 — Curiosità sull'Internet Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161f;
+    --border: #1e2330;
+    --accent1: #00d4aa;
+    --accent2: #ff6b6b;
+    --accent3: #ffd93d;
+    --accent4: #6bcbff;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --body-text: #c0c4d0;
+    --code-bg: #080a0f;
+    --grid: rgba(0,212,170,0.03);
+    --c1t: #a0f0e0; --c2t: #ffb3b3; --c3t: #fff0a0; --c4t: #b0e4ff;
+  }
+  [data-theme="light"] {
+    --bg: #ffffff;
+    --panel: #f4f6fb;
+    --border: #cdd2e4;
+    --accent1: #008f72;
+    --accent2: #d63031;
+    --accent3: #b87500;
+    --accent4: #0d6ebd;
+    --text: #1c1e2d;
+    --muted: #717585;
+    --body-text: #3d4255;
+    --code-bg: #edf0f7;
+    --grid: rgba(13,110,189,0.04);
+    --c1t: #00614d; --c2t: #991f20; --c3t: #7a4d00; --c4t: #084d8a;
+  }
+
+  html { font-size: 112%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  #topbar .course { font-size: 0.85rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  #topbar .title-bar { font-size: 1.02rem; font-weight: 700; color: var(--accent1); }
+  #topbar-right { display: flex; align-items: center; gap: 14px; }
+  #slide-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--muted); }
+  #theme-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 13px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #theme-btn:hover { background: var(--accent1); color: #000; border-color: var(--accent1); }
+
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 36px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateX(-60px); }
+
+  .slide-title { align-items: center; text-align: center; }
+  .slide-title .big {
+    font-size: clamp(2.6rem, 5.5vw, 4.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+  }
+  .slide-title .sub { margin-top: 14px; font-size: 1.2rem; color: var(--muted); letter-spacing: 1px; }
+  .slide-title .tag-row {
+    display: flex; gap: 12px; margin-top: 28px;
+    justify-content: center; flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: 6px 16px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag-green  { background: rgba(0,212,170,0.15);  color: var(--accent1); border: 1px solid var(--accent1); }
+  .tag-red    { background: rgba(255,107,107,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-yellow { background: rgba(255,217,61,0.15);  color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-blue   { background: rgba(107,203,255,0.15); color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px; flex-shrink: 0;
+  }
+  .section-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .section-header h2 {
+    font-size: clamp(1.45rem, 2.4vw, 2.2rem);
+    font-weight: 800; letter-spacing: -1px;
+  }
+  .section-num {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: var(--muted);
+  }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex: 1; align-items: start; }
+  .two-col-l { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; flex: 1; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; align-items: start; }
+  .one-col   { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .card h3 {
+    font-size: 1.02rem; font-weight: 700; margin-bottom: 9px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p, .card li { font-size: 0.93rem; color: var(--body-text); line-height: 1.6; }
+  .card ul { padding-left: 15px; }
+  .card li { margin-bottom: 3px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.75rem, 1.07vw, 0.88rem);
+    line-height: 1.65; overflow-x: auto; position: relative;
+  }
+  .code-label {
+    position: absolute; top: 6px; right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; color: var(--muted); letter-spacing: 1px;
+  }
+
+  .callout {
+    border-radius: 8px; padding: 11px 14px;
+    font-size: 0.93rem; line-height: 1.6;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-green  { background: rgba(0,212,170,0.08);  border: 1px solid rgba(0,212,170,0.3);  color: var(--c1t); }
+  .callout-red    { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.3); color: var(--c2t); }
+  .callout-yellow { background: rgba(255,217,61,0.08);  border: 1px solid rgba(255,217,61,0.3);  color: var(--c3t); }
+  .callout-blue   { background: rgba(107,203,255,0.08); border: 1px solid rgba(107,203,255,0.3); color: var(--c4t); }
+  .callout-icon { font-size: 1.13rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* DORA diagram */
+  .dora-flow {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr;
+    align-items: center; gap: 6px; margin: 8px 0;
+  }
+  .dora-step { border-radius: 8px; padding: 12px 8px; text-align: center; }
+  .dora-step .dnum { font-family: 'JetBrains Mono', monospace; font-size: 1.47rem; font-weight: 700; }
+  .dora-step .dname { font-size: 0.88rem; font-weight: 700; margin-top: 3px; }
+  .dora-step .dmsg  { font-size: 0.73rem; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .dora-arrow { color: var(--muted); font-size: 1.47rem; text-align: center; }
+  .dora-d { background: rgba(0,212,170,0.12);  border: 1px solid rgba(0,212,170,0.4); }
+  .dora-o { background: rgba(107,203,255,0.12); border: 1px solid rgba(107,203,255,0.4); }
+  .dora-r { background: rgba(255,217,61,0.12);  border: 1px solid rgba(255,217,61,0.4); }
+  .dora-a { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.4); }
+
+  /* Protocol header */
+  .proto-header { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .proto-row { display: flex; border-bottom: 1px solid var(--border); }
+  .proto-row:last-child { border-bottom: none; }
+  .proto-cell {
+    flex: 1; padding: 5px 8px; text-align: center;
+    border-right: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; color: var(--body-text);
+  }
+  .proto-cell:last-child { border-right: none; }
+  .proto-cell.hl       { background: rgba(0,212,170,0.1);  color: var(--accent1); }
+  .proto-cell.hl-blue  { background: rgba(107,203,255,0.1); color: var(--accent4); }
+  .proto-cell.hl-yel   { background: rgba(255,217,61,0.1);  color: var(--accent3); }
+  .proto-cell.hl-red   { background: rgba(255,107,107,0.1); color: var(--accent2); }
+  .proto-cell.w2 { flex: 2; }
+  .proto-cell.w3 { flex: 3; }
+  .proto-cell.w4 { flex: 4; }
+
+  /* FSM States */
+  .fsm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .fsm-state { border-radius: 6px; padding: 9px 11px; }
+  .fsm-state .sname {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    font-size: 0.87rem; margin-bottom: 3px;
+  }
+  .fsm-state p { font-size: 0.82rem; color: var(--body-text); line-height: 1.45; }
+
+  /* RR Table */
+  .rr-table { width: 100%; border-collapse: collapse; }
+  .rr-table th {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); padding: 5px 10px; text-align: left;
+  }
+  .rr-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
+  .rr-table tr:last-child td { border-bottom: none; }
+  .rr-type { color: var(--accent1); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .rr-desc { color: var(--body-text); }
+  .rr-ex   { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; }
+
+  /* DNS hierarchy */
+  .dns-tree {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .dns-level {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  }
+  .dns-node {
+    border-radius: 4px; padding: 4px 10px; font-size: 0.82rem; font-weight: 700;
+  }
+
+  /* overview list */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+  .ov-item {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.13rem; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .ov-content h4 { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+  .ov-content p  { font-size: 0.88rem; color: var(--muted); }
+
+  /* Bottom nav */
+  #nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 24px; border-top: 1px solid var(--border);
+    background: var(--panel); flex-shrink: 0;
+  }
+  #nav button {
+    background: var(--border); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 20px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  #nav button:hover:not(:disabled) { background: var(--accent1); color: #000; }
+  #nav button:disabled { opacity: 0.3; cursor: default; }
+  #progress-bar {
+    flex: 1; height: 3px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%; background: var(--accent1);
+    border-radius: 2px; transition: width 0.4s ease;
+  }
+  #section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    color: var(--muted); min-width: 160px; text-align: right;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #stage, #topbar, #nav { position: relative; z-index: 1; }
+
+/* ── aggiunte: home, scroll, componenti Unità 4 ── */
+#topbar{padding-left:64px}
+#home-btn{position:fixed;top:10px;left:14px;z-index:9999;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(15,17,23,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:50%;font-size:20px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:transform .15s}
+#home-btn:hover{transform:scale(1.12)}
+.slide{justify-content:flex-start;overflow-y:auto}
+.slide>:first-child{margin-top:auto}
+.slide>:last-child{margin-bottom:auto}
+.mono{font-family:'JetBrains Mono',monospace}
+.muted{color:var(--muted)}
+.c1{color:var(--accent1)}.c2{color:var(--accent2)}.c3{color:var(--accent3)}.c4{color:var(--accent4)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tw{overflow-x:auto}
+.big-formula{font-family:'JetBrains Mono',monospace;font-size:clamp(1.15rem,2.1vw,1.6rem);font-weight:700;text-align:center;padding:12px;border:1px dashed var(--border);border-radius:8px}
+/* bit */
+.bits{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace}
+.octet{display:flex;flex-direction:column;align-items:center;gap:5px}
+.octet .bin{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.octet .bin span{width:1.3em;text-align:center;padding:5px 0;font-size:.82rem;font-weight:700}
+.octet .dec{font-size:1.05rem;font-weight:700}
+.bits .dot{font-size:1.4rem;color:var(--muted);padding-bottom:30px}
+.bn{background:rgba(107,203,255,.16);color:var(--accent4)}
+.bs{background:rgba(255,217,61,.16);color:var(--accent3)}
+.bh{background:rgba(0,212,170,.12);color:var(--accent1)}
+.bz{background:transparent;color:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid var(--border)}
+/* barre indirizzi */
+.abar{display:flex;height:58px;border-radius:8px;overflow:hidden;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.72rem}
+.abar>div{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border-right:2px solid var(--bg);min-width:0;overflow:hidden;white-space:nowrap;padding:0 2px}
+.abar>div:last-child{border-right:none}
+.abar b{font-size:.8rem}
+.sg1{background:rgba(107,203,255,.2);color:var(--c4t)}
+.sg2{background:rgba(0,212,170,.2);color:var(--c1t)}
+.sg3{background:rgba(255,217,61,.2);color:var(--c3t)}
+.sg4{background:rgba(255,107,107,.2);color:var(--c2t)}
+.sgf{background:repeating-linear-gradient(45deg,transparent 0 6px,var(--border) 6px 8px);color:var(--muted)}
+.ascale{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted);margin:4px 0}
+.meter{height:14px;background:var(--border);border-radius:7px;overflow:hidden}
+.meter>div{height:100%;border-radius:7px}
+.mrow{display:grid;grid-template-columns:11em 1fr 7em;gap:12px;align-items:center;font-size:.88rem}
+/* svg */
+.sv-l{stroke:var(--muted);stroke-width:2;fill:none}
+.sv-hl{stroke:var(--accent1);stroke-width:4;fill:none}
+.sv-r{fill:var(--panel);stroke:var(--accent4);stroke-width:2}
+.sv-pc{fill:var(--panel);stroke:var(--muted);stroke-width:1.5}
+.sv-t{fill:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+.sv-s{fill:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10.5px}
+.sv-a1{fill:var(--accent1)}.sv-a2{fill:var(--accent2)}.sv-a3{fill:var(--accent3)}.sv-a4{fill:var(--accent4)}
+/* box di flusso */
+.fbox{border-radius:8px;padding:9px 14px;text-align:center;font-size:.88rem;color:var(--body-text)}
+.fbox b{display:block;font-size:1rem;margin-bottom:2px}
+.f1{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.4)}
+.f2{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.4)}
+.f3{background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.4)}
+.f4{background:rgba(107,203,255,.1);border:1px solid rgba(107,203,255,.4)}
+.farrow{text-align:center;color:var(--muted);font-size:1.2rem;line-height:1.3}
+/* scala IOS */
+.ladder{display:flex;flex-direction:column;gap:8px}
+.lstep{display:flex;align-items:center;gap:14px;font-size:.92rem}
+.lprompt{font-family:'JetBrains Mono',monospace;font-weight:700;padding:9px 14px;border-radius:6px;min-width:13em;text-align:left;color:var(--text)}
+.lcmd{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted);margin-top:2px}
+/* codice */
+.cm{color:var(--muted)}.st{color:var(--accent3)}.kw{color:var(--accent2)}.fn{color:var(--accent4)}.pr{color:var(--accent1)}
+/* quiz */
+details{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.92rem;color:var(--body-text)}
+details summary{cursor:pointer;color:var(--text);font-weight:700}
+details p.sol{margin-top:8px;color:var(--c1t);font-family:'JetBrains Mono',monospace;font-size:.84rem;line-height:1.6}
+.next-part{display:inline-block;margin-top:14px;padding:10px 20px;border-radius:6px;border:1px solid var(--accent1);color:var(--accent1);text-decoration:none;font-family:'JetBrains Mono',monospace;font-weight:700}
+.next-part:hover{background:var(--accent1);color:#000}
+.two-col>*,.two-col-l>*,.three-col>*,.grid2>*{min-width:0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.code3{grid-template-columns:1.3fr 1.3fr 1fr}.code3 pre{font-size:.74rem}
+@media (max-width:760px){
+ .grid4{grid-template-columns:1fr 1fr}
+ html{font-size:100%}
+ .slide{padding:18px 14px 28px}
+ .two-col,.two-col-l,.three-col,.overview-grid,.grid2{grid-template-columns:1fr}
+ #section-label{display:none}
+ #topbar .course{font-size:.6rem;letter-spacing:1px}
+ #topbar .title-bar{font-size:.9rem}
+ #nav{padding:10px 12px}
+ #nav button{padding:8px 12px;font-size:.8rem}
+ .octet .bin span{width:1.05em;font-size:.68rem}
+ .lprompt{min-width:0}
+ .lstep{flex-wrap:wrap;margin-left:0!important}
+ .mrow{grid-template-columns:7em 1fr 4.5em;font-size:.78rem}
+ .rr-table td,.rr-table th{padding:5px 6px;font-size:.76rem}
+ .proto-cell{font-size:.56rem;padding:4px 1px}
+}
+</style>
+</head>
+<body>
+<a id="home-btn" href="../../index.html" title="Torna all'indice">🏠</a>
+<div id="topbar">
+  <div>
+    <div class="course">ITT Midossi — Quarto Anno · Sistemi e Reti</div>
+    <div class="title-bar">RFC 791 — Curiosità</div>
+  </div>
+  <div id="topbar-right">
+    <div id="slide-counter"></div>
+    <button id="theme-btn" onclick="toggleTheme()">◑ Light</button>
+  </div>
+</div>
+<div id="stage">
+<!-- 1 · TITOLO -->
+<div class="slide slide-title active" data-section="intro">
+  <div class="big">RFC 791</div>
+  <div class="big" style="color:var(--accent1)">Curiosità</div>
+  <div class="sub" style="font-size:1.15rem;font-weight:700;color:var(--text);margin-top:10px">Il documento del 1981 che fa ancora funzionare Internet</div>
+  <div class="sub">Quarto anno — ITT Midossi · Sistemi e Reti</div>
+  <div class="tag-row">
+    <span class="tag tag-green">Catenet</span><span class="tag tag-blue">TTL</span><span class="tag tag-yellow">Postel</span><span class="tag tag-red">Evil bit</span>
+  </div>
+</div>
+
+<!-- 2 · IL DOCUMENTO -->
+<div class="slide" data-section="intro">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent1)"></div><h2 style="color:var(--accent1)">Un documento di 45 anni fa</h2></div>
+  <div class="two-col-l">
+    <pre style="font-size:clamp(.8rem,1.3vw,1.05rem);line-height:1.8"><span class="code-label">testo semplice, come allora</span>RFC: 791
+
+            INTERNET PROTOCOL
+
+         DARPA INTERNET PROGRAM
+         PROTOCOL SPECIFICATION
+
+             September 1981</pre>
+    <div class="stack">
+      <div class="card"><h3 class="c3">📅 1981</h3><p>Lo stesso anno del primo PC IBM. Il protocollo descritto qui sta lavorando, adesso, nel vostro telefono.</p></div>
+      <div class="card"><h3 class="c4">📜 Request for Comments</h3><p>"Richiesta di commenti": un nome volutamente umile, usato dal 1969. Nessuno voleva sembrare un'autorità che detta legge.</p></div>
+      <div class="card"><h3 class="c1">✅ Ancora in vigore</h3><p>Aggiornata da altre RFC, ma mai sostituita: è tuttora lo standard ufficiale di IPv4.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3 · CATENET -->
+<div class="slide" data-section="storia">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent1)"></div><h2 style="color:var(--accent1)">Internet poteva chiamarsi Catenet</h2><span class="section-num">01</span></div>
+  <div class="one-col">
+    <div class="card">
+      <svg viewBox="0 0 640 140" width="100%" style="max-height:170px" role="img" aria-label="Tre reti collegate a catena da due gateway">
+        <line class="sv-hl" x1="150" y1="70" x2="490" y2="70"/>
+        <ellipse cx="110" cy="70" rx="95" ry="45" fill="rgba(107,203,255,.12)" stroke="var(--accent4)" stroke-width="2"/>
+        <ellipse cx="320" cy="70" rx="95" ry="45" fill="rgba(255,217,61,.12)" stroke="var(--accent3)" stroke-width="2"/>
+        <ellipse cx="530" cy="70" rx="95" ry="45" fill="rgba(255,107,107,.12)" stroke="var(--accent2)" stroke-width="2"/>
+        <text class="sv-t" x="110" y="66" text-anchor="middle">Rete A</text><text class="sv-s" x="110" y="84" text-anchor="middle">radio</text>
+        <text class="sv-t" x="320" y="66" text-anchor="middle">Rete B</text><text class="sv-s" x="320" y="84" text-anchor="middle">ARPANET</text>
+        <text class="sv-t" x="530" y="66" text-anchor="middle">Rete C</text><text class="sv-s" x="530" y="84" text-anchor="middle">satellite</text>
+        <rect x="200" y="54" width="32" height="32" rx="5" fill="var(--panel)" stroke="var(--accent1)" stroke-width="2"/><text class="sv-t sv-a1" x="216" y="75" text-anchor="middle">G</text>
+        <rect x="408" y="54" width="32" height="32" rx="5" fill="var(--panel)" stroke="var(--accent1)" stroke-width="2"/><text class="sv-t sv-a1" x="424" y="75" text-anchor="middle">G</text>
+        <text class="sv-s sv-a1" x="320" y="134" text-anchor="middle">G = gateway · reti diverse unite come anelli di una catena</text>
+      </svg>
+    </div>
+    <div class="three-col">
+      <div class="card"><h3 class="c1">⛓️ Catenet</h3><p>Da <i>concatenated network</i>, "rete concatenata": proprio come la nostra parola <b>catena</b>. Il termine lo propose il francese Louis Pouzin nel 1974.</p></div>
+      <div class="card"><h3 class="c4">🌐 Poi vinse "internet"</h3><p><i>Inter-network</i>, rete tra reti. Il titolo del vostro libro, <b>Internetworking</b>, viene da lì.</p></div>
+      <div class="card"><h3 class="c3">🚪 Gateway</h3><p>Nella RFC i router si chiamano ancora <b>gateway</b>. Per questo nel PC impostate il "default gateway".</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4 · TTL -->
+<div class="slide" data-section="header">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent4)"></div><h2 style="color:var(--accent4)">Il TTL nasce in secondi</h2><span class="section-num">02</span></div>
+  <div class="one-col">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700">
+        <div class="fbox f1">TTL 64</div><div class="farrow">→ R1 →</div>
+        <div class="fbox f1">63</div><div class="farrow">→ R2 →</div>
+        <div class="fbox f3">62</div><div class="farrow">→ … →</div>
+        <div class="fbox f3">1</div><div class="farrow">→ Rn →</div>
+        <div class="fbox f2">0 · scartato ✗</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="stack">
+        <div class="card"><h3 class="c3">⏱️ Nel 1981</h3><p>Il TTL è il tempo massimo di vita del pacchetto, misurato in <b>secondi</b>.</p></div>
+        <div class="card"><h3 class="c4">➖ La clausola</h3><p>Ogni router deve togliere <b>almeno 1</b>, anche se lo gestisce in meno di un secondo.</p></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h3 class="c1">🔢 Nella pratica</h3><p>I router impiegano millisecondi: tolgono sempre 1. Il TTL è diventato un <b>contatore di salti</b>.</p></div>
+        <div class="callout callout-green"><span class="callout-icon">😄</span><span>Il nome però è rimasto "Time To Live". In IPv6 lo hanno chiamato con onestà <b>Hop Limit</b>.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 · REGOLA D'ORO -->
+<div class="slide" data-section="header">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent3)"></div><h2 style="color:var(--accent3)">La regola d'oro</h2><span class="section-num">03</span></div>
+  <div class="one-col">
+    <div class="big-formula" style="font-family:'Syne',sans-serif;font-size:clamp(1.3rem,2.6vw,2rem)">Sii <span class="c1">rigoroso</span> in ciò che invii,<br>sii <span class="c4">tollerante</span> in ciò che ricevi.</div>
+    <p class="mono muted" style="text-align:center;font-size:.8rem">nella RFC: "conservative in its sending behavior, and liberal in its receiving behavior"</p>
+    <div class="three-col">
+      <div class="card"><h3 class="c1">📤 Quando invii</h3><p>Segui lo standard alla lettera: niente "interpretazioni creative".</p></div>
+      <div class="card"><h3 class="c4">📥 Quando ricevi</h3><p>Se un campo è un po' strano ma il pacchetto si capisce, accettalo.</p></div>
+      <div class="card"><h3 class="c3">🤝 Il risultato</h3><p>Dispositivi di produttori diversi riescono a parlarsi. È nota come <b>legge di Postel</b>.</p></div>
+    </div>
+    <div class="callout callout-red"><span class="callout-icon">⚖️</span><span>Oggi se ne discute: troppa tolleranza permette a implementazioni sbagliate di sopravvivere per anni.</span></div>
+  </div>
+</div>
+
+<!-- 6 · JON POSTEL -->
+<div class="slide" data-section="persone">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent3)"></div><h2 style="color:var(--accent3)">Jon Postel</h2><span class="section-num">04</span></div>
+  <div class="two-col-l">
+    <div class="stack">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,217,61,.15);border:2px solid var(--accent3);font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--accent3);flex-shrink:0">JP</div>
+        <div><div style="font-size:1.3rem;font-weight:800">Jon Postel · 1943–1998</div><div class="muted">ricercatore all'University of Southern California</div></div>
+      </div>
+      <div class="card"><h3 class="c4">✍️ L'editor delle RFC</h3><p>Dal 1969 al 1998 ha curato la pubblicazione delle RFC: quasi trent'anni.</p></div>
+      <div class="card"><h3 class="c1">📒 L'anagrafe di Internet</h3><p>Teneva lui il registro di indirizzi e numeri di porta. Serviva un blocco di indirizzi? Si chiedeva a Jon. Da quel lavoro nasce la <b>IANA</b>.</p></div>
+    </div>
+    <div class="card tw"><h3>📚 Ha firmato o curato</h3>
+      <table class="rr-table">
+        <tr><td class="rr-type">RFC 768</td><td>UDP</td></tr>
+        <tr><td class="rr-type">RFC 791</td><td>IP</td></tr>
+        <tr><td class="rr-type">RFC 792</td><td>ICMP</td></tr>
+        <tr><td class="rr-type">RFC 793</td><td>TCP</td></tr>
+        <tr><td class="rr-type">RFC 821</td><td>SMTP (e-mail)</td></tr>
+      </table>
+      <p style="margin-top:10px">Mezzo programma di Sistemi e Reti porta la sua firma.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 7 · 32 BIT -->
+<div class="slide" data-section="storia">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent2)"></div><h2 style="color:var(--accent2)">32 bit sembravano infiniti</h2><span class="section-num">05</span></div>
+  <div class="one-col">
+    <div class="two-col" style="flex:0">
+      <div class="card" style="text-align:center"><div class="mono c3" style="font-size:clamp(2rem,4vw,3.2rem);font-weight:700">~200</div><p>computer su ARPANET nel 1981</p></div>
+      <div class="card" style="text-align:center"><div class="mono c1" style="font-size:clamp(2rem,4vw,3.2rem);font-weight:700">4 294 967 296</div><p>indirizzi IPv4 disponibili</p></div>
+    </div>
+    <div class="callout callout-blue"><span class="callout-icon">🧮</span><span>Più di <b>20 milioni di indirizzi</b> per ogni computer dell'epoca. Vint Cerf, uno dei padri di TCP/IP, ha raccontato che all'epoca lo consideravano un esperimento.</span></div>
+    <div class="three-col">
+      <div class="card"><h3 class="c2">2011</h3><p>La IANA consegna ai registri regionali gli ultimi blocchi liberi.</p></div>
+      <div class="card"><h3 class="c2">2019</h3><p>Finiscono anche in Europa (RIPE NCC).</p></div>
+      <div class="card"><h3 class="c1">Oggi</h3><p>NAT per tirare avanti, <b>IPv6</b> a 128 bit per ripartire.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 8 · FLAG DAY -->
+<div class="slide" data-section="storia">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent2)"></div><h2 style="color:var(--accent2)">Flag Day · 1° gennaio 1983</h2><span class="section-num">06</span></div>
+  <div class="one-col">
+    <div>
+      <div class="abar" style="height:64px">
+        <div class="sg1" style="flex:1"><b>1969</b>ARPANET · RFC 1</div>
+        <div class="sg1" style="flex:1"><b>1974</b>idea di catenet</div>
+        <div class="sg3" style="flex:1"><b>1981</b>RFC 791</div>
+        <div class="sg4" style="flex:1.2"><b>1/1/1983</b>Flag Day</div>
+        <div class="sg2" style="flex:1"><b>2011</b>IPv4 esaurito</div>
+      </div>
+    </div>
+    <div class="two-col-l">
+      <div class="stack">
+        <div class="card"><h3 class="c2">🚩 Tutti insieme, lo stesso giorno</h3><p>Tutti i computer di ARPANET dovevano abbandonare il vecchio protocollo NCP e passare a <b>TCP/IP</b>. Chi non era pronto restava tagliato fuori.</p></div>
+        <div class="card"><h3 class="c1">🎂 Il compleanno di Internet</h3><p>Quel giorno è spesso considerato la nascita dell'Internet di oggi.</p></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center">
+        <div style="width:190px;height:190px;border-radius:50%;border:4px solid var(--accent2);background:rgba(255,107,107,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;box-shadow:0 0 0 8px rgba(255,107,107,.08)">
+          <div class="mono" style="font-size:.95rem;font-weight:700;color:var(--accent2);line-height:1.4">I survived<br>the TCP/IP<br>transition</div>
+          <div class="muted" style="font-size:.7rem;margin-top:6px">la spilla dei sopravvissuti</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9 · EVIL BIT -->
+<div class="slide" data-section="header">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent2)"></div><h2 style="color:var(--accent2)">Il bit malvagio 😈</h2><span class="section-num">07</span></div>
+  <div class="one-col">
+    <div class="card">
+      <p class="mono muted" style="font-size:.78rem;margin-bottom:8px;text-align:center">campo Flags dell'header IPv4</p>
+      <div style="display:flex;justify-content:center;gap:10px;font-family:'JetBrains Mono',monospace;font-weight:700">
+        <div class="fbox f2" style="min-width:150px"><b class="c2">riservato → evil</b>0 = buono · 1 = malvagio</div>
+        <div class="fbox f4" style="min-width:110px"><b>DF</b>non frammentare</div>
+        <div class="fbox f4" style="min-width:110px"><b>MF</b>altri frammenti</div>
+      </div>
+    </div>
+    <div class="three-col">
+      <div class="card"><h3 class="c2">📅 1° aprile 2003</h3><p>Esce la <b>RFC 3514</b>: il bit riservato, sempre a 0, diventa l'<i>evil bit</i>.</p></div>
+      <div class="card"><h3 class="c3">🛡️ La "soluzione"</h3><p>Chi ha cattive intenzioni deve metterlo a 1. Il firewall scarta i pacchetti malvagi. Sicurezza risolta!</p></div>
+      <div class="card"><h3 class="c1">🤔 Il problema</h3><p>Chi attacca non lo dichiara. Era un pesce d'aprile.</p></div>
+    </div>
+    <div class="callout callout-yellow"><span class="callout-icon">🐦</span><span><b>Bonus:</b> RFC 1149, 1° aprile 1990: IP trasportato da <b>piccioni viaggiatori</b>. Nel 2001 un gruppo norvegese l'ha provato davvero: un ping ha avuto tempi di risposta superiori a un'ora.</span></div>
+  </div>
+</div>
+
+<!-- 10 · QUIZ -->
+<div class="slide" data-section="quiz">
+  <div class="section-header"><div class="section-dot" style="background:var(--accent1)"></div><h2 style="color:var(--accent1)">Quiz lampo</h2></div>
+  <div class="grid2">
+    <details><summary>1 · Come poteva chiamarsi Internet?</summary><p class="sol">Catenet: rete "concatenata"</p></details>
+    <details><summary>2 · In che unità misurava il TTL la RFC 791?</summary><p class="sol">In secondi. Oggi conta i salti (in IPv6: Hop Limit)</p></details>
+    <details><summary>3 · Cosa dice la regola d'oro?</summary><p class="sol">Rigoroso quando invii, tollerante quando ricevi</p></details>
+    <details><summary>4 · Chi assegnava gli indirizzi IP agli inizi?</summary><p class="sol">Jon Postel: dal suo lavoro nasce la IANA</p></details>
+    <details><summary>5 · Cosa successe il 1° gennaio 1983?</summary><p class="sol">Flag Day: tutta ARPANET passa a TCP/IP</p></details>
+    <details><summary>6 · Come si riconosce un pacchetto malvagio secondo la RFC 3514?</summary><p class="sol">Ha il bit riservato dei Flags a 1 (pesce d'aprile!)</p></details>
+  </div>
+</div>
+
+</div>
+<div id="nav">
+  <button id="btn-prev">← Indietro</button>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <button id="btn-next">Avanti →</button>
+  <div id="section-label"></div>
+</div>
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let current = 0;
+const sectionNames = {"intro": "Il documento", "storia": "Storia", "header": "Dentro l'header", "persone": "Persone", "quiz": "Quiz"};
+function render() {
+  document.getElementById('slide-counter').textContent =
+    String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+  document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === total - 1;
+  document.getElementById('section-label').textContent = sectionNames[slides[current].dataset.section] || '';
+}
+function goTo(idx) {
+  if (idx < 0 || idx >= total || idx === current) return;
+  const prev = current;
+  slides[prev].classList.remove('active');
+  slides[prev].classList.add('exit');
+  setTimeout(() => slides[prev].classList.remove('exit'), 420);
+  current = idx;
+  slides[current].scrollTop = 0;
+  slides[current].classList.add('active');
+  render();
+}
+document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown','PageDown'].includes(e.key)) goTo(current + 1);
+  if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) goTo(current - 1);
+});
+// swipe su smartphone e tablet
+let tx = 0, ty = 0, tSkip = false;
+document.addEventListener('touchstart', e => {
+  tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  tSkip = !!(e.target.closest && e.target.closest('pre, .tw'));
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (tSkip) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(current + (dx < 0 ? 1 : -1));
+}, { passive: true });
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '◐ Dark' : '◑ Light';
+}
+render();
+</script>
+</body>
+</html>
