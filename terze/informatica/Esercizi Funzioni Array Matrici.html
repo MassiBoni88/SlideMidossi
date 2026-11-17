@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esercizi C++ – Funzioni, array e matrici</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13.5px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 36px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── INTESTAZIONE ── */
+    .header {
+      display: flex;
+      border: none;
+      margin-bottom: 28px;
+    }
+    .header-left {
+      background: #1b3a5c;
+      color: #fff;
+      padding: 14px 20px;
+      flex: 0 0 52%;
+      display: flex;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .header-right {
+      background: #2e5f8a;
+      color: #e8f0f8;
+      padding: 14px 18px;
+      flex: 1;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-right .school {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .header-right .topics {
+      font-style: italic;
+      font-size: 11.5px;
+      margin-top: 4px;
+      line-height: 1.45;
+      color: #c8ddf0;
+    }
+
+    /* ── SECONDO ESERCIZIO ── */
+    .esercizio + .esercizio {
+      margin-top: 56px;
+      padding-top: 36px;
+      border-top: 3px dashed #c8ddf0;
+    }
+
+    /* ── SEZIONI ── */
+    h2 {
+      color: #1e6fa8;
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+      border-bottom: 2px solid #1e6fa8;
+      padding-bottom: 3px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: #1a1a1a;
+    }
+
+    /* ── SCENARIO ── */
+    .scenario {
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .scenario strong { font-weight: 700; }
+
+    /* ── CODICE IN LINEA ── */
+    code {
+      background: #e8f0f8;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      color: #1b3a5c;
+    }
+
+    /* ── TABELLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+    thead tr {
+      background: #1b3a5c;
+      color: #fff;
+    }
+    thead th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    tbody tr:nth-child(even) { background: #f0f5fa; }
+    tbody tr:nth-child(odd)  { background: #fff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #d4dfe8;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    /* ── TABELLA FUNZIONI ── */
+    .fun-table thead th:nth-child(1) { width: 175px; }
+    .fun-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+    }
+
+    /* ── TABELLA PASSI ── */
+    .menu-table thead th:first-child { width: 50px; text-align: center; }
+    .menu-table tbody td:first-child { text-align: center; font-weight: 700; color: #1b3a5c; }
+
+    /* ── BOX SUGGERIMENTO ── */
+    .hint {
+      background: #eaf4fd;
+      border-left: 5px solid #1e6fa8;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 18px 0;
+      font-size: 12.8px;
+      line-height: 1.65;
+      color: #1a2a38;
+    }
+    .hint strong { color: #1b3a5c; }
+    .hint code { background: #d2e9f7; color: #0d3050; }
+
+    /* ── TABELLA VINCOLI ── */
+    .vincoli-table tbody td:first-child {
+      font-weight: 700;
+      color: #1b3a5c;
+      white-space: nowrap;
+      width: 175px;
+    }
+
+    /* ── NOTA IMPORTANTE ── */
+    .nota {
+      background: #fff8e1;
+      border-left: 5px solid #e6a817;
+      border-radius: 4px;
+      padding: 11px 16px;
+      margin: 16px 0;
+      font-size: 12.8px;
+      line-height: 1.6;
+      color: #3a2a00;
+    }
+    .nota strong { color: #7a4f00; }
+    .nota code { background: #fbe9b7; color: #5a3a00; }
+
+    /* ── DATI DI PARTENZA (codice da copiare) ── */
+    .codice {
+      background: #f0f5fa;
+      border-left: 5px solid #1b3a5c;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: #0d2438;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .codice .cm { color: #6a8299; font-style: italic; }
+
+    /* ── ESEMPIO DI ESECUZIONE (console) ── */
+    .console {
+      background: #0d2438;
+      color: #e8f0f8;
+      border-radius: 5px;
+      padding: 14px 18px;
+      margin: 10px 0 18px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .console .in { color: #ffd479; font-weight: 700; }
+    .console .out { color: #9fd0a8; }
+
+    .calcolo { font-size: 12.5px; color: #555; }
+
+    p { margin-bottom: 6px; line-height: 1.65; }
+    ul { margin: 6px 0 10px 20px; line-height: 1.7; }
+
+    /* ── SCHERMI PICCOLI ── */
+    @media (max-width: 640px) {
+      body { padding: 18px 14px; }
+      .header { flex-direction: column; }
+      .header-left { flex: none; }
+      .header-right { text-align: left; }
+      .fun-table thead th:nth-child(1),
+      .vincoli-table tbody td:first-child { width: auto; white-space: normal; }
+    }
+
+    /* ── STAMPA: ogni esercizio su un foglio ── */
+    @media print {
+      body { padding: 0; }
+      .esercizio + .esercizio {
+        page-break-before: always;
+        break-before: page;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+      .header-left, .header-right, thead tr, .console {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ ESERCIZIO 1 ═══════════════════════════════ -->
+<section class="esercizio">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO 1 –<br>PARCHEGGIO MIDOPARK</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Ripasso C++</span>
+      <span class="topics">Argomenti: funzioni con e senza valore di ritorno,<br>parametri, prototipi · circa 15 minuti</span>
+    </div>
+  </div>
+
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Il parcheggio <strong>"MidoPark"</strong> vuole una <strong>cassa automatica</strong>. Il cliente inserisce
+    quanto è durata la sosta, in <strong>ore</strong> e <strong>minuti</strong>, e il programma stampa una
+    <strong>ricevuta</strong> con l'importo da pagare.
+  </p>
+  <p class="scenario">
+    La tariffa è semplice: i <strong>primi 30 minuti sono gratuiti</strong>, e ogni minuto oltre i 30 costa
+    <strong>0,02 €</strong>.
+  </p>
+
+  <h2>Parte 1 – Le funzioni</h2>
+
+  <p>Il programma è diviso in <strong>cinque funzioni</strong>. Per ognuna scrivi il <strong>prototipo</strong>
+     prima di <code>main()</code> e la <strong>definizione</strong> dopo. Decidi tu se la funzione è
+     <code>void</code> oppure restituisce un valore, e in quel caso di che tipo.</p>
+
+  <table class="fun-table">
+    <thead>
+      <tr><th>Funzione</th><th>Cosa fa</th><th>Riceve</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>benvenuto</td>
+        <td>stampa l'intestazione <code>"=== MidoPark - Cassa automatica ==="</code></td>
+        <td>niente</td>
+      </tr>
+      <tr>
+        <td>minutiTotali</td>
+        <td>calcola la durata complessiva della sosta in minuti</td>
+        <td>ore e minuti</td>
+      </tr>
+      <tr>
+        <td>isGratuita</td>
+        <td>dice se la sosta è gratuita, cioè se dura <strong>al massimo</strong> 30 minuti</td>
+        <td>minuti totali</td>
+      </tr>
+      <tr>
+        <td>calcolaImporto</td>
+        <td>calcola quanto deve pagare il cliente (0 se la sosta è gratuita)</td>
+        <td>minuti totali</td>
+      </tr>
+      <tr>
+        <td>stampaRicevuta</td>
+        <td>stampa la ricevuta come nell'esempio qui sotto</td>
+        <td>minuti totali e importo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> una funzione deve <strong>restituire un valore</strong> (<code>return</code>)
+    quando il suo risultato serve a chi la chiama per andare avanti. È <code>void</code> quando il suo compito
+    finisce lì, per esempio stampare qualcosa a video.
+  </div>
+
+  <h2>Parte 2 – Il main</h2>
+
+  <p>Nel <code>main()</code> esegui questi passi, in ordine:</p>
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Operazione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>chiama <code>benvenuto</code></td></tr>
+      <tr><td>2</td><td>chiedi e leggi le ore e i minuti di sosta</td></tr>
+      <tr><td>3</td><td>calcola i minuti totali con <code>minutiTotali</code></td></tr>
+      <tr><td>4</td><td>calcola l'importo con <code>calcolaImporto</code></td></tr>
+      <tr><td>5</td><td>chiama <code>stampaRicevuta</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Esempio di esecuzione – sosta a pagamento</h3>
+  <div class="console"><span class="out">=== MidoPark - Cassa automatica ===</span>
+Ore di sosta: <span class="in">2</span>
+Minuti di sosta: <span class="in">15</span>
+<span class="out">---------- RICEVUTA ----------
+Durata: 135 minuti
+Importo: 2.10 EUR
+------------------------------</span></div>
+  <p class="calcolo">(2 ore e 15 minuti = 135 minuti. Si pagano i minuti oltre i 30: 105 × 0,02 = <strong>2,10 €</strong>.)</p>
+
+  <h3>Esempio di esecuzione – sosta gratuita</h3>
+  <div class="console"><span class="out">=== MidoPark - Cassa automatica ===</span>
+Ore di sosta: <span class="in">0</span>
+Minuti di sosta: <span class="in">25</span>
+<span class="out">---------- RICEVUTA ----------
+Durata: 25 minuti
+Sosta gratuita!
+------------------------------</span></div>
+
+  <h2>Vincoli e note</h2>
+
+  <table class="vincoli-table">
+    <thead>
+      <tr><th>Voce</th><th>Regola</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Costanti</td>
+        <td><code>const int GRATIS = 30;</code> e <code>const double TARIFFA = 0.02;</code> in cima al file</td>
+      </tr>
+      <tr>
+        <td>Variabili globali</td>
+        <td>Vietate: tutto il resto passa attraverso i <strong>parametri</strong></td>
+      </tr>
+      <tr>
+        <td>Main</td>
+        <td>Legge l'input e chiama le funzioni. <strong>Nessun calcolo</strong> e nessuna stampa della ricevuta</td>
+      </tr>
+      <tr>
+        <td>Decimali</td>
+        <td>L'importo si stampa con 2 decimali (<code>&lt;iomanip&gt;</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nota">
+    <strong>Attenzione:</strong> sia <code>calcolaImporto</code> sia <code>stampaRicevuta</code> devono
+    <strong>chiamare <code>isGratuita</code></strong> al loro interno, invece di ripetere il confronto con 30.
+    Una funzione può chiamarne un'altra, anche se è definita più in basso, purché il suo prototipo sia
+    scritto prima.
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════ ESERCIZIO 2 ═══════════════════════════════ -->
+<section class="esercizio">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>ESERCIZIO 2 –<br>REGISTRO DEI VOTI</h1>
+    </div>
+    <div class="header-right">
+      <span class="school">ITT Midossi – Ripasso C++</span>
+      <span class="topics">Argomenti: array monodimensionali, matrici,<br>funzioni e prototipi · circa 20 minuti</span>
+    </div>
+  </div>
+
+  <h2>Scenario</h2>
+  <p class="scenario">
+    Una docente deve fare il riepilogo dei voti di <strong>4 studenti</strong> in <strong>3 materie</strong>
+    (Italiano, Matematica, Informatica). I nomi stanno in un <strong>array</strong>, i voti in una
+    <strong>matrice</strong>: ogni <strong>riga</strong> è uno studente, ogni <strong>colonna</strong> una materia.
+    Il programma calcola le medie, trova lo studente migliore e conta i voti insufficienti.
+  </p>
+
+  <h2>Parte 1 – Dati di partenza</h2>
+
+  <p>Copia le costanti in cima al file e le variabili all'inizio di <code>main()</code>:</p>
+  <div class="codice"><span class="cm">// in cima al file</span>
+const int S = 4;   <span class="cm">// numero di studenti</span>
+const int M = 3;   <span class="cm">// numero di materie (Ita, Mat, Inf)</span>
+
+<span class="cm">// all'inizio del main</span>
+string nomi[S] = {"Anna", "Luca", "Sara", "Paolo"};
+int voti[S][M] = {
+    {7, 6, 9},
+    {5, 4, 6},
+    {9, 8, 10},
+    {6, 5, 8}
+};
+double medie[S];   <span class="cm">// verrà riempito da una funzione</span></div>
+
+  <h2>Parte 2 – Le funzioni</h2>
+
+  <p>Scrivi <strong>prototipo</strong> e <strong>definizione</strong> di queste cinque funzioni:</p>
+
+  <table class="fun-table">
+    <thead>
+      <tr><th>Funzione</th><th>Cosa fa</th><th>Riceve</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>stampaRegistro</td>
+        <td>stampa il titolo <code>"=== Registro di classe ==="</code> e poi ogni studente con i suoi tre voti</td>
+        <td>nomi, voti, numero di studenti</td>
+      </tr>
+      <tr>
+        <td>calcolaMedie</td>
+        <td>calcola la media di ogni studente e la salva nell'array <code>medie</code></td>
+        <td>voti, medie, numero di studenti</td>
+      </tr>
+      <tr>
+        <td>stampaMedie</td>
+        <td>stampa <code>"--- Medie ---"</code> e poi nome e media di ogni studente, con 2 decimali</td>
+        <td>nomi, medie, numero di studenti</td>
+      </tr>
+      <tr>
+        <td>indiceMigliore</td>
+        <td>restituisce la <strong>posizione</strong> nell'array dello studente con la media più alta</td>
+        <td>medie, numero di studenti</td>
+      </tr>
+      <tr>
+        <td>contaInsufficienze</td>
+        <td>restituisce quanti voti di <strong>tutta la matrice</strong> sono minori di 6</td>
+        <td>voti, numero di studenti</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="hint">
+    <strong>Suggerimento:</strong> <code>calcolaMedie</code> non ha bisogno di <code>return</code> per
+    "consegnare" le medie. Un array passato a una funzione non viene copiato: la funzione lavora
+    direttamente sull'array del <code>main</code>. Ricorda anche che nei parametri la matrice si scrive
+    indicando il numero di colonne: <code>int voti[][M]</code>.
+  </div>
+
+  <h2>Parte 3 – Il main</h2>
+
+  <p>Dopo aver dichiarato i dati, il <code>main()</code> deve:</p>
+  <table class="menu-table">
+    <thead>
+      <tr><th>N°</th><th>Operazione</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>chiamare <code>stampaRegistro</code></td></tr>
+      <tr><td>2</td><td>chiamare <code>calcolaMedie</code> e poi <code>stampaMedie</code></td></tr>
+      <tr><td>3</td><td>usare l'indice restituito da <code>indiceMigliore</code> per stampare <strong>nome e media</strong> dello studente migliore</td></tr>
+      <tr><td>4</td><td>stampare il numero di voti insufficienti</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Output atteso</h3>
+  <div class="console"><span class="out">=== Registro di classe ===
+Anna: 7 6 9
+Luca: 5 4 6
+Sara: 9 8 10
+Paolo: 6 5 8
+--- Medie ---
+Anna: 7.33
+Luca: 5.00
+Sara: 9.00
+Paolo: 6.33
+Studente migliore: Sara (9.00)
+Voti insufficienti: 3</span></div>
+
+  <div class="nota">
+    <strong>Controlla le medie:</strong> se per Anna ottieni <code>7.00</code> invece di <code>7.33</code>,
+    stai facendo una divisione tra interi.
+  </div>
+
+  <h2>Bonus (solo se avanza tempo)</h2>
+  <p>Scrivi la funzione <code>mediaMateria</code>, che riceve la matrice, il numero di studenti e
+     l'indice di una <strong>colonna</strong>, e restituisce la media di quella materia. Stampa la media di
+     Matematica (colonna 1): deve venire <code>5.75</code>.</p>
+
+</section>
+
+</body>
+</html>
