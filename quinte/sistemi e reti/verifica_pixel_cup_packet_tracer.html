@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifica di laboratorio — La rete della Pixel Cup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+      background: #f0f4f8; color: #1a202c;
+      padding: 30px 20px; font-size: 17px; line-height: 1.75;
+    }
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header {
+      background: linear-gradient(135deg, #1a365d, #2b6cb0);
+      color: white; border-radius: 10px;
+      padding: 30px 34px; margin-bottom: 30px;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 8px; line-height: 1.3; }
+    header p  { font-size: 1rem; opacity: 0.9; }
+    .badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 0.85rem; margin-top: 12px; margin-right: 5px;
+    }
+
+    .card {
+      background: white; border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+      padding: 26px 30px; margin-bottom: 26px;
+    }
+    .card h2 {
+      font-size: 1.3rem; color: #2b6cb0;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 12px; margin-bottom: 18px; line-height: 1.35;
+    }
+    .card h3 {
+      font-size: 1.02rem; color: #2d3748;
+      margin: 22px 0 10px; font-weight: 700;
+    }
+    .card p { margin: 8px 0; }
+
+    /* numero grande della parte */
+    .part-num {
+      display: inline-block; background: #2b6cb0; color: white;
+      width: 38px; height: 38px; border-radius: 50%;
+      text-align: center; line-height: 38px; font-size: 1.1rem;
+      font-weight: 700; margin-right: 10px; vertical-align: middle;
+    }
+    .part-extra .part-num { background: #805ad5; }
+    .part-extra h2 { color: #805ad5; border-left-color: #805ad5; }
+    .meta { float: right; margin-top: 6px; }
+    .punti, .tempo { display: inline-block; border-radius: 12px; padding: 2px 11px;
+                     font-size: 0.8rem; font-weight: 700; margin-left: 4px; }
+    .punti { background: #2b6cb0; color: white; }
+    .part-extra .punti { background: #805ad5; }
+    .tempo { background: #edf2f7; color: #4a5568; font-weight: 600; }
+
+    .topology {
+      background: #0d1117; border-radius: 8px;
+      padding: 22px; font-family: 'Courier New', monospace;
+      font-size: 0.8rem; color: #c9d1d9;
+      line-height: 1.22; overflow-x: auto; white-space: pre; margin: 12px 0;
+    }
+    .topology .label  { color: #ffa657; font-weight: bold; }
+    .topology .device { color: #7ee787; font-weight: bold; }
+    .topology .link   { color: #6e7681; }
+    .topology .net    { color: #d2a8ff; }
+    .topology .srv    { color: #58a6ff; font-weight: bold; }
+    .topology .server { color: #ff7b72; font-weight: bold; }
+    .topology .fib    { color: #e3b341; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 8px; }
+    th { background: #2b6cb0; color: white; padding: 11px 13px; text-align: left; font-weight: 600; }
+    td { padding: 11px 13px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    tr:nth-child(even) td { background: #f7fafc; }
+    td.c { text-align: center; white-space: nowrap; }
+    td.nw { white-space: nowrap; }
+    table.reti { font-size: 0.88rem; }
+    table.reti th, table.reti td { padding: 9px 10px; }
+
+    .info-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+    .warn-box { background: #fffff0; border-left: 5px solid #d69e2e; border-radius: 5px;
+                padding: 14px 18px; margin: 14px 0; }
+
+    /* passi operativi: uno per riga, ben spaziati */
+    ol.steps { list-style: none; counter-reset: st; margin: 10px 0 0 0; }
+    ol.steps li {
+      counter-increment: st; position: relative;
+      padding: 10px 0 10px 44px; border-bottom: 1px solid #edf2f7;
+    }
+    ol.steps li:last-child { border-bottom: none; }
+    ol.steps li::before {
+      content: counter(st); position: absolute; left: 0; top: 10px;
+      background: #bee3f8; color: #2a4365; font-weight: 700;
+      width: 30px; height: 30px; border-radius: 50%;
+      text-align: center; line-height: 30px; font-size: 0.9rem;
+    }
+    /* requisiti degli organizzatori: numerati in quadrato */
+    ol.steps.req li::before { border-radius: 6px; background: #2b6cb0; color: white; }
+    .part-extra ol.steps li::before { background: #e9d8fd; color: #553c9a; }
+
+    /* punto di controllo a fine parte */
+    .check {
+      background: #f0fff4; border: 2px solid #38a169; border-radius: 8px;
+      padding: 16px 20px; margin-top: 20px;
+    }
+    .check .title { font-weight: 700; color: #22543d; margin-bottom: 8px; font-size: 1.02rem; }
+    .check ul { list-style: none; margin: 0; }
+    .check li { padding: 6px 0 6px 34px; position: relative; }
+    .check li::before {
+      content: '✓'; position: absolute; left: 4px; top: 5px;
+      font-size: 1.1rem; font-weight: 700; color: #38a169; line-height: 1.4;
+    }
+
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 9px; font-size: 0.82rem; font-weight: bold;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .tag-pt    { background: #fefcbf; color: #744210; }
+    .tag-cli   { background: #c3dafe; color: #2a4365; }
+    .tag-calc  { background: #fed7d7; color: #9b2c2c; }
+    .tag-plus  { background: #e9d8fd; color: #553c9a; }
+
+    code { background: #edf2f7; padding: 2px 7px; border-radius: 3px;
+           font-family: 'Courier New', monospace; font-size: 0.92em; color: #2d3748; }
+
+    .roadmap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .rm-item {
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px 16px;
+      background: #f7fafc;
+    }
+    .rm-item .n {
+      background: #2b6cb0; color: white; width: 32px; height: 32px;
+      border-radius: 50%; text-align: center; line-height: 32px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .rm-item.extra .n { background: #805ad5; }
+    .rm-item .txt { flex: 1; }
+    .rm-item .txt b { display: block; font-size: 1rem; }
+    .rm-item .txt span { font-size: 0.88rem; color: #718096; }
+    .rm-item .pt { font-weight: 700; color: #2b6cb0; white-space: nowrap; }
+    .rm-item.extra .pt { color: #805ad5; }
+    .rm-total { text-align: right; font-weight: 700; color: #2a4365; margin-top: 6px; padding-right: 16px; }
+
+    .small { font-size: 0.9rem; color: #4a5568; margin-top: 10px; }
+
+    footer { text-align: center; font-size: 0.85rem; color: #a0aec0;
+             margin-top: 34px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+
+    @media (max-width: 640px) {
+      body { padding: 16px; font-size: 16px; }
+      header { padding: 22px 20px; }
+      header h1 { font-size: 1.45rem; }
+      .card { padding: 20px 16px; }
+      .meta { float: none; display: block; margin: 6px 0 0 0; }
+      .meta .punti { margin-left: 0; }
+      .rm-item { flex-wrap: wrap; }
+    }
+    @media print {
+      @page { margin: 1.2cm; }
+      body { background: white; padding: 0; font-size: 10pt; line-height: 1.4; }
+      .page { max-width: none; }
+      .card { box-shadow: none; border: 1px solid #cbd5e0; padding: 12px 16px; margin-bottom: 12px; }
+      .card h2 { margin-bottom: 8px; }
+      .card h3 { margin: 12px 0 5px; }
+      header { background: #1a365d !important; padding: 14px 20px; margin-bottom: 12px; }
+      th, td { padding: 5px 8px; }
+      table.reti { font-size: 8.5pt; }
+      ol.steps li { padding: 5px 0 5px 34px; }
+      ol.steps li::before { top: 4px; width: 22px; height: 22px; line-height: 22px; }
+      .info-box, .warn-box { padding: 7px 12px; margin: 7px 0; }
+      .check { padding: 8px 12px; margin-top: 10px; }
+      .check li { padding: 2px 0 2px 26px; }
+      .check li::before { top: 1px; }
+      .rm-item { padding: 5px 10px; }
+      .topology { padding: 10px 12px; line-height: 1.15; font-size: 7.5pt; }
+      header, .topology, .tag, .part-num, .punti, .tempo, ol.steps li::before, th, td, .rm-item .n {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      }
+      .check, table, .topology { page-break-inside: avoid; }
+      h2, h3 { page-break-after: avoid; break-after: avoid; }
+      .card > h2 + p, .card > h2 + ol { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Verifica di laboratorio — La rete della Pixel Cup</h1>
+    <p>La finale nazionale di eSports: sottoreti, VLAN, routing RIP e due server DHCP che si fanno da riserva con il relay agent</p>
+    <span class="badge">Cisco Packet Tracer</span>
+    <span class="badge">5ª ITT — Sistemi e Reti</span>
+    <span class="badge">Subnetting · VLAN · RIP · DHCP relay</span>
+    <span class="badge">Durata: 2 ore</span>
+    <span class="badge">Punteggio: 10 punti</span>
+  </header>
+
+  <!-- COME LAVORARE -->
+  <div class="card">
+    <h2>Come lavorare</h2>
+    <ol class="steps">
+      <li><strong>La verifica è individuale.</strong> Trovi i requisiti della rete, non i procedimenti: le scelte le fai tu.</li>
+      <li><strong>Si valuta il file di Packet Tracer.</strong> L'insegnante controllerà la configurazione di ogni dispositivo e ripeterà
+          le prove della Parte 5.</li>
+      <li><strong>Niente CLI, tranne che per il relay.</strong> Router, switch, server e PC si configurano dalle schede <em>Config</em>,
+          <em>Desktop</em> e <em>Services</em>. La CLI dei router la usi solo per il comando <code>ip helper-address</code> del relay agent,
+          che nella scheda <em>Config</em> non c'è. In fondo alla scheda <em>Config</em> il riquadro <em>Equivalent IOS Commands</em>
+          ti mostra i comandi che Packet Tracer scrive al posto tuo.</li>
+      <li><strong>Per controllare</strong> usa il <em>Command Prompt</em> dei PC: <code>ipconfig</code> e <code>ping</code>.</li>
+      <li><strong>Segui le parti in ordine.</strong> Ogni parte ha il suo punteggio e alla fine c'è un <em>punto di controllo</em>.
+          Anche una parte incompleta vale punti.</li>
+      <li><strong>Salva spesso</strong> il file con il nome <code>Cognome_Nome_pixelcup.pkt</code>.</li>
+    </ol>
+    <div class="warn-box">
+      <strong>Gestisci il tempo: hai 2 ore.</strong> Se resti bloccato più di 10 minuti sullo stesso problema, vai avanti:
+      puoi tornarci alla fine. Fai il bonus solo dopo aver finito tutto il resto.
+    </div>
+  </div>
+
+  <!-- MAPPA -->
+  <div class="card">
+    <h2>Le parti e i punti</h2>
+    <div class="roadmap">
+      <div class="rm-item">
+        <div class="n">1</div>
+        <div class="txt"><b>Piano di indirizzamento <span class="tag tag-calc">calcolo</span></b>
+        <span>Sottoreti, indirizzi dei router e dei server · ~20 min</span></div>
+        <div class="pt">2 punti</div>
+      </div>
+      <div class="rm-item">
+        <div class="n">2</div>
+        <div class="txt"><b>Topologia, cablaggio e VLAN <span class="tag tag-pt">scheda Config</span></b>
+        <span>Dispositivi, cavi e VLAN sugli switch dell'arena · ~25 min</span></div>
+        <div class="pt">2,5 punti</div>
+      </div>
+      <div class="rm-item">
+        <div class="n">3</div>
+        <div class="txt"><b>Router e RIP <span class="tag tag-pt">scheda Config</span></b>
+        <span>Interfacce e routing dinamico · ~15 min</span></div>
+        <div class="pt">1,5 punti</div>
+      </div>
+      <div class="rm-item">
+        <div class="n">4</div>
+        <div class="txt"><b>DHCP di riserva e relay agent <span class="tag tag-pt">Services</span> <span class="tag tag-cli">un comando CLI</span></b>
+        <span>Due server, sei pool, il relay solo dove serve · ~30 min</span></div>
+        <div class="pt">3 punti</div>
+      </div>
+      <div class="rm-item">
+        <div class="n">5</div>
+        <div class="txt"><b>Collaudo e prova di guasto <span class="tag tag-pt">Packet Tracer</span></b>
+        <span>La rete funziona anche se un server DHCP si spegne? · ~15 min</span></div>
+        <div class="pt">1 punto</div>
+      </div>
+      <div class="rm-item extra">
+        <div class="n">+</div>
+        <div class="txt"><b>Bonus <span class="tag tag-plus">se resta tempo</span></b>
+        <span>Un secondo collegamento in fibra tra le due zone</span></div>
+        <div class="pt">+0,5</div>
+      </div>
+    </div>
+    <p class="rm-total">Totale: 10 punti</p>
+  </div>
+
+  <!-- SCENARIO -->
+  <div class="card">
+    <h2>Lo scenario</h2>
+    <p>Sabato al palazzetto si gioca la finale nazionale della <strong>Pixel Cup</strong>, il torneo di eSports delle scuole superiori,
+       in diretta streaming. Il palazzetto ha due zone: l'<strong>Arena</strong>, con le postazioni di gioco sul palco e il tavolo tecnico
+       degli arbitri, e la <strong>Regia</strong>, da cui parte la diretta, con la sala server. Ogni zona ha un router Cisco 2911 e i due router
+       sono collegati da un cavo in rame.</p>
+    <p>Gli organizzatori hanno due preoccupazioni. La prima: per regolamento i PC dei giocatori non devono stare nella stessa rete dello staff di gara,
+       anche se usano gli stessi switch. La seconda: se a metà della finale un server DHCP si guasta, le postazioni non devono restare senza indirizzo.
+       Per questo vogliono <strong>due server DHCP, uno per zona, che si fanno da riserva a vicenda</strong>.</p>
+
+    <h3>Le reti da realizzare</h3>
+    <div class="table-wrap"><table class="reti">
+      <tr><th>Zona</th><th>Rete</th><th>VLAN</th><th>Client DHCP</th><th>Indirizzi statici</th><th>DHCP principale</th><th>DHCP di riserva</th></tr>
+      <tr><td rowspan="2" class="nw">Arena<br>R-ARENA</td><td>GIOCATORI</td><td class="c">10</td><td>24 postazioni di gioco</td><td>—</td><td class="nw">DHCP-ARENA</td><td class="nw">DHCP-REGIA</td></tr>
+      <tr><td>STAFF DI GARA</td><td class="c">20</td><td>9 PC di arbitri e tecnici</td><td>1: DHCP-ARENA</td><td class="nw">DHCP-ARENA</td><td class="nw">DHCP-REGIA</td></tr>
+      <tr><td rowspan="2" class="nw">Regia<br>R-REGIA</td><td>PRODUZIONE</td><td class="c">—</td><td>15 PC di regia, streaming e telecronaca</td><td>—</td><td class="nw">DHCP-REGIA</td><td class="nw">DHCP-ARENA</td></tr>
+      <tr><td>SERVER</td><td class="c">—</td><td>—</td><td>5: DHCP-REGIA, GAME e 3 server futuri</td><td>—</td><td>—</td></tr>
+    </table></div>
+    <p class="small">I numeri non comprendono l'interfaccia del router. In regia ogni rete ha il suo switch, quindi lì le VLAN non servono.</p>
+
+    <h3>I requisiti</h3>
+    <ol class="steps req">
+      <li><strong>Sottoreti.</strong> Tutte le reti, compreso il collegamento tra i due router, si ricavano dal blocco
+          <code>192.168.40.0/24</code>.</li>
+      <li><strong>Indirizzi fissi.</strong> In ogni LAN il gateway è il primo indirizzo assegnabile. Sul collegamento tra i router, R-ARENA usa il primo
+          indirizzo assegnabile e R-REGIA il secondo. DHCP-ARENA usa l'ultimo indirizzo assegnabile della rete STAFF DI GARA; DHCP-REGIA l'ultimo
+          della rete SERVER e GAME il penultimo.</li>
+      <li><strong>Un'interfaccia per ogni rete.</strong> Ogni rete ha una propria interfaccia fisica sul router, come indicato nella tabella delle
+          interfacce. Nell'arena giocatori e staff usano gli stessi due switch: separali con le VLAN, usando i numeri della tabella e i nomi delle reti.</li>
+      <li><strong>Routing con RIP.</strong> Le due zone si scambiano le rotte con RIP, configurato dalla scheda <em>Config</em>. Nessuna rotta statica.
+          Il RIP della scheda <em>Config</em> è la versione 1, che negli aggiornamenti non trasmette la maschera di sottorete.</li>
+      <li><strong>Due server DHCP che si dividono gli indirizzi.</strong> Ogni rete con dei client è servita da un server principale e da uno di riserva,
+          come indicato in tabella. Il server <strong>principale</strong> distribuisce tanti indirizzi quanti sono i client della rete, a partire
+          dall'indirizzo che segue il gateway. Il server <strong>di riserva</strong> distribuisce i <strong>5 indirizzi successivi</strong>.
+          Nessun indirizzo deve essere assegnato due volte, compresi quelli dei gateway e dei server.</li>
+      <li><strong>Nessun intervento in caso di guasto.</strong> Se uno dei due server DHCP si spegne, ogni rete deve continuare a ricevere indirizzi
+          dall'altro senza che nessuno modifichi la configurazione.</li>
+    </ol>
+
+    <h3>La topologia</h3>
+<div class="topology"> <span class="label">PIXEL CUP — la rete della finale</span>
+
+                             <span class="net">ARENA                                                REGIA</span>
+
+    <span class="device">PC-G3   PC-STAFF   </span><span class="server">DHCP-ARENA             </span><span class="device">PC-G1     PC-G2                    PC-PROD</span>
+      <span class="link">│         │           │                   │         │                         │</span>
+ <span class="link">┌────┴─────────┴───────────┴─────┐         ┌───┴─────────┴───┐               ┌─────┴─────┐</span>
+ <span class="link">│             </span><span class="device">SW-A2              </span><span class="link">├─────────┤      </span><span class="device">SW-A1      </span><span class="link">│   </span><span class="net">produzione  </span><span class="link">│  </span><span class="device">SW-PROD  </span><span class="link">│</span>
+ <span class="link">└────────────────────────────────┘         └───┬─────────┬───┘               └─────┬─────┘</span>
+          <span class="net">tavolo tecnico                        </span><span class="link">│  </span><span class="net">palco  </span><span class="link">│                         │</span>
+                                                <span class="link">│         │                         │</span>
+                                         Gig0/0 <span class="link">│         │ </span>Gig0/1                  <span class="link">│ </span>Gig0/0
+                                                <span class="link">│         │                         │</span>
+                                            <span class="link">┌───┴─────────┴───┐ </span>Gig0/2 Gig0/2 <span class="link">┌─────┴─────┐</span>
+                                            <span class="link">│     </span><span class="srv">R-ARENA     </span><span class="link">├───────────────┤  </span><span class="srv">R-REGIA  </span><span class="link">│</span>
+                                            <span class="link">└─────────────────┘               └─────┬─────┘</span>
+                                                                                    <span class="link">│</span>
+                                                                                    <span class="link">│ </span>Gig0/1
+                                                                                    <span class="link">│</span>
+                                                                              <span class="link">┌─────┴─────┐</span>
+                                                                  <span class="net">sala server </span><span class="link">│  </span><span class="device">SW-SRV   </span><span class="link">│</span>
+                                                                              <span class="link">└─┬───────┬─┘</span>
+                                                                                <span class="link">│       │</span>
+                                                                           <span class="server">DHCP-REGIA GAME</span>
+
+ <span class="link">─── </span>cavi in rame · SW-A1 e SW-A2 sono collegati tra loro sulle porte Gig0/1</div>
+
+    <h3>I dispositivi</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Zona</th><th>Che cosa inserire</th></tr>
+      <tr><td>Arena</td><td>R-ARENA · <strong>SW-A1</strong> sul palco: PC-G1 e PC-G2 (giocatori) ·
+          <strong>SW-A2</strong> al tavolo tecnico: PC-G3 (giocatore), PC-STAFF e il server DHCP-ARENA</td></tr>
+      <tr><td>Regia</td><td>R-REGIA · <strong>SW-PROD</strong>: PC-PROD · <strong>SW-SRV</strong> in sala server: i server DHCP-REGIA e GAME</td></tr>
+    </table></div>
+    <p class="small">Router Cisco 2911, switch Cisco 2960, server Server-PT, PC PC-PT. SW-A1 e SW-A2 si collegano tra loro con le porte
+       <code>Gig0/1</code>. Le altre porte degli switch le scegli tu.</p>
+
+    <h3>Le interfacce dei router</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Router</th><th><code>Gig0/0</code></th><th><code>Gig0/1</code></th><th><code>Gig0/2</code></th></tr>
+      <tr><td>R-ARENA</td><td>GIOCATORI (verso SW-A1)</td><td>STAFF DI GARA (verso SW-A1)</td><td>verso R-REGIA</td></tr>
+      <tr><td>R-REGIA</td><td>PRODUZIONE (verso SW-PROD)</td><td>SERVER (verso SW-SRV)</td><td>verso R-ARENA</td></tr>
+    </table></div>
+  </div>
+
+  <!-- PARTE 1 -->
+  <div class="card">
+    <h2><span class="part-num">1</span>Piano di indirizzamento <span class="tag tag-calc">calcolo</span><span class="meta"><span class="punti">2 punti</span><span class="tempo">~20 min</span></span></h2>
+    <p>Fai questa parte prima di aprire Packet Tracer. Tutto il resto del lavoro si basa su questi numeri:
+       un errore fatto qui si ripete ovunque. I punti di questa parte si assegnano controllando gli indirizzi che configuri su router e server.</p>
+    <ol class="steps">
+      <li>Dividi il blocco in sottoreti adatte a tutte le reti da realizzare, rispettando i requisiti.</li>
+      <li>Per ogni sottorete trova indirizzo di rete, maschera, primo e ultimo assegnabile e broadcast, e decidi a quale rete assegnarla.</li>
+      <li>Ricava gli indirizzi delle sei interfacce dei router e dei tre server, con la maschera e, per i server, il default gateway.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 1</div>
+      <ul>
+        <li>In ogni rete c'è posto per il gateway, per gli indirizzi statici e per quelli dei due pool DHCP</li>
+        <li>Le sottoreti non si sovrappongono e stanno tutte dentro il blocco</li>
+        <li>I server hanno gli ultimi indirizzi assegnabili della loro rete</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="card">
+    <h2><span class="part-num">2</span>Topologia, cablaggio e VLAN <span class="tag tag-pt">scheda Config</span><span class="meta"><span class="punti">2,5 punti</span><span class="tempo">~25 min</span></span></h2>
+    <ol class="steps">
+      <li>Inserisci tutti i dispositivi elencati nello scenario, con i nomi della tabella. Per router e switch imposta il nome anche come
+          <em>Hostname</em> (<em>Config → Settings</em>).</li>
+      <li>Collega i dispositivi rispettando la tabella delle interfacce dei router e le porte <code>Gig0/1</code> tra SW-A1 e SW-A2.</li>
+      <li>Su SW-A1 e SW-A2 crea le VLAN 10 e 20 con i nomi delle reti, senza spazi: ad esempio <code>STAFF_DI_GARA</code> (<em>Config → VLAN Database</em>).</li>
+      <li>Configura le porte usate di SW-A1 e SW-A2 rispettando il requisito 3.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 2</div>
+      <ul>
+        <li>Ci sono tutti i dispositivi, con i nomi richiesti</li>
+        <li>Ogni rete è collegata all'interfaccia del router indicata nella tabella</li>
+        <li>Su SW-A1 e SW-A2 ci sono le VLAN 10 e 20, con i nomi delle reti</li>
+        <li>Ogni porta usata di SW-A1 e SW-A2 è configurata per le VLAN che deve trasportare</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 3 -->
+  <div class="card">
+    <h2><span class="part-num">3</span>Router e RIP <span class="tag tag-pt">scheda Config</span><span class="meta"><span class="punti">1,5 punti</span><span class="tempo">~15 min</span></span></h2>
+    <ol class="steps">
+      <li>Su ogni router configura le interfacce con gli indirizzi della Parte 1 e accendile (<em>Port Status → On</em>).</li>
+      <li>Configura RIP su entrambi i router (<em>Config → ROUTING → RIP</em>), rispettando il requisito 4.</li>
+    </ol>
+    <div class="info-box">
+      Per ora i PC non hanno indirizzi, quindi il routing non si può ancora provare: lo verifichi con i ping della Parte 5.
+    </div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 3</div>
+      <ul>
+        <li>Tutte le interfacce usate sono accese e hanno l'indirizzo e la maschera giusti</li>
+        <li>I collegamenti dei router hanno le spie verdi</li>
+        <li>RIP è configurato su entrambi i router e nella sezione <em>Static</em> non c'è nessuna rotta</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 4 -->
+  <div class="card">
+    <h2><span class="part-num">4</span>DHCP di riserva e relay agent <span class="tag tag-pt">Services</span> <span class="tag tag-cli">CLI</span><span class="meta"><span class="punti">3 punti</span><span class="tempo">~30 min</span></span></h2>
+    <p>Ogni server è il principale per le reti della sua zona e la riserva per le reti dell'altra zona.</p>
+    <ol class="steps">
+      <li>Assegna a DHCP-ARENA, DHCP-REGIA e GAME gli indirizzi statici della Parte 1, con il default gateway.</li>
+      <li>Calcola, per ogni server, gli intervalli dei pool secondo il requisito 5. Poi crea su ogni server un pool per ogni rete che deve servire
+          (<em>Services → DHCP</em>) e accendi il servizio (<em>On</em>).</li>
+      <li>Per ogni rete decidi se serve il relay e verso quali server: nessuno, uno o due. Poi configura i router dalla CLI:
+          è l'unica volta che la usi.</li>
+      <li>Imposta tutti i PC su <em>DHCP</em> (<em>Desktop → IP Configuration</em>) e controlla che ognuno riceva un indirizzo della rete giusta,
+          con il gateway giusto.</li>
+    </ol>
+    <div class="info-box">
+      Il pool <em>serverPool</em> non si può eliminare, ma puoi cambiarne i valori. Ogni pool nuovo si crea con <em>Add</em>;
+      dopo aver modificato un pool esistente premi <em>Save</em>.
+    </div>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 4</div>
+      <ul>
+        <li>Ogni PC riceve un indirizzo della propria rete, con il gateway giusto</li>
+        <li>Nessun pool contiene un gateway, un server o un indirizzo di un altro pool</li>
+        <li>Il relay è configurato solo dove serve, verso i server giusti</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PARTE 5 -->
+  <div class="card">
+    <h2><span class="part-num">5</span>Collaudo e prova di guasto <span class="tag tag-pt">Packet Tracer</span><span class="meta"><span class="punti">1 punto</span><span class="tempo">~15 min</span></span></h2>
+
+    <h3>A. Il collaudo</h3>
+    <p>Esegui queste prove di ping dal <em>Command Prompt</em>. Il primo ping verso un'altra rete può perdere qualche risposta: ripetilo.
+       Se una prova non riesce, cerca l'errore e correggilo.</p>
+    <div class="table-wrap"><table>
+      <tr><th>#</th><th>Da</th><th>Verso</th></tr>
+      <tr><td>1</td><td>PC-G1</td><td>PC-G3</td></tr>
+      <tr><td>2</td><td>PC-STAFF</td><td>DHCP-ARENA</td></tr>
+      <tr><td>3</td><td>PC-G1</td><td>GAME</td></tr>
+      <tr><td>4</td><td>PC-PROD</td><td>PC-STAFF</td></tr>
+    </table></div>
+
+    <h3>B. Il guasto di un server</h3>
+    <ol class="steps">
+      <li>Su DHCP-ARENA spegni il servizio DHCP (<em>Services → DHCP → Off</em>).</li>
+      <li>Su PC-G1 chiedi un nuovo indirizzo: in <em>IP Configuration</em> passa a <em>Static</em> e poi di nuovo a <em>DHCP</em>.
+          Deve ricevere un indirizzo della riserva.</li>
+      <li>Riaccendi il servizio su DHCP-ARENA e spegnilo su DHCP-REGIA. Chiedi un nuovo indirizzo su PC-PROD: anche lui deve riceverlo dalla riserva.</li>
+      <li>Riaccendi il servizio su DHCP-REGIA.</li>
+    </ol>
+
+    <div class="check">
+      <div class="title">Punto di controllo — Parte 5</div>
+      <ul>
+        <li>Tutte le prove del collaudo riescono</li>
+        <li>Con un server spento, i PC ricevono un indirizzo dal server di riserva, senza modifiche alla configurazione</li>
+        <li>Alla fine entrambi i servizi DHCP sono accesi e ho salvato <code>Cognome_Nome_pixelcup.pkt</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BONUS -->
+  <div class="card part-extra">
+    <h2><span class="part-num">+</span>Bonus: un secondo collegamento tra le zone <span class="tag tag-plus">se resta tempo</span><span class="meta"><span class="punti">+0,5</span></span></h2>
+    <p>Se si rompe il cavo tra R-ARENA e R-REGIA, l'arena non raggiunge più il server GAME e la finale si ferma.
+       Aggiungi un secondo collegamento, in fibra ottica, tra i due router.</p>
+    <ol class="steps">
+      <li>Prima di tutto salva il file <code>.pkt</code> e la configurazione di entrambi i router (<em>Config → Settings → NVRAM: Save</em>):
+          quando spegni un router, la configurazione non salvata si perde.</li>
+      <li>Su ogni router: spegnilo dalla scheda <em>Physical</em>, inserisci un modulo <code>HWIC-1GE-SFP</code> nello slot EHWIC 0 e riaccendilo.
+          La nuova interfaccia si chiama <code>Gig0/0/0</code>.</li>
+      <li>Collega le due <code>Gig0/0/0</code> con un cavo in fibra. Per il collegamento usa la prima sottorete libera del tuo piano,
+          con la stessa regola del primo collegamento.</li>
+      <li>Elimina il cavo in rame tra i due router: PC-G1 deve continuare a raggiungere GAME. Poi rimetti il cavo.</li>
+    </ol>
+  </div>
+
+  <!-- CONSEGNA -->
+  <div class="card">
+    <h2>Quando hai finito</h2>
+    <ol class="steps">
+      <li>Controlla che entrambi i servizi DHCP siano accesi e che tutti i PC siano impostati su <em>DHCP</em>.</li>
+      <li>Salva il file <code>Cognome_Nome_pixelcup.pkt</code>.</li>
+      <li>Consegna il file nel modo indicato dall'insegnante.</li>
+    </ol>
+  </div>
+
+  <footer>
+    Verifica di laboratorio — La rete della Pixel Cup — 5ª ITT Sistemi e Reti — A.S. 2026/2027
+  </footer>
+
+</div>
+</body>
+</html>
